@@ -3,7 +3,7 @@
   "label": "N-40-42",
   "verified": false,
 
-  "map_notes": "Long thin wooden building on the NW side of block 147, fronting T…L Sokak at its north/street end and extending south into the block toward the church courtyard. Registered cadastrally under two parcel numbers (40) and (42) but architecturally it is ONE single mass — the map labels `(40)(42)` together above the footprint. Yellow tint throughout = wooden frame (class C). Interior labels, stacked north→south along the building's length, describe a sectional composition: street-end magasin, Turkish-vault middle zone with basement bays, an 'old' (V.x.) vault zone, and a 3-storey section at the courtyard end. A shop window (Vitrine) is marked at the far south end. TODO: confirm whether the FIRIN bakery label belongs to this building or a neighbouring yellow strip.",
+  "map_notes": "Long thin wooden building on the NW side of block 147, fronting T…L Sokak at its north/street end and extending south into the block toward the church courtyard. Registered cadastrally under two parcel numbers (40) and (42) but architecturally it is ONE single mass — the map labels `(40)(42)` together above the footprint. Yellow tint throughout = wooden frame (class C). Interior labels, stacked north→south along the building's length, describe a sectional composition: street-end magasin, Turkish-vault middle zone with 4 basement bays, an 'old' (V.x.) vault zone, a 3-storey section, and a shop window (Vitrine) at the far south end. NOTE: the FIRIN bakery label on the wider Pervititch screenshot belongs to a DIFFERENT yellow strip, not this building — confirmed by user. No oven chimney on this one.",
 
   "footprint_ref": "building-entrence-40-42.shp",
 
@@ -146,8 +146,12 @@
   "palette_override": null,
 
   "open_questions": [
-    "Is the FIRIN bakery label positioned over THIS building or one of the neighbouring yellow strips?",
-    "Is the primary_zone_axis really N→S, or does the shared footprint polygon run E↔W? Verify once the zone splitter runs.",
-    "Confirm the Vitrine is at the courtyard end, not at the street end."
-  ]
+    "Which adjacent yellow strip IS the actual FIRIN? Need to identify the correct parcel and add chimney + bakery use to that one, not this."
+  ],
+
+  "resolved_assumptions": {
+    "is_firin": "User confirmed THIS IS NOT the FIRIN. Chimney removed, ground floor use demoted from bakery to shop on middle_vault.",
+    "zone_axis": "N→S confirmed. street_magasin is at T…L Sokak (north), rear_three_storey + vitrine extend south into the block toward the church courtyard.",
+    "vitrine_at_courtyard_end": "Confirmed — Vitrine is the far-south glazed end, not street."
+  }
 }
