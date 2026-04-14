@@ -9,5 +9,7 @@
   "near-39-open-32-the last-corner-triangular-magazine.": ["W-32"],
   "church-entrence-camli-area-(39-1*39-2)-with-clocher": ["W-39/1"],
   "churche-entrence-camli-area-(39-1,-39-2)-clocher": ["W-39/1"],
-  "at-the-green-area-wooden-at-147-block-near-the-church-middle-of-the-block": ["E-4a"]
+  "at-the-green-area-wooden-at-147-block-near-the-church-middle-of-the-block": ["E-4a"],
+  "_note_54-54-02": "buildingentrence54-54-02.kml has a typo ('54-54' should be '52-54'). It duplicates building-entrence-52-54-02.shp. Ignoring the KML via override pointing at nothing so it doesn't count as a separate footprint.",
+  "buildingentrence54-54-02": []
 }

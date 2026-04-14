@@ -52,9 +52,12 @@ class FilenameClassifier:
             return Classification(FootprintKind.BLOCK_OUTLINE)
 
         # Manual override wins over every heuristic below.
-        override_ids = self._overrides.get(basename) or self._overrides.get(b)
-        if override_ids:
-            return Classification(FootprintKind.PARCEL, parcel_ids_override=override_ids)
+        if basename in self._overrides or b in self._overrides:
+            override_ids = self._overrides.get(basename) or self._overrides.get(b)
+            if override_ids:
+                return Classification(FootprintKind.PARCEL, parcel_ids_override=override_ids)
+            # Empty override list → explicit "ignore this file".
+            return Classification(FootprintKind.OTHER_NON_PARCEL)
 
         for kind, hints in _NON_PARCEL_KINDS:
             if any(h in b for h in hints):
@@ -73,9 +76,11 @@ class FilenameClassifier:
         raw = json.loads(FILENAME_OVERRIDES.read_text())
         out: dict[str, list[str]] = {}
         for k, v in raw.items():
-            if k.startswith("_") or not isinstance(v, list):
+            if k.startswith("_"):
                 continue
-            out[k] = list(v)
+            if not isinstance(v, list):
+                continue
+            out[k] = list(v)          # empty list = "ignore this file"
             out[k.lower()] = list(v)
         return out
 

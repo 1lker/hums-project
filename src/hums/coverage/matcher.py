@@ -96,6 +96,22 @@ class CoverageMatcher:
             pr = f["properties"]
             lines.append(f"- **{pr.get('kind')}** — `{pr.get('name')}` ({pr.get('area_m2')} m²)")
 
+        # Explicit audit: parcels backed by more than one traced footprint.
+        # Each one MUST become multiple Building volumes downstream (PRD-002
+        # used to silently drop the extras — a real bug).
+        from collections import Counter
+        pid_counts: Counter[str] = Counter()
+        for f in foot_features:
+            for pid in f["properties"].get("parcel_ids_matched") or []:
+                pid_counts[pid] += 1
+        multi = {pid: n for pid, n in pid_counts.items() if n > 1}
+        if multi:
+            lines.append("\n## Multi-footprint parcels (each must emit N buildings)\n")
+            lines.append("| parcel_id | footprints |")
+            lines.append("|---|---|")
+            for pid, n in sorted(multi.items()):
+                lines.append(f"| {pid} | {n} |")
+
         COVERAGE_REPORT.write_text("\n".join(lines))
 
 

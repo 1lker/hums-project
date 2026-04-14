@@ -40,7 +40,9 @@
       "Bash(git commit -m 'feat\\(prd-004\\): 2D diagnostic SVG map for placement verification:*)",
       "Skill(update-config)",
       "Skill(update-config:*)",
-      "Bash(git commit -m 'fix\\(prd-002,004\\): one Building per traced footprint + broad approve perms:*)"
+      "Bash(git commit -m 'fix\\(prd-002,004\\): one Building per traced footprint + broad approve perms:*)",
+      "Bash(ls -la data/raw/kml/*54* data/raw/shp/*54*)",
+      "Bash(git commit -m 'fix\\(prd-001\\): guard against silent footprint drops + ignore typo-duplicate:*)"
     ]
   }
 }
