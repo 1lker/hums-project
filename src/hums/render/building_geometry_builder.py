@@ -7,9 +7,11 @@ from __future__ import annotations
 
 from ..common.prd import prd
 from ..modeling.building import Building
+from .geometry.facade_banding import FacadeBanding
 from .geometry.roof import for_shape as roof_for_shape
 from .geometry.roof.base import RoofGenerator
 from .geometry.roof.overhang import RoofOverhang
+from .geometry.shutters_balconies import ShuttersAndBalconies
 from .geometry.wall_extruder import WallExtruder
 from .geometry.wall_subdivider import WallSubdivider
 from .mesh_graph import BuildingMesh
@@ -21,6 +23,8 @@ class BuildingGeometryBuilder:
         self._wall_extruder = WallExtruder()
         self._wall_subdivider = WallSubdivider()
         self._roof_overhang = RoofOverhang()
+        self._facade_banding = FacadeBanding()
+        self._shutters_balconies = ShuttersAndBalconies()
 
     def build(self, building: Building) -> BuildingMesh | None:
         if not building.footprint_local or not building.local_frame:
@@ -51,6 +55,9 @@ class BuildingGeometryBuilder:
         # Walls with real punched openings.
         storey_heights = [s.height_m for s in building.storeys if not s.is_basement]
         self._wall_subdivider.emit(mesh, building, storey_heights)
+
+        self._facade_banding.emit(mesh, building)
+        self._shutters_balconies.emit(mesh, building)
 
         self._add_roof(mesh, building)
         eaves_z = RoofGenerator.total_wall_height(building)

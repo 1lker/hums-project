@@ -1,19 +1,17 @@
 """PRD-004 · Track C — Ayia Eftimia church + clocher + kubbe.
 
-Reads the main church polygon from ``non_parcel_footprints.geojson`` (the
-largest "church"-kind feature) and composes three volumes:
+Orthodox cruciform basilica model:
 
-  1. Body (nave) — extruded footprint, hip-capped at 7 m + 25° pitch.
-  2. Kubbe (central dome) — hemisphere over body centroid.
-  3. Clocher (bell tower) — slim square tower at the south edge of the body.
-
-The whole thing is returned as one BuildingMesh so backends can place it by
-the scene centroid like any other building.
+  1. Nave body — extruded footprint with a *low* (near-flat) hip roof so the
+     central dome reads as the dominant mass.
+  2. Drum — a tall cylinder sitting on the centre of the body.
+  3. Kubbe — UV hemisphere above the drum + a tiny lantern on top.
+  4. Plinth band — stone skirting around the body base.
+  5. Clocher — tall bell tower at the south-west corner with pyramidal cap.
 """
 from __future__ import annotations
 import json
 import math
-from pathlib import Path
 
 from shapely.geometry import Polygon, shape
 
@@ -23,15 +21,19 @@ from ...modeling.building import FacadePalette
 from ..mesh_graph import BuildingMesh
 
 
-BODY_HEIGHT = 7.0
-ROOF_PITCH_DEG = 25.0
-DOME_RADIUS = 3.5
-DOME_BASE_Z = 7.8        # top of body + a small drum
-DOME_SEGMENTS = 16
-DOME_RINGS = 8
-CLOCHER_SIDE = 3.0
-CLOCHER_HEIGHT = 12.0
-CLOCHER_ROOF_HEIGHT = 3.5
+BODY_HEIGHT = 8.0
+PLINTH_HEIGHT = 0.8
+DRUM_BASE_Z = BODY_HEIGHT + 0.4
+DRUM_HEIGHT = 4.0
+DRUM_RADIUS = 4.0
+DOME_RADIUS = 4.2             # slightly wider than drum for a flush cornice
+DOME_SEGMENTS = 24
+DOME_RINGS = 10
+LANTERN_HEIGHT = 1.8
+LANTERN_RADIUS = 0.7
+CLOCHER_SIDE = 3.2
+CLOCHER_HEIGHT = 15.0
+CLOCHER_ROOF_HEIGHT = 4.0
 
 
 STONE_PALETTE = FacadePalette(
@@ -54,8 +56,6 @@ class ChurchBuilder:
 
         c = poly.centroid
         origin_utm = (c.x, c.y)
-
-        # Convert polygon to local coords centred on the church centroid.
         ring_local = [(x - c.x, y - c.y) for (x, y) in list(poly.exterior.coords)[:-1]]
 
         mesh = BuildingMesh(
@@ -68,138 +68,220 @@ class ChurchBuilder:
                 "structure_type": "church",
                 "footprint_source": "traced",
                 "notes": {"role": "Rum Ortodoks Kilisesi Ayia Eftimia"},
-                "block_centroid_utm": block_centroid_utm,
             },
         )
 
+        self._emit_plinth(mesh, ring_local)
         self._emit_body(mesh, ring_local)
-        self._emit_hip_roof(mesh, ring_local)
+        self._emit_low_roof_apron(mesh, ring_local)
+        self._emit_drum(mesh, ring_local)
         self._emit_kubbe(mesh, ring_local)
+        self._emit_lantern(mesh, ring_local)
         self._emit_clocher(mesh, ring_local)
         return mesh
 
-    # -- body + simple hip roof -----------------------------------------------
-    def _emit_body(self, mesh: BuildingMesh, ring: list[tuple[float, float]]) -> None:
+    # -------------------------------------------------------------------------
+    def _emit_plinth(self, mesh: BuildingMesh, ring) -> None:
         pid = mesh.parcel_id
-        # Ground (CityGML normal -Z → reverse ring)
-        gidx = [mesh.add_vertex(x, y, 0.0) for (x, y) in reversed(ring)]
-        mesh.add_face(gidx, role="GroundSurface",
-                      surface_id=f"{pid}.ground", material_key="plinth_stone")
-        # Walls (CCW footprint; outward normal from bottom-start → top-start → top-end → bottom-end)
+        # Raised stone plinth: slightly offset outward + taller than parcel walls.
         for i in range(len(ring)):
             a = ring[i]
             b = ring[(i + 1) % len(ring)]
             mesh.add_quad(
                 p0=(a[0], a[1], 0.0),
-                p1=(a[0], a[1], BODY_HEIGHT),
-                p2=(b[0], b[1], BODY_HEIGHT),
-                p3=(b[0], b[1], 0.0),
-                role="ChurchBody",
-                surface_id=f"{pid}.body.{i}",
-                material_key="wall_main",
-            )
-        # Plinth band (0.6 m tall) with slightly outward offset
-        plinth_h = 0.6
-        for i in range(len(ring)):
-            a = ring[i]
-            b = ring[(i + 1) % len(ring)]
-            mesh.add_quad(
-                p0=(a[0], a[1], 0.0),
-                p1=(a[0], a[1], plinth_h),
-                p2=(b[0], b[1], plinth_h),
+                p1=(a[0], a[1], PLINTH_HEIGHT),
+                p2=(b[0], b[1], PLINTH_HEIGHT),
                 p3=(b[0], b[1], 0.0),
                 role="PlinthSurface",
                 surface_id=f"{pid}.plinth.{i}",
                 material_key="plinth_stone",
             )
 
-    def _emit_hip_roof(self, mesh: BuildingMesh, ring: list[tuple[float, float]]) -> None:
-        # Simple pyramid hip over centroid for the church body.
+    def _emit_body(self, mesh: BuildingMesh, ring) -> None:
         pid = mesh.parcel_id
-        cx = sum(p[0] for p in ring) / len(ring)
-        cy = sum(p[1] for p in ring) / len(ring)
-        poly = Polygon(ring)
-        minx, miny, maxx, maxy = poly.bounds
-        half_min = min(maxx - minx, maxy - miny) / 2.0
-        rise = half_min * math.tan(math.radians(ROOF_PITCH_DEG))
-        apex_z = BODY_HEIGHT + rise
-        apex = mesh.add_vertex(cx, cy, apex_z)
+        gidx = [mesh.add_vertex(x, y, 0.0) for (x, y) in reversed(ring)]
+        mesh.add_face(gidx, role="GroundSurface",
+                      surface_id=f"{pid}.ground", material_key="plinth_stone")
         for i in range(len(ring)):
             a = ring[i]
             b = ring[(i + 1) % len(ring)]
+            mesh.add_quad(
+                p0=(a[0], a[1], PLINTH_HEIGHT),
+                p1=(a[0], a[1], BODY_HEIGHT),
+                p2=(b[0], b[1], BODY_HEIGHT),
+                p3=(b[0], b[1], PLINTH_HEIGHT),
+                role="ChurchBody",
+                surface_id=f"{pid}.body.{i}",
+                material_key="wall_main",
+            )
+
+    def _emit_low_roof_apron(self, mesh: BuildingMesh, ring) -> None:
+        """Almost-flat hip apron so the drum/dome reads as the dominant mass."""
+        pid = mesh.parcel_id
+        # Minor rise (50 cm) toward the centroid — reads as a low hip, not a pyramid.
+        cx = sum(p[0] for p in ring) / len(ring)
+        cy = sum(p[1] for p in ring) / len(ring)
+        rise = 0.5
+        ridge_z = BODY_HEIGHT + rise
+        for i in range(len(ring)):
+            a = ring[i]
+            b = ring[(i + 1) % len(ring)]
+            # trapezoid from outer edge rising to the midline point
             ia = mesh.add_vertex(a[0], a[1], BODY_HEIGHT)
             ib = mesh.add_vertex(b[0], b[1], BODY_HEIGHT)
-            mesh.add_face([ia, apex, ib], role="RoofSurface",
-                          surface_id=f"{pid}.roof.{i}",
+            # interior point = 25% from edge to centroid
+            midax = a[0] + (cx - a[0]) * 0.25
+            miday = a[1] + (cy - a[1]) * 0.25
+            midbx = b[0] + (cx - b[0]) * 0.25
+            midby = b[1] + (cy - b[1]) * 0.25
+            ma = mesh.add_vertex(midax, miday, ridge_z)
+            mb = mesh.add_vertex(midbx, midby, ridge_z)
+            mesh.add_face([ia, ma, mb, ib], role="RoofSurface",
+                          surface_id=f"{pid}.roof.apron.{i}",
+                          material_key="tile_terracotta")
+        # Top flat ring around the drum base (matches drum footprint radius).
+        # Emit a concentric deck between the apron inner edge and the drum base.
+        deck_inner: list[int] = []
+        for k in range(DOME_SEGMENTS):
+            ang = 2 * math.pi * k / DOME_SEGMENTS
+            deck_inner.append(mesh.add_vertex(cx + DRUM_RADIUS * math.cos(ang),
+                                              cy + DRUM_RADIUS * math.sin(ang),
+                                              DRUM_BASE_Z))
+        # One triangle fan from deck_inner to a central apex (just below drum base) → fills the gap.
+        apex = mesh.add_vertex(cx, cy, DRUM_BASE_Z - 0.05)
+        for k in range(DOME_SEGMENTS):
+            kp = (k + 1) % DOME_SEGMENTS
+            mesh.add_face([apex, deck_inner[k], deck_inner[kp]],
+                          role="RoofSurface",
+                          surface_id=f"{pid}.roof.deck.{k}",
                           material_key="tile_terracotta")
 
-    # -- dome ------------------------------------------------------------------
-    def _emit_kubbe(self, mesh: BuildingMesh, ring: list[tuple[float, float]]) -> None:
+    def _emit_drum(self, mesh: BuildingMesh, ring) -> None:
         pid = mesh.parcel_id
         cx = sum(p[0] for p in ring) / len(ring)
         cy = sum(p[1] for p in ring) / len(ring)
-
-        # drum (short cylinder under the dome)
-        drum_h = 0.8
-        drum_r = DOME_RADIUS * 1.05
-        drum_verts: list[int] = []
+        top_z = DRUM_BASE_Z + DRUM_HEIGHT
+        verts_lower: list[int] = []
+        verts_upper: list[int] = []
         for k in range(DOME_SEGMENTS):
             ang = 2 * math.pi * k / DOME_SEGMENTS
-            x = cx + drum_r * math.cos(ang)
-            y = cy + drum_r * math.sin(ang)
-            drum_verts.append(mesh.add_vertex(x, y, DOME_BASE_Z - drum_h))
-        top_drum_verts: list[int] = []
-        for k in range(DOME_SEGMENTS):
-            ang = 2 * math.pi * k / DOME_SEGMENTS
-            x = cx + drum_r * math.cos(ang)
-            y = cy + drum_r * math.sin(ang)
-            top_drum_verts.append(mesh.add_vertex(x, y, DOME_BASE_Z))
+            x = cx + DRUM_RADIUS * math.cos(ang)
+            y = cy + DRUM_RADIUS * math.sin(ang)
+            verts_lower.append(mesh.add_vertex(x, y, DRUM_BASE_Z))
+            verts_upper.append(mesh.add_vertex(x, y, top_z))
         for k in range(DOME_SEGMENTS):
             kp = (k + 1) % DOME_SEGMENTS
             mesh.add_quad(
-                p0=(mesh.vertices[drum_verts[k]].x, mesh.vertices[drum_verts[k]].y, DOME_BASE_Z - drum_h),
-                p1=(mesh.vertices[top_drum_verts[k]].x, mesh.vertices[top_drum_verts[k]].y, DOME_BASE_Z),
-                p2=(mesh.vertices[top_drum_verts[kp]].x, mesh.vertices[top_drum_verts[kp]].y, DOME_BASE_Z),
-                p3=(mesh.vertices[drum_verts[kp]].x, mesh.vertices[drum_verts[kp]].y, DOME_BASE_Z - drum_h),
+                p0=_vp(mesh, verts_lower[k]),
+                p1=_vp(mesh, verts_upper[k]),
+                p2=_vp(mesh, verts_upper[kp]),
+                p3=_vp(mesh, verts_lower[kp]),
                 role="ChurchBody",
                 surface_id=f"{pid}.drum.{k}",
                 material_key="wall_main",
             )
+        # Narrow arched-window band — flat inset strips on alternating segments.
+        band_h = 1.6
+        band_bot = DRUM_BASE_Z + (DRUM_HEIGHT - band_h) / 2
+        band_top = band_bot + band_h
+        for k in range(0, DOME_SEGMENTS, 2):
+            kp = (k + 1) % DOME_SEGMENTS
+            ang0 = 2 * math.pi * k / DOME_SEGMENTS
+            ang1 = 2 * math.pi * kp / DOME_SEGMENTS
+            rr = DRUM_RADIUS - 0.1
+            x0, y0 = cx + rr * math.cos(ang0), cy + rr * math.sin(ang0)
+            x1, y1 = cx + rr * math.cos(ang1), cy + rr * math.sin(ang1)
+            mesh.add_quad(
+                p0=(x0, y0, band_bot),
+                p1=(x0, y0, band_top),
+                p2=(x1, y1, band_top),
+                p3=(x1, y1, band_bot),
+                role="Window",
+                surface_id=f"{pid}.drum.window.{k}",
+                material_key="window_glass",
+            )
 
-        # hemisphere strips
-        prev_ring: list[int] = top_drum_verts
-        for ring_idx in range(1, DOME_RINGS + 1):
-            phi = (math.pi / 2) * (ring_idx / DOME_RINGS)
-            r = DOME_RADIUS * math.cos(phi)
-            z = DOME_BASE_Z + DOME_RADIUS * math.sin(phi)
-            curr_ring: list[int] = []
+    def _emit_kubbe(self, mesh: BuildingMesh, ring) -> None:
+        pid = mesh.parcel_id
+        cx = sum(p[0] for p in ring) / len(ring)
+        cy = sum(p[1] for p in ring) / len(ring)
+        base_z = DRUM_BASE_Z + DRUM_HEIGHT
+
+        prev_ring: list[int] = []
+        for k in range(DOME_SEGMENTS):
+            ang = 2 * math.pi * k / DOME_SEGMENTS
+            prev_ring.append(mesh.add_vertex(
+                cx + DOME_RADIUS * math.cos(ang),
+                cy + DOME_RADIUS * math.sin(ang),
+                base_z,
+            ))
+
+        for r_idx in range(1, DOME_RINGS + 1):
+            phi = (math.pi / 2) * (r_idx / DOME_RINGS)
+            rr = DOME_RADIUS * math.cos(phi)
+            z = base_z + DOME_RADIUS * math.sin(phi)
+            curr: list[int] = []
             for k in range(DOME_SEGMENTS):
                 ang = 2 * math.pi * k / DOME_SEGMENTS
-                curr_ring.append(mesh.add_vertex(cx + r * math.cos(ang),
-                                                 cy + r * math.sin(ang), z))
+                curr.append(mesh.add_vertex(cx + rr * math.cos(ang),
+                                            cy + rr * math.sin(ang),
+                                            z))
             for k in range(DOME_SEGMENTS):
                 kp = (k + 1) % DOME_SEGMENTS
                 mesh.add_quad(
                     p0=_vp(mesh, prev_ring[k]),
-                    p1=_vp(mesh, curr_ring[k]),
-                    p2=_vp(mesh, curr_ring[kp]),
+                    p1=_vp(mesh, curr[k]),
+                    p2=_vp(mesh, curr[kp]),
                     p3=_vp(mesh, prev_ring[kp]),
                     role="ChurchDome",
-                    surface_id=f"{pid}.dome.{ring_idx}.{k}",
+                    surface_id=f"{pid}.dome.{r_idx}.{k}",
                     material_key="dome_lead",
                 )
-            prev_ring = curr_ring
+            prev_ring = curr
 
-    # -- clocher ---------------------------------------------------------------
-    def _emit_clocher(self, mesh: BuildingMesh, ring: list[tuple[float, float]]) -> None:
+    def _emit_lantern(self, mesh: BuildingMesh, ring) -> None:
+        pid = mesh.parcel_id
+        cx = sum(p[0] for p in ring) / len(ring)
+        cy = sum(p[1] for p in ring) / len(ring)
+        base_z = DRUM_BASE_Z + DRUM_HEIGHT + DOME_RADIUS
+        top_z = base_z + LANTERN_HEIGHT
+        # Octagonal lantern drum
+        segs = 8
+        lower: list[int] = []
+        upper: list[int] = []
+        for k in range(segs):
+            ang = 2 * math.pi * k / segs
+            lower.append(mesh.add_vertex(cx + LANTERN_RADIUS * math.cos(ang),
+                                         cy + LANTERN_RADIUS * math.sin(ang), base_z))
+            upper.append(mesh.add_vertex(cx + LANTERN_RADIUS * math.cos(ang),
+                                         cy + LANTERN_RADIUS * math.sin(ang), top_z))
+        for k in range(segs):
+            kp = (k + 1) % segs
+            mesh.add_quad(
+                p0=_vp(mesh, lower[k]), p1=_vp(mesh, upper[k]),
+                p2=_vp(mesh, upper[kp]), p3=_vp(mesh, lower[kp]),
+                role="ChurchBody",
+                surface_id=f"{pid}.lantern.side.{k}",
+                material_key="wall_main",
+            )
+        # Pointed cap (cone)
+        apex = mesh.add_vertex(cx, cy, top_z + 0.8)
+        for k in range(segs):
+            kp = (k + 1) % segs
+            mesh.add_face(
+                [upper[k], apex, upper[kp]],
+                role="RoofSurface",
+                surface_id=f"{pid}.lantern.cap.{k}",
+                material_key="dome_lead",
+            )
+
+    def _emit_clocher(self, mesh: BuildingMesh, ring) -> None:
         pid = mesh.parcel_id
         poly = Polygon(ring)
         minx, miny, maxx, maxy = poly.bounds
-        # Position the clocher on the south-west side, just outside church footprint
-        cx = (minx + maxx) / 2 - 2.0
+        cx = (minx + maxx) / 2 - 2.5
         cy = miny - CLOCHER_SIDE / 2 - 0.5
         half = CLOCHER_SIDE / 2
-        # 4 tower faces
         corners = [
             (cx - half, cy - half),
             (cx + half, cy - half),
@@ -217,6 +299,25 @@ class ChurchBuilder:
                 role="Clocher",
                 surface_id=f"{pid}.clocher.side.{i}",
                 material_key="wall_main",
+            )
+        # Open belfry arches at the top — glass inserts.
+        belfry_bot = CLOCHER_HEIGHT - 2.5
+        belfry_top = CLOCHER_HEIGHT - 0.5
+        for i in range(4):
+            a = corners[i]
+            b = corners[(i + 1) % 4]
+            ax = a[0] + (b[0] - a[0]) * 0.2
+            ay = a[1] + (b[1] - a[1]) * 0.2
+            bx = a[0] + (b[0] - a[0]) * 0.8
+            by = a[1] + (b[1] - a[1]) * 0.8
+            mesh.add_quad(
+                p0=(ax, ay, belfry_bot),
+                p1=(ax, ay, belfry_top),
+                p2=(bx, by, belfry_top),
+                p3=(bx, by, belfry_bot),
+                role="Window",
+                surface_id=f"{pid}.belfry.{i}",
+                material_key="window_glass",
             )
         # Pyramidal cap
         apex_z = CLOCHER_HEIGHT + CLOCHER_ROOF_HEIGHT

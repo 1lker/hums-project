@@ -16,6 +16,7 @@ from ..render.backends.ifc_backend import IfcBackend
 from ..render.building_geometry_builder import BuildingGeometryBuilder
 from ..render.reports.geometry_manifest import write_reports
 from ..render.scene_assembler import SceneAssembler
+from ..render.scene.street_mesh import load_block_ring_local
 from ..render.special.church_builder import ChurchBuilder
 
 BUILDINGS_JSON = PARSED / "buildings.json"
@@ -41,6 +42,9 @@ class Prd003Pipeline:
         if church_mesh is not None:
             meshes.append(church_mesh)
         scene = SceneAssembler().assemble(meshes, block_centroid)
+        block_ring = load_block_ring_local(block_centroid)
+        if block_ring:
+            scene.metadata["block_ring_local"] = block_ring
 
         # Backends
         IFC_DIR.mkdir(parents=True, exist_ok=True)

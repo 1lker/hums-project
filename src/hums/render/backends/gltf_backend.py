@@ -38,6 +38,10 @@ class GltfBackend:
 
         if scene.ground is not None:
             _add_ground_plane(root, buffer, scene.ground)
+        # Sidewalk ring hugging the block outline (added for visual framing).
+        block_ring = scene.metadata.get("block_ring_local")
+        if block_ring:
+            _add_sidewalk_ring(root, buffer, block_ring)
         if scene.camera is not None:
             _add_camera(root, scene.camera)
         if scene.lights:
@@ -297,6 +301,83 @@ def _add_ground_plane(root: gl.GLTF2, buffer: bytearray, ground) -> None:
     mesh = gl.Mesh(primitives=[prim], name="ground")
     root.meshes.append(mesh)
     node = gl.Node(name="ground", mesh=len(root.meshes) - 1)
+    root.nodes.append(node)
+    root.nodes[0].children.append(len(root.nodes) - 1)
+
+
+def _add_sidewalk_ring(root: gl.GLTF2, buffer: bytearray, block_ring: list[list[float]]) -> None:
+    """Raised sidewalk strip hugging the block — visually frames the buildings."""
+    import struct
+    from shapely.geometry import Polygon
+    import numpy as np
+
+    if len(block_ring) < 3:
+        return
+    inner = Polygon([tuple(p) for p in block_ring])
+    outer = inner.buffer(2.0, join_style=2)
+    if outer.is_empty or outer.geom_type != "Polygon":
+        return
+    outer_ring = list(outer.exterior.coords)[:-1]
+    inner_ring = [tuple(p) for p in block_ring]
+
+    z_top = 0.15
+    positions: list[tuple[float, float, float]] = []
+    indices: list[int] = []
+
+    # Build tri strip between outer (lower) and inner (upper) rings.
+    n = len(outer_ring)
+    # Sample inner ring to match outer length (simple resampling)
+    inner_len = len(inner_ring)
+    mapping = [int(round(i * inner_len / n)) % inner_len for i in range(n)]
+
+    def add_v(p):
+        positions.append(p)
+        return len(positions) - 1
+
+    base_outer = [add_v((x, y, 0.0)) for (x, y) in outer_ring]
+    top_outer = [add_v((x, y, z_top)) for (x, y) in outer_ring]
+    top_inner = [add_v((inner_ring[mapping[i]][0], inner_ring[mapping[i]][1], z_top)) for i in range(n)]
+    base_inner = [add_v((inner_ring[mapping[i]][0], inner_ring[mapping[i]][1], 0.0)) for i in range(n)]
+
+    # outer curb face + top + inner curb face
+    for i in range(n):
+        j = (i + 1) % n
+        # outer face (vertical)
+        indices.extend([base_outer[i], top_outer[i], top_outer[j]])
+        indices.extend([base_outer[i], top_outer[j], base_outer[j]])
+        # top surface
+        indices.extend([top_outer[i], top_inner[i], top_inner[j]])
+        indices.extend([top_outer[i], top_inner[j], top_outer[j]])
+        # inner curb face
+        indices.extend([top_inner[i], base_inner[i], base_inner[j]])
+        indices.extend([top_inner[i], base_inner[j], top_inner[j]])
+
+    pos_bytes = b"".join(struct.pack("<fff", *p) for p in positions)
+    idx_bytes = b"".join(struct.pack("<I", i) for i in indices)
+    pos_view = _append_view(root, buffer, pos_bytes, target=gl.ARRAY_BUFFER)
+    idx_view = _append_view(root, buffer, idx_bytes, target=gl.ELEMENT_ARRAY_BUFFER)
+    arr = np.array(positions, dtype=np.float32)
+    pos_acc = _new_accessor(root, pos_view, len(positions), type_=gl.VEC3, component=gl.FLOAT,
+                            mins=arr.min(axis=0).tolist(), maxs=arr.max(axis=0).tolist())
+    idx_acc = _new_accessor(root, idx_view, len(indices), type_=gl.SCALAR, component=gl.UNSIGNED_INT)
+
+    mat = gl.Material(
+        name="sidewalk_stone",
+        pbrMetallicRoughness=gl.PbrMetallicRoughness(
+            baseColorFactor=[0.58, 0.56, 0.52, 1.0],
+            metallicFactor=0.0, roughnessFactor=0.90,
+        ),
+        doubleSided=True,
+    )
+    root.materials.append(mat)
+    prim = gl.Primitive(
+        attributes=gl.Attributes(POSITION=pos_acc), indices=idx_acc,
+        material=len(root.materials) - 1,
+        extras={"semantic_role": "Sidewalk"},
+    )
+    mesh_g = gl.Mesh(primitives=[prim], name="sidewalk")
+    root.meshes.append(mesh_g)
+    node = gl.Node(name="sidewalk", mesh=len(root.meshes) - 1)
     root.nodes.append(node)
     root.nodes[0].children.append(len(root.nodes) - 1)
 

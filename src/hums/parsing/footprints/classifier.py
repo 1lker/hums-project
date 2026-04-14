@@ -46,7 +46,9 @@ class FilenameClassifier:
     def classify(self, basename: str) -> Classification:
         b = basename.lower()
 
-        if "blobk-147" in b or "block-147-layer" in b:
+        # Loosened to recognise new filenames like blobk147layer-main.kml
+        # (no hyphens between `blobk`/`147`/`layer`).
+        if any(tag in b for tag in ("blobk-147", "block-147-layer", "blobk147layer", "block147layer")):
             return Classification(FootprintKind.BLOCK_OUTLINE)
 
         # Manual override wins over every heuristic below.

@@ -36,13 +36,22 @@ class SourceRegistry:
     def discover(self) -> list[FootprintSource]:
         buckets: dict[str, dict] = {}
         for path in self._root.rglob("*.shp"):
+            if self._skip(path):
+                continue
             buckets.setdefault(self._norm(path.stem), {"stem": path.stem})["shp"] = path
         for path in self._root.rglob("*.kml"):
+            if self._skip(path):
+                continue
             buckets.setdefault(self._norm(path.stem), {"stem": path.stem})["kml"] = path
         return [
             FootprintSource(key=k, display_name=b["stem"], shp=b.get("shp"), kml=b.get("kml"))
             for k, b in sorted(buckets.items())
         ]
+
+    @staticmethod
+    def _skip(path: Path) -> bool:
+        """Skip archived/quarantined sources — `data/raw/_deprecated/`, etc."""
+        return any(part.startswith("_") for part in path.parts)
 
     @staticmethod
     def _norm(stem: str) -> str:

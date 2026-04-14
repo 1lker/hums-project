@@ -36,30 +36,30 @@ class LocalFrameBuilder:
         self._block = block_outline
 
     def build(self, footprint_utm: Polygon) -> tuple[LocalFrame, list[Point]]:
+        """Return a LocalFrame with **zero rotation**.
+
+        Earlier versions rotated each building to its own street-edge axis,
+        but adjacent buildings can have opposite polygon winding, which led
+        to neighbours sitting at flipped rotations and drifting apart in the
+        scene. Keeping everything in world-UTM-translated coordinates
+        preserves every parcel's real position and shape exactly, at the
+        small cost of facades that aren't always axis-aligned in local
+        space. Photo-alignment (PRD-005) can derive its own per-facade
+        rotation from the wall segment's azimuth when needed.
+        """
         centroid = footprint_utm.centroid
         origin = (centroid.x, centroid.y)
 
-        edge = self._longest_exterior_edge(footprint_utm)
-        rotation_rad = edge.angle_rad  # we want this edge along +X → rotate by -angle
-
-        local = []
-        cos_r = math.cos(-rotation_rad)
-        sin_r = math.sin(-rotation_rad)
         coords = list(footprint_utm.exterior.coords)
         if coords[0] == coords[-1]:
             coords = coords[:-1]
-        for (x, y) in coords:
-            dx = x - origin[0]
-            dy = y - origin[1]
-            lx = dx * cos_r - dy * sin_r
-            ly = dx * sin_r + dy * cos_r
-            local.append((round(lx, 4), round(ly, 4)))
+        local = [(round(x - origin[0], 4), round(y - origin[1], 4)) for (x, y) in coords]
 
-        # Ensure CCW
+        # Ensure CCW (downstream normals depend on it).
         if _signed_area(local) < 0:
             local.reverse()
 
-        frame = LocalFrame(origin_utm=origin, street_rotation_deg=round(math.degrees(rotation_rad), 3))
+        frame = LocalFrame(origin_utm=origin, street_rotation_deg=0.0)
         return frame, local
 
     def _longest_exterior_edge(self, poly: Polygon) -> EdgeChoice:

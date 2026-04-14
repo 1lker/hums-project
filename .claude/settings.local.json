@@ -32,7 +32,10 @@
       "Bash(PYTHONPATH=src .venv/bin/python -m hums prd003)",
       "Bash(PYTHONPATH=src .venv/bin/python -u -m hums prd003)",
       "Bash(.venv/bin/python -u -c ':*)",
-      "*"
+      "Bash(PYTHONPATH=src .venv/bin/python -m hums prd002)",
+      "Bash(ls -la data/raw/kml/blobk147* data/raw/shp/blobk147*)",
+      "Bash(mv data/raw/shp/blobk-147-layer.* data/raw/_deprecated/)",
+      "Bash(ls data/raw/shp/blobk* data/raw/kml/blobk*)"
     ]
   }
 }
