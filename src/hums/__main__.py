@@ -10,11 +10,13 @@ import sys
 from .imagery.image_ingest import ingest as imagery_ingest
 from .pipelines.prd001_data_foundation import Prd001Pipeline
 from .pipelines.prd002_buildings import Prd002Pipeline
+from .pipelines.prd003_geometry import Prd003Pipeline
 
 
 PIPELINES = {
     "prd001": Prd001Pipeline,
     "prd002": Prd002Pipeline,
+    "prd003": Prd003Pipeline,
 }
 
 

@@ -34,6 +34,9 @@ prd001:
 prd002:
 	PYTHONPATH=$(PKG_SRC) $(VPY) -m hums prd002
 
+prd003:
+	PYTHONPATH=$(PKG_SRC) $(VPY) -m hums prd003
+
 imagery-ingest:
 	@test -n "$(PARCEL)" || (echo "usage: make imagery-ingest PARCEL=N-44"; exit 2)
 	PYTHONPATH=$(PKG_SRC) $(VPY) -m hums imagery-ingest $(PARCEL)
