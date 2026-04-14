@@ -118,6 +118,7 @@ class Building:
     facade_palette: FacadePalette | None = None
     reference_imagery: list[ReferenceImage] = field(default_factory=list)
     shared_footprint_group_id: str | None = None
+    parent_parcel_id: str | None = None       # e.g. INT-N2 attached to N-44
     provenance: Provenance = field(default_factory=Provenance)
     # carry-through from PRD-001 for inspection
     excel_snapshot: dict[str, Any] = field(default_factory=dict)

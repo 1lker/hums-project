@@ -13,7 +13,8 @@ from ..common.prd import prd
 from ..imagery.reference_manifest import ReferenceManifest
 from ..modeling.assumption_tracker import AssumptionTracker
 from ..modeling.building_builder import BuildingBuilder
-from ..stubs.stub_generator import StubGenerator, STUBS_GEOJSON
+from ..stubs.annex_placer import AnnexPlacer
+from ..stubs.stub_generator import STUBS_GEOJSON
 
 BUILDINGS_JSON = PARSED / "buildings.json"
 ASSUMPTIONS_MANIFEST = PARSED / "assumptions_manifest.md"
@@ -34,8 +35,17 @@ class Prd002Pipeline:
             for pid in feat["properties"].get("parcel_ids_matched") or []:
                 traced_by_pid.setdefault(pid, []).append(feat)
 
-        # Generate stubs for INT-* parcels.
-        stubs = StubGenerator().generate_and_persist()
+        # INT-* parcels = rear annexes of street-fronting parcels. Place each
+        # adjacent to its Excel-inferred parent along the edge facing the
+        # courtyard. Real KMLs (when traced) can still override these via the
+        # filename_overrides.json + __parent mechanism.
+        annex_polys = AnnexPlacer().generate_and_persist()
+        stubs: dict = annex_polys
+        # Remember parent links so buildings can inherit parent attributes.
+        annex_parents = {pid: spec_parent for pid, spec_parent in [
+            ("INT-N1", "N-42"), ("INT-N2", "N-44"), ("INT-N3", "N-52"),
+            ("INT-E2", "E-4"),  ("INT-S1", "S-41"), ("INT-S2", "S-43"),
+        ]}
 
         tracker = AssumptionTracker()
         builder = BuildingBuilder(block)
@@ -61,6 +71,7 @@ class Prd002Pipeline:
                         feat["properties"].get("source_file"), tracker,
                     )
                     building.reference_imagery = ReferenceManifest.load_for(pid)
+                    building.parent_parcel_id = feat["properties"].get("parent_parcel_id")
                     if len(feats) > 1:
                         building.shared_footprint_group_id = f"{pid}.multi"
                         building.notes["base_parcel_id"] = pid
@@ -70,7 +81,7 @@ class Prd002Pipeline:
                     buildings.append(building)
                 continue
 
-            # No traced polygon — stub or missing.
+            # No traced polygon — stub (annex) or missing.
             if pid in stubs:
                 polygon = stubs[pid]
                 footprint_source = "stub"
@@ -82,6 +93,9 @@ class Prd002Pipeline:
 
             building = builder.build(parcel, polygon, footprint_source, source_file, tracker)
             building.reference_imagery = ReferenceManifest.load_for(pid)
+            if pid in annex_parents:
+                building.parent_parcel_id = annex_parents[pid]
+                building.notes["annex_of"] = annex_parents[pid]
             buildings.append(building)
 
         _persist_buildings(buildings)

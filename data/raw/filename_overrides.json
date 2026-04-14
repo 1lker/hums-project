@@ -11,5 +11,6 @@
   "churche-entrence-camli-area-(39-1,-39-2)-clocher": ["W-39/1"],
   "at-the-green-area-wooden-at-147-block-near-the-church-middle-of-the-block": ["E-4a"],
   "_note_54-54-02": "buildingentrence54-54-02.kml has a typo ('54-54' should be '52-54'). It duplicates building-entrence-52-54-02.shp. Ignoring the KML via override pointing at nothing so it doesn't count as a separate footprint.",
-  "buildingentrence54-54-02": []
+  "buildingentrence54-54-02": [],
+  "_note_interior_annexes": "When interior rear-wing KMLs arrive, map each filename to its INT-* id AND add a sibling key '<filename>__parent' with the parcel it attaches to. Example: 'my-interior-trace': ['INT-N2'], 'my-interior-trace__parent': 'N-44'. The pipeline picks that up and renders the annex as part of the parent building mass."
 }

@@ -109,6 +109,8 @@ class FootprintBuilder:
                     "parcel_ids_override": cls.parcel_ids_override,
                     "match_confidence": "override",
                 })
+                if cls.parent_parcel_id:
+                    base_props["parent_parcel_id"] = cls.parent_parcel_id
             else:
                 base_props.update({
                     "parcel_numbers": cls.parcel_numbers,
