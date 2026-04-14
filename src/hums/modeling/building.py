@@ -10,7 +10,7 @@ from ..common.prd import prd
 
 RGB = tuple[int, int, int]
 Point = tuple[float, float]
-FootprintSource = Literal["traced", "inferred", "stub", "missing"]
+FootprintSource = Literal["traced", "inferred", "stub", "missing", "absorbed"]
 Face = Literal["N", "E", "S", "W", "INT"]
 StructureType = Literal["building", "fountain", "bell_tower", "monument"]
 

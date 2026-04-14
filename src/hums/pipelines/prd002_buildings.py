@@ -35,17 +35,19 @@ class Prd002Pipeline:
             for pid in feat["properties"].get("parcel_ids_matched") or []:
                 traced_by_pid.setdefault(pid, []).append(feat)
 
-        # INT-* parcels = rear annexes of street-fronting parcels. Place each
-        # adjacent to its Excel-inferred parent along the edge facing the
-        # courtyard. Real KMLs (when traced) can still override these via the
-        # filename_overrides.json + __parent mechanism.
-        annex_polys = AnnexPlacer().generate_and_persist()
-        stubs: dict = annex_polys
-        # Remember parent links so buildings can inherit parent attributes.
-        annex_parents = {pid: spec_parent for pid, spec_parent in [
-            ("INT-N1", "N-42"), ("INT-N2", "N-44"), ("INT-N3", "N-52"),
-            ("INT-E2", "E-4"),  ("INT-S1", "S-41"), ("INT-S2", "S-43"),
-        ]}
+        # INT-* parcels are ABSORBED into their parent parcels: the parent's
+        # traced KML polygon already includes the rear annex area, and the
+        # Excel INT-* row simply describes a height/material zone inside
+        # that single polygon. So: no stubs, no independent footprints, no
+        # phantom 3D buildings. They stay in buildings.json as absorbed
+        # records (no geometry) + enrich the parent Building's notes.
+        stubs: dict = {}
+        if STUBS_GEOJSON.exists():
+            STUBS_GEOJSON.write_text('{"type":"FeatureCollection","features":[]}')
+        annex_parents = {
+            "INT-N1": "N-42", "INT-N2": "N-44", "INT-N3": "N-52",
+            "INT-E2": "E-4",  "INT-S1": "S-41", "INT-S2": "S-43",
+        }
 
         tracker = AssumptionTracker()
         builder = BuildingBuilder(block)
@@ -81,21 +83,31 @@ class Prd002Pipeline:
                     buildings.append(building)
                 continue
 
-            # No traced polygon — stub (annex) or missing.
-            if pid in stubs:
-                polygon = stubs[pid]
-                footprint_source = "stub"
-                source_file = "stubs.geojson"
-            else:
-                polygon = None
-                footprint_source = "missing"
-                source_file = None
-
-            building = builder.build(parcel, polygon, footprint_source, source_file, tracker)
-            building.reference_imagery = ReferenceManifest.load_for(pid)
+            # Absorbed annex (INT-*): no independent polygon, attach to parent.
             if pid in annex_parents:
-                building.parent_parcel_id = annex_parents[pid]
-                building.notes["annex_of"] = annex_parents[pid]
+                parent_pid = annex_parents[pid]
+                building = builder.build(parcel, None, "absorbed", None, tracker)
+                building.reference_imagery = ReferenceManifest.load_for(pid)
+                building.parent_parcel_id = parent_pid
+                building.notes["absorbed_into_parent"] = True
+                building.notes["annex_of"] = parent_pid
+                buildings.append(building)
+                # Enrich the parent building record with this annex's zone
+                # metadata so downstream code can render height zones later.
+                for existing in buildings:
+                    if existing.parcel_id == parent_pid:
+                        existing.notes.setdefault("annex_zones", []).append({
+                            "annex_id": pid,
+                            "storeys_raw": (parcel.get("storeys") or {}).get("raw"),
+                            "material": (parcel.get("material") or {}).get("decoded"),
+                            "bim_notes": parcel.get("bim_notes"),
+                        })
+                        break
+                continue
+
+            # Genuinely missing — no polygon, no parent.
+            building = builder.build(parcel, None, "missing", None, tracker)
+            building.reference_imagery = ReferenceManifest.load_for(pid)
             buildings.append(building)
 
         _persist_buildings(buildings)

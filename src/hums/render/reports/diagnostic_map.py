@@ -56,13 +56,28 @@ def render(width_px: int = 1800) -> Path:
     # Parcels + stubs
     feats = json.loads(FOOTPRINTS_GEOJSON.read_text())["features"]
     stubs_fc = json.loads(STUBS_GEOJSON.read_text()) if STUBS_GEOJSON.exists() else {"features": []}
+    # Absorbed-annex annotations on parent parcels.
+    buildings_json = PARSED / "buildings.json"
+    absorbed_by_parent: dict[str, list[str]] = {}
+    if buildings_json.exists():
+        for b in json.loads(buildings_json.read_text()):
+            if b.get("footprint_source") == "absorbed" and b.get("parent_parcel_id"):
+                absorbed_by_parent.setdefault(
+                    b["parent_parcel_id"], []
+                ).append(b["parcel_id"])
     non_feats = json.loads(NON_PARCEL_FOOTPRINTS_GEOJSON.read_text())["features"] \
         if NON_PARCEL_FOOTPRINTS_GEOJSON.exists() else []
 
     for f in feats:
         poly = shape(f["geometry"])
-        label = "/".join(f["properties"].get("parcel_ids_matched") or
-                         [f["properties"].get("source_file", "?")])
+        matched = f["properties"].get("parcel_ids_matched") or []
+        label = "/".join(matched or [f["properties"].get("source_file", "?")])
+        # Append absorbed-annex names so the diagram shows zone membership.
+        annex_notes: list[str] = []
+        for pid in matched:
+            annex_notes.extend(absorbed_by_parent.get(pid, []))
+        if annex_notes:
+            label = label + "\n+ " + ", ".join(annex_notes)
         svg.append(_poly_path(poly, to_svg, stroke="#5a4a3a",
                               fill=PALETTE["building"], stroke_width=1.2))
         svg.append(_label(poly, label, to_svg, scale))
