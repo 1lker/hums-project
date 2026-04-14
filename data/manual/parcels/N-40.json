@@ -1,0 +1,64 @@
+{
+  "parcel_id": "N-40",
+  "verified": false,
+
+  "map_notes": "FIRIN bakery on the NW corner of block 147. The map tile shows TWO visually distinct zones within the (40) outline: (a) a yellow/wooden zone at the top with the FIRIN label + V.F vault + '2½' storey marker — this is the bakery body itself; (b) a pink/masonry zone below (continuing south into the block) with 'T.R.' + '3 T' — 3 storeys with Turkish tile + sheet metal roof. A chimney for the bakery oven is visible. Primary entrance faces north onto T…L Sokak, secondary entrance possibly on the west onto Sögütlü Çeşme Cad.",
+
+  "footprint_ref": "building-entrence-40-42.shp",
+
+  "structure_type": "building",
+
+  "zones": [
+    {
+      "id": "north_firin",
+      "description": "FIRIN bakery body — wooden frame, French vault ceiling, oven with chimney. Yellow zone on map.",
+      "material_class": "C",
+      "map_colour": "yellow",
+      "storeys_above_grade": 2.5,
+      "has_mezzanine": true,
+      "has_basement": false,
+      "storey_heights_m": [3.8, 2.2, 3.2],
+      "ground_floor_use": "bakery",
+      "roof": {
+        "shape": "vault_flat",
+        "material": "vault_VF",
+        "pitch_deg": 2.86,
+        "has_chimney": true,
+        "has_skylight": false
+      },
+      "footprint_fraction": [0.55, 1.0]
+    },
+    {
+      "id": "south_body",
+      "description": "Masonry residential / shop body behind bakery. Pink zone on map with T.R. / 3 T labels.",
+      "material_class": "B",
+      "map_colour": "pink",
+      "storeys_above_grade": 3,
+      "has_mezzanine": false,
+      "has_basement": false,
+      "storey_heights_m": [3.8, 3.2, 3.2],
+      "ground_floor_use": "shop",
+      "roof": {
+        "shape": "hip",
+        "material": "tile_TR",
+        "pitch_deg": 30,
+        "has_chimney": false,
+        "has_skylight": false
+      },
+      "footprint_fraction": [0.0, 0.55]
+    }
+  ],
+
+  "facades": {
+    "street_facing_faces": ["N", "W"],
+    "primary_door": { "face": "N", "zone": "north_firin" },
+    "secondary_door": { "face": "W", "zone": "south_body" },
+    "shop_windows": true,
+    "balconies": [],
+    "shutters_on_upper": true
+  },
+
+  "palette_override": null,
+
+  "excel_notes_legacy": "Excel v3 wall_code: 'Mg.+VF+MB+2½+TR.4+3.T' — encodes the two-zone split our manual labels now capture. Excel v3 material class = 'C' (wooden) was correct for the north_firin zone only, not the south_body."
+}
