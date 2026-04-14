@@ -54,31 +54,26 @@ class WallSegmenter:
             b_utm = utm_coords[(i + 1) % n]
             is_party = (self._party_index is not None and parcel_id is not None
                         and self._party_index.is_party(parcel_id, a_utm, b_utm))
-            # A party wall (shared with a neighbour) is never street-facing —
-            # even if it happens to lie close to the block outline.
+            # New, simpler classification for block-scale reconstruction:
+            #   * edge shared with a neighbour → party wall (no openings)
+            #   * everything else → exterior, can have openings
+            # We retain `is_street_facing` as "on the block perimeter" for
+            # the shop-window placer (shops front the street, not the
+            # courtyard), but windows/doors now get placed on ANY exterior
+            # (non-party) face rather than only the perimeter ones.
             on_block = self._on_block_boundary(a_utm, b_utm)
-            is_street = on_block and not is_party
-            face = self._classify_face(a_utm, b_utm, is_street)
+            is_exterior = not is_party
+            is_street = on_block and is_exterior
+            face = self._classify_face(a_utm, b_utm, is_exterior)
             segments.append(WallSegment(
                 start=a_local, end=b_local,
                 thickness_m=thickness_m,
                 face=face,
-                is_street_facing=is_street,
+                is_street_facing=is_exterior,     # read as "opening-eligible"
                 is_party_wall=is_party,
             ))
-
-        # Fallback: if we found zero street-facing AND zero party walls,
-        # promote the longest edge. If there ARE party walls but no street
-        # walls we leave it alone — interior annex buildings genuinely have
-        # no street facade.
-        has_party = any(s.is_party_wall for s in segments)
-        if not any(s.is_street_facing for s in segments) and not has_party and segments:
-            longest = max(segments, key=lambda s: s.length_m)
-            longest.is_street_facing = True
-            i_longest = segments.index(longest)
-            longest.face = self._classify_face(utm_coords[i_longest],
-                                               utm_coords[(i_longest + 1) % n],
-                                               True)
+            # Store the strict on-block flag in a metadata channel for shops.
+            segments[-1].hatch_pattern = "_street" if is_street else None
         return segments
 
     def _segment_from_local_only(self, ring, thickness_m):

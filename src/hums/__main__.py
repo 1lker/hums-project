@@ -28,6 +28,13 @@ def main(argv: list[str]) -> int:
     if cmd in PIPELINES:
         PIPELINES[cmd]().run()
         return 0
+    if cmd == "render-building":
+        if len(argv) < 3:
+            print("usage: python -m hums render-building <parcel_id>", file=sys.stderr)
+            return 2
+        from .pipelines.render_building import render_building
+        render_building(argv[2])
+        return 0
     if cmd == "diagnostic-map":
         from .render.reports.diagnostic_map import render
         p = render()

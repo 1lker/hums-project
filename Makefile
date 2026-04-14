@@ -37,6 +37,13 @@ prd002:
 prd003:
 	PYTHONPATH=$(PKG_SRC) $(VPY) -m hums prd003
 
+render-building:
+	@test -n "$(PARCEL)" || (echo "usage: make render-building PARCEL=N-40"; exit 2)
+	PYTHONPATH=$(PKG_SRC) $(VPY) -m hums render-building $(PARCEL)
+
+diagnostic-map:
+	PYTHONPATH=$(PKG_SRC) $(VPY) -m hums diagnostic-map
+
 imagery-ingest:
 	@test -n "$(PARCEL)" || (echo "usage: make imagery-ingest PARCEL=N-44"; exit 2)
 	PYTHONPATH=$(PKG_SRC) $(VPY) -m hums imagery-ingest $(PARCEL)

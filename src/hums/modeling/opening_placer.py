@@ -91,7 +91,11 @@ class ShopWindowPlacer(OpeningPlacer):
             return
         o = PROFILE.openings
         for seg in segments:
-            if not seg.is_street_facing or seg.is_party_wall:
+            # Shop windows on every exterior (non-party) face. The old
+            # "only on block perimeter" gate was dropping corner-shop
+            # frontages whenever the KML was traced slightly inside the
+            # block outline.
+            if seg.is_party_wall:
                 continue
             # reserve door zone: skip if a door already placed here
             door_ranges = [(op.position_along_wall_m, op.position_along_wall_m + op.width_m)
