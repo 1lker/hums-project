@@ -1,0 +1,153 @@
+{
+  "parcel_ids": ["N-40", "N-42"],
+  "label": "N-40-42",
+  "verified": false,
+
+  "map_notes": "Long thin wooden building on the NW side of block 147, fronting T…L Sokak at its north/street end and extending south into the block toward the church courtyard. Registered cadastrally under two parcel numbers (40) and (42) but architecturally it is ONE single mass — the map labels `(40)(42)` together above the footprint. Yellow tint throughout = wooden frame (class C). Interior labels, stacked north→south along the building's length, describe a sectional composition: street-end magasin, Turkish-vault middle zone with basement bays, an 'old' (V.x.) vault zone, and a 3-storey section at the courtyard end. A shop window (Vitrine) is marked at the far south end. TODO: confirm whether the FIRIN bakery label belongs to this building or a neighbouring yellow strip.",
+
+  "footprint_ref": "building-entrence-40-42.shp",
+
+  "structure_type": "building",
+
+  "primary_zone_axis": "north_to_south",
+
+  "zones": [
+    {
+      "id": "street_magasin",
+      "description": "Street-end magasin at the T…L Sokak frontage. Map labels: Y (yellow) + 1.M (1-storey magasin).",
+      "material_class": "C",
+      "map_colour": "yellow",
+      "storeys_above_grade": 1,
+      "has_mezzanine": false,
+      "has_basement": false,
+      "storey_heights_m": [3.8],
+      "ground_floor_use": "shop",
+      "roof": {
+        "shape": "flat",
+        "material": "sheet_metal_T",
+        "pitch_deg": 2.0,
+        "has_chimney": false,
+        "has_skylight": false
+      },
+      "footprint_fraction": [0.0, 0.18],
+      "map_labels": ["Y", "1.M"]
+    },
+    {
+      "id": "middle_vault",
+      "description": "2-bay Turkish vault zone with Turkish brick arch ceiling.",
+      "material_class": "C",
+      "map_colour": "yellow",
+      "storeys_above_grade": 2,
+      "has_mezzanine": false,
+      "has_basement": true,
+      "storey_heights_m": [3.8, 3.2],
+      "ground_floor_use": "shop",
+      "roof": {
+        "shape": "vault_flat",
+        "material": "vault_VT",
+        "pitch_deg": 2.86,
+        "has_chimney": false,
+        "has_skylight": false
+      },
+      "footprint_fraction": [0.18, 0.42],
+      "map_labels": ["2.b", "V.T."]
+    },
+    {
+      "id": "basement_bays",
+      "description": "4 basement bays (sub-grade) under this section. Rendered as an additional basement storey on the zone above; does not add an above-grade mass.",
+      "material_class": "C",
+      "map_colour": "yellow",
+      "storeys_above_grade": 2,
+      "has_mezzanine": false,
+      "has_basement": true,
+      "storey_heights_m": [3.8, 3.2],
+      "ground_floor_use": "shop",
+      "roof": {
+        "shape": "vault_flat",
+        "material": "vault_VT",
+        "pitch_deg": 2.86,
+        "has_chimney": false,
+        "has_skylight": false
+      },
+      "footprint_fraction": [0.42, 0.58],
+      "map_labels": ["4 b"]
+    },
+    {
+      "id": "old_vault_zone",
+      "description": "'V.x.' zone — probably an older (vieux) vault section, possibly in poorer condition on the map.",
+      "material_class": "C",
+      "map_colour": "yellow",
+      "storeys_above_grade": 2,
+      "has_mezzanine": false,
+      "has_basement": false,
+      "storey_heights_m": [3.8, 3.2],
+      "ground_floor_use": "shop",
+      "roof": {
+        "shape": "vault_flat",
+        "material": "vault_VT",
+        "pitch_deg": 2.86,
+        "has_chimney": false,
+        "has_skylight": false
+      },
+      "footprint_fraction": [0.58, 0.72],
+      "map_labels": ["V.x."]
+    },
+    {
+      "id": "rear_three_storey",
+      "description": "Tallest section at the rear (south end) — 3 storeys with sheet metal T roof.",
+      "material_class": "C",
+      "map_colour": "yellow",
+      "storeys_above_grade": 3,
+      "has_mezzanine": false,
+      "has_basement": false,
+      "storey_heights_m": [3.8, 3.2, 3.2],
+      "ground_floor_use": "shop",
+      "roof": {
+        "shape": "hip",
+        "material": "sheet_metal_T",
+        "pitch_deg": 20,
+        "has_chimney": false,
+        "has_skylight": false
+      },
+      "footprint_fraction": [0.72, 0.92],
+      "map_labels": ["3.T."]
+    },
+    {
+      "id": "vitrine",
+      "description": "Shop window (Vitrine) at the far south end facing the church courtyard. Low 1-storey glazed annex.",
+      "material_class": "C",
+      "map_colour": "yellow",
+      "storeys_above_grade": 1,
+      "has_mezzanine": false,
+      "has_basement": false,
+      "storey_heights_m": [3.0],
+      "ground_floor_use": "shop",
+      "roof": {
+        "shape": "flat",
+        "material": "sheet_metal_T",
+        "pitch_deg": 2.0,
+        "has_chimney": false,
+        "has_skylight": false
+      },
+      "footprint_fraction": [0.92, 1.0],
+      "map_labels": ["Vitr."]
+    }
+  ],
+
+  "facades": {
+    "street_facing_faces": ["N"],
+    "primary_door": {"face": "N", "zone": "street_magasin", "description": "Shop entrance onto T…L Sokak"},
+    "secondary_door": {"face": "S", "zone": "vitrine", "description": "Vitrine/service entrance onto church courtyard"},
+    "shop_windows": true,
+    "balconies": [],
+    "shutters_on_upper": true
+  },
+
+  "palette_override": null,
+
+  "open_questions": [
+    "Is the FIRIN bakery label positioned over THIS building or one of the neighbouring yellow strips?",
+    "Is the primary_zone_axis really N→S, or does the shared footprint polygon run E↔W? Verify once the zone splitter runs.",
+    "Confirm the Vitrine is at the courtyard end, not at the street end."
+  ]
+}
