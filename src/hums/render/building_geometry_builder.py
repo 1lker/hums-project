@@ -9,6 +9,7 @@ from ..common.prd import prd
 from ..modeling.building import Building
 from .geometry.roof import for_shape as roof_for_shape
 from .geometry.roof.base import RoofGenerator
+from .geometry.roof.overhang import RoofOverhang
 from .geometry.wall_extruder import WallExtruder
 from .geometry.wall_subdivider import WallSubdivider
 from .mesh_graph import BuildingMesh
@@ -19,6 +20,7 @@ class BuildingGeometryBuilder:
     def __init__(self) -> None:
         self._wall_extruder = WallExtruder()
         self._wall_subdivider = WallSubdivider()
+        self._roof_overhang = RoofOverhang()
 
     def build(self, building: Building) -> BuildingMesh | None:
         if not building.footprint_local or not building.local_frame:
@@ -51,6 +53,8 @@ class BuildingGeometryBuilder:
         self._wall_subdivider.emit(mesh, building, storey_heights)
 
         self._add_roof(mesh, building)
+        eaves_z = RoofGenerator.total_wall_height(building)
+        self._roof_overhang.emit(mesh, building, eaves_z)
         self._add_roof_extras(mesh, building)
         return mesh
 

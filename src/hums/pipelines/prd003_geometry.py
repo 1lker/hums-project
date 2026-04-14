@@ -16,6 +16,7 @@ from ..render.backends.ifc_backend import IfcBackend
 from ..render.building_geometry_builder import BuildingGeometryBuilder
 from ..render.reports.geometry_manifest import write_reports
 from ..render.scene_assembler import SceneAssembler
+from ..render.special.church_builder import ChurchBuilder
 
 BUILDINGS_JSON = PARSED / "buildings.json"
 OUTPUT = PROJECT_ROOT / "output"
@@ -36,6 +37,9 @@ class Prd003Pipeline:
                 meshes.append(m)
 
         block_centroid = _block_centroid()
+        church_mesh = ChurchBuilder().build(block_centroid)
+        if church_mesh is not None:
+            meshes.append(church_mesh)
         scene = SceneAssembler().assemble(meshes, block_centroid)
 
         # Backends

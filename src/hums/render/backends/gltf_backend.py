@@ -213,6 +213,11 @@ def _material_for(root: gl.GLTF2, palette, material_key: str, meta: dict) -> int
             roughnessFactor=0.85 if material_key != "window_glass" else 0.25,
         ),
         alphaMode="BLEND" if alpha < 1.0 or material_key == "window_glass" else "OPAQUE",
+        # Walls, roofs, sills, etc. are thin single-sided quads in the current
+        # mesh. Marking doubleSided stops the viewer from culling faces that
+        # happen to point away from the camera — buildings read as solid
+        # objects rather than peeled-open shells.
+        doubleSided=True,
     )
     idx = len(root.materials)
     root.materials.append(mat)
@@ -281,6 +286,7 @@ def _add_ground_plane(root: gl.GLTF2, buffer: bytearray, ground) -> None:
             metallicFactor=0.0,
             roughnessFactor=0.95,
         ),
+        doubleSided=True,
     )
     root.materials.append(mat)
     prim = gl.Primitive(
