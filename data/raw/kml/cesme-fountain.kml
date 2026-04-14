@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<kml xmlns="http://www.opengis.net/kml/2.2">
+<Document id="root_doc">
+<Schema name="cesmefountain" id="cesmefountain">
+	<SimpleField name="id" type="float"></SimpleField>
+</Schema>
+<Folder><name>cesmefountain</name>
+  <Placemark id="cesmefountain.1">
+	<Style><LineStyle><color>ff0000ff</color></LineStyle><PolyStyle><fill>0</fill></PolyStyle></Style>
+      <MultiGeometry><Polygon><outerBoundaryIs><LinearRing><coordinates>29.0250773058553,40.9905951876896 29.0250701507127,40.9905804224079 29.0250790424238,40.9905772648541 29.025084665977,40.9905718560481 29.0250897864216,40.9905699191126 29.0250963160812,40.9905692271886 29.0250989328075,40.9905701046765 29.025102332039,40.9905716610183 29.0251117229153,40.9905698799013 29.0251220579356,40.9905840121249 29.0250773058553,40.9905951876896</coordinates></LinearRing></outerBoundaryIs></Polygon></MultiGeometry>
+  </Placemark>
+</Folder>
+</Document></kml>

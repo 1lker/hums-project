@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<kml xmlns="http://www.opengis.net/kml/2.2">
+<Document id="root_doc">
+<Schema name="churcheentrencecamliarea391392clocher" id="churcheentrencecamliarea391392clocher">
+	<SimpleField name="id" type="float"></SimpleField>
+</Schema>
+<Folder><name>churcheentrencecamliarea391392clocher</name>
+  <Placemark id="churcheentrencecamliarea391392clocher.1">
+	<Style><LineStyle><color>ff0000ff</color></LineStyle><PolyStyle><fill>0</fill></PolyStyle></Style>
+      <MultiGeometry><Polygon><outerBoundaryIs><LinearRing><coordinates>29.0249217629769,40.9907061750536 29.0249544173972,40.9907126561014 29.0250862232644,40.9906828776284 29.0250748163047,40.9906470464199 29.0250923740873,40.9906432303521 29.0251024856826,40.9906711127145 29.0251475590182,40.990658841464 29.0251330755937,40.9906256152436 29.025147200302,40.9906196274509 29.0251221531869,40.9905849925583 29.0250770408759,40.9905959890262 29.0250702636811,40.9905808026379 29.0249443347309,40.9906324396024 29.0249217629769,40.9907061750536</coordinates></LinearRing></outerBoundaryIs></Polygon></MultiGeometry>
+  </Placemark>
+</Folder>
+</Document></kml>

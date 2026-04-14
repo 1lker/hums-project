@@ -1,0 +1,26 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python3 -c ':*)",
+      "Bash(pip3 install:*)",
+      "Bash(python3)",
+      "Bash(python3 src/parse_excel.py)",
+      "Bash(python3 src/parse_footprints.py)",
+      "Bash(python3 src/build_coverage.py)",
+      "Bash(PYTHONPATH=src python3 -m hums prd001)",
+      "Bash(echo \"exit=$?\")",
+      "Bash(PYTHONPATH=src python3 -m hums prd002)",
+      "Bash(python3.14 --version)",
+      "Read(//opt/homebrew/bin/**)",
+      "Bash(make install:*)",
+      "Bash(make prd001:*)",
+      "Bash(make prd002:*)",
+      "Bash(.venv/bin/python -c ':*)",
+      "Bash(mv *.kml data/raw/kml/)",
+      "Bash(mv *.shp *.dbf *.shx *.prj *.cpg *.qmd data/raw/shp/)",
+      "Bash(mv *.tif *.tif.aux.xml data/raw/raster/)",
+      "Bash(mv *.xlsx data/raw/excel/)",
+      "Bash(mv *.qgz data/raw/qgis/)"
+    ]
+  }
+}

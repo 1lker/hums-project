@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<kml xmlns="http://www.opengis.net/kml/2.2">
+<Document id="root_doc">
+<Schema name="buildingentrence50" id="buildingentrence50">
+	<SimpleField name="id" type="float"></SimpleField>
+</Schema>
+<Folder><name>buildingentrence50</name>
+  <Placemark id="buildingentrence50.1">
+	<Style><LineStyle><color>ff0000ff</color></LineStyle><PolyStyle><fill>0</fill></PolyStyle></Style>
+      <MultiGeometry><Polygon><outerBoundaryIs><LinearRing><coordinates>29.0253493966254,40.9908620250427 29.0253848919194,40.9908470658285 29.0253383913225,40.9907817834412 29.0253224184366,40.9907606264418 29.0253104012961,40.9907657865946 29.025283236219,40.9907774249697 29.0253493966254,40.9908620250427</coordinates></LinearRing></outerBoundaryIs></Polygon></MultiGeometry>
+  </Placemark>
+</Folder>
+</Document></kml>

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<kml xmlns="http://www.opengis.net/kml/2.2">
+<Document id="root_doc">
+<Schema name="churcheanditskubbe" id="churcheanditskubbe">
+	<SimpleField name="id" type="float"></SimpleField>
+</Schema>
+<Folder><name>churcheanditskubbe</name>
+  <Placemark id="churcheanditskubbe.1">
+	<Style><LineStyle><color>ff0000ff</color></LineStyle><PolyStyle><fill>0</fill></PolyStyle></Style>
+      <MultiGeometry><Polygon><outerBoundaryIs><LinearRing><coordinates>29.0249481771253,40.990739072071 29.0249547328456,40.9907126505581 29.025086171909,40.9906829183889 29.0250748652212,40.9906469259861 29.0250923215127,40.990643231276 29.0251023572944,40.9906712146159 29.0251473352361,40.9906592639063 29.0252117162525,40.9908068826478 29.0250111209695,40.9908595130644 29.0249692125973,40.9908033322384 29.0249481771253,40.990739072071</coordinates></LinearRing></outerBoundaryIs></Polygon></MultiGeometry>
+  </Placemark>
+</Folder>
+</Document></kml>

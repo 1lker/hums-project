@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<kml xmlns="http://www.opengis.net/kml/2.2">
+<Document id="root_doc">
+<Schema name="near39open32the_lastcornertriangularmagazine" id="near39open32the_lastcornertriangularmagazine">
+	<SimpleField name="id" type="float"></SimpleField>
+</Schema>
+<Folder><name>near39open32the_lastcornertriangularmagazine</name>
+  <Placemark id="near39open32the_lastcornertriangularmagazine.1">
+	<Style><LineStyle><color>ff0000ff</color></LineStyle><PolyStyle><fill>0</fill></PolyStyle></Style>
+      <MultiGeometry><Polygon><outerBoundaryIs><LinearRing><coordinates>29.0249682321099,40.9908022334431 29.0249549135674,40.9907589425027 29.0249392289283,40.9907620879048 29.0249682321099,40.9908022334431</coordinates></LinearRing></outerBoundaryIs></Polygon></MultiGeometry>
+  </Placemark>
+</Folder>
+</Document></kml>

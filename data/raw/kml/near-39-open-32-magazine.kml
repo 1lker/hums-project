@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<kml xmlns="http://www.opengis.net/kml/2.2">
+<Document id="root_doc">
+<Schema name="near39open32magazine" id="near39open32magazine">
+	<SimpleField name="id" type="float"></SimpleField>
+</Schema>
+<Folder><name>near39open32magazine</name>
+  <Placemark id="near39open32magazine.1">
+	<Style><LineStyle><color>ff0000ff</color></LineStyle><PolyStyle><fill>0</fill></PolyStyle></Style>
+      <MultiGeometry><Polygon><outerBoundaryIs><LinearRing><coordinates>29.0249264524182,40.9907433798503 29.0249272152891,40.9907442433217 29.0249480365437,40.9907387756061 29.0249546032377,40.9907127126227 29.0249208802529,40.9907056923397 29.0249126719728,40.9907262438996 29.0249264524182,40.9907433798503</coordinates></LinearRing></outerBoundaryIs></Polygon></MultiGeometry>
+  </Placemark>
+</Folder>
+</Document></kml>
