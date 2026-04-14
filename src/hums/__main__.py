@@ -28,6 +28,11 @@ def main(argv: list[str]) -> int:
     if cmd in PIPELINES:
         PIPELINES[cmd]().run()
         return 0
+    if cmd == "diagnostic-map":
+        from .render.reports.diagnostic_map import render
+        p = render()
+        print(f"wrote {p}")
+        return 0
     if cmd == "imagery-ingest":
         if len(argv) < 3:
             print("usage: python -m hums imagery-ingest <parcel_id>", file=sys.stderr)
