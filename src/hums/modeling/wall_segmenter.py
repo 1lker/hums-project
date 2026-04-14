@@ -11,6 +11,7 @@ from shapely.geometry import LineString, Polygon
 
 from ..common.prd import prd
 from .building import WallSegment, Face
+from .party_wall_index import PartyWallIndex
 
 
 @dataclass
@@ -20,8 +21,11 @@ class WallSegmenterConfig:
 
 @prd("002", "§5 WallSegmenter")
 class WallSegmenter:
-    def __init__(self, block_outline: Polygon | None, cfg: WallSegmenterConfig | None = None) -> None:
+    def __init__(self, block_outline: Polygon | None,
+                 party_index: PartyWallIndex | None = None,
+                 cfg: WallSegmenterConfig | None = None) -> None:
         self._block = block_outline
+        self._party_index = party_index
         self._cfg = cfg or WallSegmenterConfig()
 
     def segment(
@@ -29,6 +33,7 @@ class WallSegmenter:
         footprint_local: list[tuple[float, float]],
         footprint_utm: Polygon,
         thickness_m: float,
+        parcel_id: str | None = None,
     ) -> list[WallSegment]:
         # Pair local and utm coords by index (both have same orientation).
         utm_coords = list(footprint_utm.exterior.coords)
@@ -47,24 +52,33 @@ class WallSegmenter:
             b_local = footprint_local[(i + 1) % n]
             a_utm = utm_coords[i]
             b_utm = utm_coords[(i + 1) % n]
-            is_street = self._on_block_boundary(a_utm, b_utm)
+            is_party = (self._party_index is not None and parcel_id is not None
+                        and self._party_index.is_party(parcel_id, a_utm, b_utm))
+            # A party wall (shared with a neighbour) is never street-facing —
+            # even if it happens to lie close to the block outline.
+            on_block = self._on_block_boundary(a_utm, b_utm)
+            is_street = on_block and not is_party
             face = self._classify_face(a_utm, b_utm, is_street)
             segments.append(WallSegment(
                 start=a_local, end=b_local,
                 thickness_m=thickness_m,
                 face=face,
                 is_street_facing=is_street,
+                is_party_wall=is_party,
             ))
 
-        # Fallback: if block-boundary check found no street-facing walls
-        # (e.g. parcel outline sits a few metres inside the block outline),
-        # promote the longest edge to street-facing and classify by compass.
-        if not any(s.is_street_facing for s in segments) and segments:
+        # Fallback: if we found zero street-facing AND zero party walls,
+        # promote the longest edge. If there ARE party walls but no street
+        # walls we leave it alone — interior annex buildings genuinely have
+        # no street facade.
+        has_party = any(s.is_party_wall for s in segments)
+        if not any(s.is_street_facing for s in segments) and not has_party and segments:
             longest = max(segments, key=lambda s: s.length_m)
             longest.is_street_facing = True
-            a_utm = utm_coords[segments.index(longest)]
-            b_utm = utm_coords[(segments.index(longest) + 1) % n]
-            longest.face = self._classify_face(a_utm, b_utm, True)
+            i_longest = segments.index(longest)
+            longest.face = self._classify_face(utm_coords[i_longest],
+                                               utm_coords[(i_longest + 1) % n],
+                                               True)
         return segments
 
     def _segment_from_local_only(self, ring, thickness_m):

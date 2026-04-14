@@ -45,7 +45,8 @@
       "Bash(git commit -m 'fix\\(prd-001\\): guard against silent footprint drops + ignore typo-duplicate:*)",
       "Bash(git commit -m 'feat\\(prd-004\\): INT-* annexes attach to parent parcels via map-inferred rear-edge placement:*)",
       "Bash(git commit -m 'fix\\(prd-004\\): INT-* are absorbed into parent parcels, not separate buildings:*)",
-      "Bash(git commit -m 'fix\\(prd-004\\): opaque roofs + downward soffit + eaves cap \\(no more see-through\\):*)"
+      "Bash(git commit -m 'fix\\(prd-004\\): opaque roofs + downward soffit + eaves cap \\(no more see-through\\):*)",
+      "Bash(git commit -m 'fix\\(prd-004\\): party-wall detection + clocher from W-39/1 + period detail:*)"
     ]
   }
 }

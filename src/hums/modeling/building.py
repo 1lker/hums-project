@@ -44,6 +44,7 @@ class WallSegment:
     thickness_m: float
     face: Face
     is_street_facing: bool
+    is_party_wall: bool = False      # shared with a neighbour — no openings
     hatch_pattern: str | None = None
     openings: list[Opening] = field(default_factory=list)
 

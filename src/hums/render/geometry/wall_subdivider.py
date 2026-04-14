@@ -19,6 +19,8 @@ from ..mesh_graph import BuildingMesh
 REVEAL_DEPTH = 0.15   # how far the glazing is recessed from the outer wall face
 SILL_PROJECTION = 0.05   # sill protrudes slightly beyond the wall face
 MIN_SLIVER = 0.05        # drop slivers narrower than this
+ARCH_RISE_FRACTION = 0.35   # arch height = width * this (segmental arch)
+ARCH_SEGMENTS = 7           # triangle count for each arch
 
 
 @dataclass
@@ -143,6 +145,47 @@ class WallSubdivider:
         mesh.add_quad(p0=in_bl, p1=in_tl, p2=in_tr, p3=in_br,
                       role=role, surface_id=f"{prefix}.{op.kind}.{k}.glass",
                       material_key=glass_mat, storey_level=op.storey_level)
+
+        # Upper-storey windows get a gentle segmental arch on top — a very
+        # period-correct detail for 1900 Istanbul masonry buildings. Only
+        # if the opening is above the ground floor and not a door.
+        if op.kind == "window" and op.storey_level is not None and op.storey_level >= 1:
+            arch_rise = (u1 - u0) * ARCH_RISE_FRACTION
+            arch_apex_z = z1 + arch_rise
+            # Apex vertex on the glazing plane
+            mid_u = (u0 + u1) / 2
+            apex_in = P(mid_u, arch_apex_z, -REVEAL_DEPTH)
+            apex_out = P(mid_u, arch_apex_z)
+            # Fan triangles on glazing plane + reveal underside + outer header
+            # Split the arch into segments for a smooth curve on the inside.
+            for s in range(ARCH_SEGMENTS):
+                t0 = s / ARCH_SEGMENTS
+                t1 = (s + 1) / ARCH_SEGMENTS
+                u_a = u0 + (u1 - u0) * t0
+                u_b = u0 + (u1 - u0) * t1
+                # parametric arch: z(t) = z1 + arch_rise * sin(pi*t)
+                z_a = z1 + arch_rise * math.sin(math.pi * t0)
+                z_b = z1 + arch_rise * math.sin(math.pi * t1)
+                # outer wall surround (fills between rectangular top and arch)
+                mesh.add_quad(
+                    p0=P(u_a, z1),
+                    p1=P(u_a, z_a),
+                    p2=P(u_b, z_b),
+                    p3=P(u_b, z1),
+                    role="WallSurface",
+                    surface_id=f"{prefix}.{op.kind}.{k}.arch_wall.{s}",
+                    material_key="wall_main",
+                )
+                # inner arch glass panel
+                mesh.add_quad(
+                    p0=P(u_a, z1, -REVEAL_DEPTH),
+                    p1=P(u_a, z_a, -REVEAL_DEPTH),
+                    p2=P(u_b, z_b, -REVEAL_DEPTH),
+                    p3=P(u_b, z1, -REVEAL_DEPTH),
+                    role="Window",
+                    surface_id=f"{prefix}.{op.kind}.{k}.arch_glass.{s}",
+                    material_key=glass_mat,
+                )
 
         # mullions on wide panes (≥1 m) — vertical trim, thin quad on the glazing plane
         if op.kind != "door" and (u1 - u0) >= 1.0:

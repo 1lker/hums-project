@@ -50,7 +50,15 @@ class Prd002Pipeline:
         }
 
         tracker = AssumptionTracker()
-        builder = BuildingBuilder(block)
+        # Build the party-wall index before any geometry so every building
+        # knows which of its edges are shared with a neighbour.
+        from ..modeling.party_wall_index import PartyWallIndex
+        party_index = PartyWallIndex()
+        for feats in traced_by_pid.values():
+            for feat in feats:
+                for pid in feat["properties"].get("parcel_ids_matched") or []:
+                    party_index.register(pid, shape(feat["geometry"]))
+        builder = BuildingBuilder(block, party_index=party_index)
         buildings = []
 
         for parcel in parcels:

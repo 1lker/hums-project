@@ -15,6 +15,7 @@ from .building import Building, Storey, Provenance
 from .facade_palette import FacadePaletteBuilder
 from .local_frame import LocalFrameBuilder
 from .opening_placer import DoorPlacer, ShopWindowPlacer, UpperWindowPlacer, _is_shop_use
+from .party_wall_index import PartyWallIndex
 from .roof_descriptor import RoofDescriptorBuilder
 from .structure_classifier import StructureClassifier
 from .wall_segmenter import WallSegmenter
@@ -22,9 +23,10 @@ from .wall_segmenter import WallSegmenter
 
 @prd("002", "§9 BuildingBuilder")
 class BuildingBuilder:
-    def __init__(self, block_outline: Polygon | None) -> None:
+    def __init__(self, block_outline: Polygon | None,
+                 party_index: PartyWallIndex | None = None) -> None:
         self._frame_builder = LocalFrameBuilder(block_outline)
-        self._wall_segmenter = WallSegmenter(block_outline)
+        self._wall_segmenter = WallSegmenter(block_outline, party_index=party_index)
         self._roof_builder = RoofDescriptorBuilder()
         self._palette_builder = FacadePaletteBuilder()
         self._structure_classifier = StructureClassifier()
@@ -68,7 +70,7 @@ class BuildingBuilder:
 
         frame, local_ring = self._frame_builder.build(footprint_utm)
         thickness = self._wall_thickness(material_class, parcel, tracker)
-        segments = self._wall_segmenter.segment(local_ring, footprint_utm, thickness)
+        segments = self._wall_segmenter.segment(local_ring, footprint_utm, thickness, parcel_id=pid)
 
         placer_ctx = {**parcel, "_structure_type": structure_type}
         for placer in self._openers:

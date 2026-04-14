@@ -70,7 +70,7 @@ class DoorPlacer(OpeningPlacer):
         tracker.record(parcel_id, f"wall[{chosen.face}].door", src, {"w": w, "h": o.door_h_m})
 
     def _choose_segment(self, segments, target_face):
-        street = [s for s in segments if s.is_street_facing and s.length_m > 1.5]
+        street = [s for s in segments if s.is_street_facing and not s.is_party_wall and s.length_m > 1.5]
         if not street:
             return None
         if target_face:
@@ -91,7 +91,7 @@ class ShopWindowPlacer(OpeningPlacer):
             return
         o = PROFILE.openings
         for seg in segments:
-            if not seg.is_street_facing:
+            if not seg.is_street_facing or seg.is_party_wall:
                 continue
             # reserve door zone: skip if a door already placed here
             door_ranges = [(op.position_along_wall_m, op.position_along_wall_m + op.width_m)
@@ -125,7 +125,7 @@ class UpperWindowPlacer(OpeningPlacer):
         if not upper_levels:
             return
         for seg in segments:
-            if not seg.is_street_facing or seg.length_m < 1.5:
+            if not seg.is_street_facing or seg.is_party_wall or seg.length_m < 1.5:
                 continue
             count = max(1, int(round(seg.length_m / o.upper_window_spacing_m)))
             if count == 0:

@@ -8,6 +8,7 @@ from __future__ import annotations
 from ..common.prd import prd
 from ..modeling.building import Building
 from .geometry.facade_banding import FacadeBanding
+from .geometry.period_detail import PeriodDetail
 from .geometry.roof import for_shape as roof_for_shape
 from .geometry.roof.base import RoofGenerator
 from .geometry.roof.overhang import RoofOverhang
@@ -25,6 +26,7 @@ class BuildingGeometryBuilder:
         self._roof_overhang = RoofOverhang()
         self._facade_banding = FacadeBanding()
         self._shutters_balconies = ShuttersAndBalconies()
+        self._period_detail = PeriodDetail()
 
     def build(self, building: Building) -> BuildingMesh | None:
         if not building.footprint_local or not building.local_frame:
@@ -58,6 +60,7 @@ class BuildingGeometryBuilder:
 
         self._facade_banding.emit(mesh, building)
         self._shutters_balconies.emit(mesh, building)
+        self._period_detail.emit(mesh, building, RoofGenerator.total_wall_height(building))
 
         # Safety-net cap at eaves height: covers any gap between the walls'
         # top and the first pitched roof face (edge-winding rounding errors,
@@ -101,33 +104,46 @@ class BuildingGeometryBuilder:
             self._add_skylight(mesh, building, eaves_z)
 
     def _add_chimney(self, mesh: BuildingMesh, building: Building, eaves_z: float) -> None:
-        # Simple square chimney 0.4×0.4×1.8 at footprint centroid.
+        """Brick shaft with a projecting stone cap (period-correct detail)."""
         ring = building.footprint_local
         cx = sum(p[0] for p in ring) / len(ring)
         cy = sum(p[1] for p in ring) / len(ring)
-        half = 0.2
-        h = 1.8
+        half = 0.22
+        h = 2.2
         top = eaves_z + h
         corners = [
-            (cx - half, cy - half),
-            (cx + half, cy - half),
-            (cx + half, cy + half),
-            (cx - half, cy + half),
+            (cx - half, cy - half), (cx + half, cy - half),
+            (cx + half, cy + half), (cx - half, cy + half),
         ]
-        # 4 sides + top
         for i in range(4):
             a = corners[i]; b = corners[(i + 1) % 4]
             mesh.add_quad(
-                p0=(a[0], a[1], eaves_z), p1=(b[0], b[1], eaves_z),
-                p2=(b[0], b[1], top), p3=(a[0], a[1], top),
+                p0=(a[0], a[1], eaves_z), p1=(a[0], a[1], top),
+                p2=(b[0], b[1], top), p3=(b[0], b[1], eaves_z),
                 role="Chimney",
                 surface_id=f"{building.parcel_id}.chimney.side.{i}",
                 material_key="chimney_brick",
             )
-        top_idx = [mesh.add_vertex(x, y, top) for (x, y) in corners]
+        # projecting cap (wider than the shaft, 0.12 m tall)
+        cap_half = half + 0.08
+        cap_top = top + 0.14
+        cap_corners = [
+            (cx - cap_half, cy - cap_half), (cx + cap_half, cy - cap_half),
+            (cx + cap_half, cy + cap_half), (cx - cap_half, cy + cap_half),
+        ]
+        for i in range(4):
+            a = cap_corners[i]; b = cap_corners[(i + 1) % 4]
+            mesh.add_quad(
+                p0=(a[0], a[1], top), p1=(a[0], a[1], cap_top),
+                p2=(b[0], b[1], cap_top), p3=(b[0], b[1], top),
+                role="Chimney",
+                surface_id=f"{building.parcel_id}.chimney.cap.side.{i}",
+                material_key="plinth_stone",
+            )
+        top_idx = [mesh.add_vertex(x, y, cap_top) for (x, y) in cap_corners]
         mesh.add_face(top_idx, role="Chimney",
-                      surface_id=f"{building.parcel_id}.chimney.top",
-                      material_key="chimney_brick")
+                      surface_id=f"{building.parcel_id}.chimney.cap.top",
+                      material_key="plinth_stone")
 
     def _add_skylight(self, mesh: BuildingMesh, building: Building, eaves_z: float) -> None:
         ring = building.footprint_local
