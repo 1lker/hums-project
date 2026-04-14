@@ -61,17 +61,18 @@ class RoofOverhang:
             material_key="cornice_paint",
         )
 
-        # Soffit (underside of overhang): outward strip, normal pointing down.
+        # Soffit (underside of overhang). Wound so the normal faces DOWN
+        # (p0 wall-start → p1 outer-start → p2 outer-end → p3 wall-end is
+        # clockwise when viewed from above → right-hand normal points -Z).
         ox_s = sx + nx * OVERHANG
         oy_s = sy + ny * OVERHANG
         ox_e = ex + nx * OVERHANG
         oy_e = ey + ny * OVERHANG
-        # winding so normal is -Z: p0 at wall face, p1 at outer edge on same end, etc.
         mesh.add_quad(
             p0=(sx, sy, z_top),
-            p1=(ex, ey, z_top),
+            p1=(ox_s, oy_s, z_top),
             p2=(ox_e, oy_e, z_top),
-            p3=(ox_s, oy_s, z_top),
+            p3=(ex, ey, z_top),
             role="SoffitSurface",
             surface_id=f"{pid}.soffit.{seg.face}.{idx}",
             material_key="cornice_paint",

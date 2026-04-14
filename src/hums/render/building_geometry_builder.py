@@ -59,11 +59,30 @@ class BuildingGeometryBuilder:
         self._facade_banding.emit(mesh, building)
         self._shutters_balconies.emit(mesh, building)
 
-        self._add_roof(mesh, building)
+        # Safety-net cap at eaves height: covers any gap between the walls'
+        # top and the first pitched roof face (edge-winding rounding errors,
+        # hip/gable apex misses, complex_pitched fallback quirks). Emitted
+        # BEFORE the pitched roof so the sloped tiles sit on top of it.
         eaves_z = RoofGenerator.total_wall_height(building)
+        self._emit_eaves_cap(mesh, building, eaves_z)
+
+        self._add_roof(mesh, building)
         self._roof_overhang.emit(mesh, building, eaves_z)
         self._add_roof_extras(mesh, building)
         return mesh
+
+    def _emit_eaves_cap(self, mesh: BuildingMesh, building, eaves_z: float) -> None:
+        ring = building.footprint_local
+        if len(ring) < 3:
+            return
+        # Normal +Z (CCW from above preserves that since footprint_local is CCW).
+        idx = [mesh.add_vertex(x, y, eaves_z) for (x, y) in ring]
+        mesh.add_face(
+            idx,
+            role="RoofSurface",
+            surface_id=f"{building.parcel_id}.eaves_cap",
+            material_key="tile_terracotta",
+        )
 
     def _add_roof(self, mesh: BuildingMesh, building: Building) -> None:
         generator: RoofGenerator = roof_for_shape(
