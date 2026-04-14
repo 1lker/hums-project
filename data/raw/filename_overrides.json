@@ -1,0 +1,13 @@
+{
+  "_doc": "PRD-002 · filename → parcel_id overrides. Keys match file stems (case-insensitive). Values: list of Excel parcel_ids. Takes precedence over the FilenameClassifier heuristic. Add lines here whenever a traced file does not follow the building-entrence-<num> convention.",
+  "_note_entrence_38": "Street entrance number 38 is NOT a separate block-147 parcel — it is one of the Open-32 magazines (W-32), traced via near-39-open-32-magazine.kml. The `building-entrence-34-36-38.shp` filename includes `38` for historical reasons; the override below pins that polygon to W-34 + W-36 only.",
+  "building-entrence-34-36-38": ["W-34", "W-36"],
+  "cesme-fountain": ["W-39/2"],
+  "near-39-open-32-magazine": ["W-32"],
+  "near-39-open-32-the middle-magazine": ["W-32"],
+  "near-39-open-32-the last-corner-triangular-magazine": ["W-32"],
+  "near-39-open-32-the last-corner-triangular-magazine.": ["W-32"],
+  "church-entrence-camli-area-(39-1*39-2)-with-clocher": ["W-39/1"],
+  "churche-entrence-camli-area-(39-1,-39-2)-clocher": ["W-39/1"],
+  "at-the-green-area-wooden-at-147-block-near-the-church-middle-of-the-block": ["E-4a"]
+}

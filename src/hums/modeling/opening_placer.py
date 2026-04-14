@@ -42,6 +42,8 @@ class DoorPlacer(OpeningPlacer):
                 "S": "S", "SOUTH": "S", "W": "W", "WEST": "W"}
 
     def place(self, segments, storeys, excel, parcel_id, tracker):
+        if excel.get("_structure_type") != "building":
+            return
         primary_face_raw = (excel.get("openings") or {}).get("primary_door_face") or ""
         target_face: Face | None = None
         for key, val in self.FACE_MAP.items():
@@ -82,6 +84,8 @@ class DoorPlacer(OpeningPlacer):
 
 class ShopWindowPlacer(OpeningPlacer):
     def place(self, segments, storeys, excel, parcel_id, tracker):
+        if excel.get("_structure_type") != "building":
+            return
         gf = excel.get("ground_floor") or {}
         if not _is_shop_use(gf.get("code"), gf.get("use")):
             return
@@ -114,6 +118,8 @@ class ShopWindowPlacer(OpeningPlacer):
 
 class UpperWindowPlacer(OpeningPlacer):
     def place(self, segments, storeys, excel, parcel_id, tracker):
+        if excel.get("_structure_type") != "building":
+            return
         o = PROFILE.openings
         upper_levels = [s.level for s in storeys if s.level >= 1 and not s.is_basement]
         if not upper_levels:

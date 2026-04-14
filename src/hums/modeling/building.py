@@ -12,6 +12,7 @@ RGB = tuple[int, int, int]
 Point = tuple[float, float]
 FootprintSource = Literal["traced", "inferred", "stub", "missing"]
 Face = Literal["N", "E", "S", "W", "INT"]
+StructureType = Literal["building", "fountain", "bell_tower", "monument"]
 
 
 @dataclass
@@ -108,6 +109,8 @@ class Building:
     material_class: str | None                # "A" | "B" | "C"
     footprint_source: FootprintSource
     local_frame: LocalFrame | None
+    structure_type: StructureType = "building"
+    notes: dict[str, Any] = field(default_factory=dict)   # e.g. {"contains_clocher": True}
     footprint_local: list[Point] = field(default_factory=list)
     storeys: list[Storey] = field(default_factory=list)
     wall_segments: list[WallSegment] = field(default_factory=list)

@@ -19,6 +19,7 @@ IMAGERY = PROJECT_ROOT / "data" / "imagery"
 PRDS = PROJECT_ROOT / "PRDs"
 
 EXCEL_REGISTER = RAW_EXCEL / "Block147_Pervititch_BIM_v3_FINAL (1).xlsx"
+FILENAME_OVERRIDES = RAW / "filename_overrides.json"
 
 PARCELS_JSON = PARSED / "parcels.json"
 FOOTPRINTS_GEOJSON = PARSED / "footprints.geojson"

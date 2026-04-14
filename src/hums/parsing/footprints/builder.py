@@ -37,11 +37,8 @@ class FootprintBuilder:
         parcel, non_parcel, block = [], [], []
 
         for src in self._registry.discover():
-            reader = self._shp_reader if src.shp else self._kml_reader
-            try:
-                rings = reader.read(src.primary)
-            except Exception as e:  # pragma: no cover
-                print(f"  ! failed to read {src.primary.name}: {e}")
+            rings, source_path = self._read_with_fallback(src)
+            if not rings:
                 continue
 
             cls = self._classifier.classify(src.display_name)
@@ -50,11 +47,32 @@ class FootprintBuilder:
                 poly = self._to_metric_polygon(ring)
                 if poly.is_empty or poly.area < self.MIN_AREA_M2:
                     continue
-                feat = self._feature(poly, src, cls)
+                feat = self._feature(poly, src, cls, source_path)
                 bucket = self._bucket_for(cls.kind)
                 {"parcel": parcel, "non_parcel": non_parcel, "block": block}[bucket].append(feat)
 
         return {"parcel": parcel, "non_parcel": non_parcel, "block": block}
+
+    def _read_with_fallback(self, src):
+        """Prefer shapefile; fall back to KML if shapefile has no geometry
+        (some of our shapefiles are empty 100-byte headers — authored in QGIS
+        before the polygon was drawn, then the geometry was saved only to KML).
+        """
+        if src.shp:
+            try:
+                rings = self._shp_reader.read(src.shp)
+            except Exception as e:  # pragma: no cover
+                print(f"  ! shp read failed {src.shp.name}: {e}")
+                rings = []
+            if rings:
+                return rings, src.shp
+        if src.kml:
+            try:
+                rings = self._kml_reader.read(src.kml)
+                return rings, src.kml
+            except Exception as e:  # pragma: no cover
+                print(f"  ! kml read failed {src.kml.name}: {e}")
+        return [], src.primary
 
     def build_and_persist(self) -> dict[str, int]:
         groups = self.build()
@@ -73,21 +91,29 @@ class FootprintBuilder:
             poly = poly.buffer(0)
         return poly
 
-    def _feature(self, poly: Polygon, src: FootprintSource, cls) -> dict:
+    def _feature(self, poly: Polygon, src: FootprintSource, cls, source_path: "Path | None" = None) -> dict:
         c = poly.centroid
+        chosen = source_path or src.primary
         base_props = {
-            "source_file": src.primary.name,
-            "source_format": src.primary_format,
+            "source_file": chosen.name,
+            "source_format": chosen.suffix.lstrip(".").lower(),
             "area_m2": round(poly.area, 3),
             "perimeter_m": round(poly.length, 3),
             "centroid_utm": [round(c.x, 3), round(c.y, 3)],
             "kind": cls.kind.value,
         }
         if cls.kind == FootprintKind.PARCEL:
-            base_props.update({
-                "parcel_numbers": cls.parcel_numbers,
-                "match_confidence": "high" if cls.parcel_numbers and len(cls.parcel_numbers) == 1 else "shared-footprint",
-            })
+            if cls.parcel_ids_override:
+                base_props.update({
+                    "parcel_numbers": None,
+                    "parcel_ids_override": cls.parcel_ids_override,
+                    "match_confidence": "override",
+                })
+            else:
+                base_props.update({
+                    "parcel_numbers": cls.parcel_numbers,
+                    "match_confidence": "high" if cls.parcel_numbers and len(cls.parcel_numbers) == 1 else "shared-footprint",
+                })
         elif cls.kind == FootprintKind.BLOCK_OUTLINE:
             base_props["name"] = "Block 147 outline"
         else:

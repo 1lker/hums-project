@@ -44,11 +44,14 @@ class CoverageMatcher:
         matched_ids: set[str] = set()
         unmatched = []
         for f in features:
-            nums = f["properties"].get("parcel_numbers") or []
-            ids = []
-            for n in nums:
-                key = str(int(n)) if n.isdigit() else n
-                ids.extend(by_num.get(key, []))
+            ids: list[str] = []
+            override = f["properties"].get("parcel_ids_override") or []
+            if override:
+                ids = list(override)
+            else:
+                for n in (f["properties"].get("parcel_numbers") or []):
+                    key = str(int(n)) if n.isdigit() else n
+                    ids.extend(by_num.get(key, []))
             if ids:
                 f["properties"]["parcel_ids_matched"] = sorted(set(ids))
                 matched_ids.update(ids)

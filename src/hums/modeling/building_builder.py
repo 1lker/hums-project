@@ -16,6 +16,7 @@ from .facade_palette import FacadePaletteBuilder
 from .local_frame import LocalFrameBuilder
 from .opening_placer import DoorPlacer, ShopWindowPlacer, UpperWindowPlacer, _is_shop_use
 from .roof_descriptor import RoofDescriptorBuilder
+from .structure_classifier import StructureClassifier
 from .wall_segmenter import WallSegmenter
 
 
@@ -26,6 +27,7 @@ class BuildingBuilder:
         self._wall_segmenter = WallSegmenter(block_outline)
         self._roof_builder = RoofDescriptorBuilder()
         self._palette_builder = FacadePaletteBuilder()
+        self._structure_classifier = StructureClassifier()
         self._openers = [DoorPlacer(), ShopWindowPlacer(), UpperWindowPlacer()]
 
     def build(
@@ -41,7 +43,10 @@ class BuildingBuilder:
         gf = parcel.get("ground_floor") or {}
         gf_shop = _is_shop_use(gf.get("code"), gf.get("use"))
 
-        storeys = self._storeys(parcel, tracker)
+        structure_type, notes = self._structure_classifier.classify(parcel, filename_override=source_file)
+        tracker.record(pid, "structure_type", "excel-inferred", structure_type)
+
+        storeys = self._storeys(parcel, tracker, structure_type)
         roof = self._roof_builder.build(parcel.get("roof") or {}, pid, tracker)
         palette = self._palette_builder.build(material_class, gf_shop, pid, tracker)
 
@@ -52,6 +57,8 @@ class BuildingBuilder:
                 material_class=material_class,
                 footprint_source="missing",
                 local_frame=None,
+                structure_type=structure_type,
+                notes=notes,
                 storeys=storeys,
                 roof=roof,
                 facade_palette=palette,
@@ -63,14 +70,17 @@ class BuildingBuilder:
         thickness = self._wall_thickness(material_class, parcel, tracker)
         segments = self._wall_segmenter.segment(local_ring, footprint_utm, thickness)
 
+        placer_ctx = {**parcel, "_structure_type": structure_type}
         for placer in self._openers:
-            placer.place(segments, storeys, parcel, pid, tracker)
+            placer.place(segments, storeys, placer_ctx, pid, tracker)
 
         return Building(
             parcel_id=pid,
             material_class=material_class,
             footprint_source=footprint_source,  # type: ignore[arg-type]
             local_frame=frame,
+            structure_type=structure_type,
+            notes=notes,
             footprint_local=local_ring,
             storeys=storeys,
             wall_segments=segments,
@@ -80,7 +90,20 @@ class BuildingBuilder:
             excel_snapshot=_snapshot(parcel),
         )
 
-    def _storeys(self, parcel: dict, tracker: AssumptionTracker) -> list[Storey]:
+    def _storeys(self, parcel: dict, tracker: AssumptionTracker, structure_type: str = "building") -> list[Storey]:
+        # Monuments (çeşme etc.) get a single short body storey; no upper levels, no basement.
+        if structure_type == "fountain":
+            h_body = 1.8
+            tracker.assume(parcel["parcel_id"], "storeys[0].height_m", h_body,
+                           note="fountain: monumental body, no upper floors")
+            return [Storey(level=0, height_m=h_body, use="fountain_body")]
+
+        if structure_type == "bell_tower":
+            h_body = 10.0
+            tracker.assume(parcel["parcel_id"], "storeys[0].height_m", h_body,
+                           note="bell tower (clocher)")
+            return [Storey(level=0, height_m=h_body, use="bell_tower")]
+
         s_info = parcel.get("storeys") or {}
         count = s_info.get("count") or 1
         mezzanine = bool(s_info.get("has_mezzanine"))
