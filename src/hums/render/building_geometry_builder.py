@@ -7,10 +7,10 @@ from __future__ import annotations
 
 from ..common.prd import prd
 from ..modeling.building import Building
-from .geometry.opening_cutter import OpeningCutter
 from .geometry.roof import for_shape as roof_for_shape
 from .geometry.roof.base import RoofGenerator
 from .geometry.wall_extruder import WallExtruder
+from .geometry.wall_subdivider import WallSubdivider
 from .mesh_graph import BuildingMesh
 
 
@@ -18,7 +18,7 @@ from .mesh_graph import BuildingMesh
 class BuildingGeometryBuilder:
     def __init__(self) -> None:
         self._wall_extruder = WallExtruder()
-        self._opening_cutter = OpeningCutter()
+        self._wall_subdivider = WallSubdivider()
 
     def build(self, building: Building) -> BuildingMesh | None:
         if not building.footprint_local or not building.local_frame:
@@ -42,8 +42,14 @@ class BuildingGeometryBuilder:
             self._build_monument(mesh, building)
             return mesh
 
-        self._wall_extruder.extrude(mesh, building)
-        self._opening_cutter.cut(mesh, building)
+        # Floors + ground slab (walls are emitted by the subdivider so the
+        # extruder now only adds floors + ground; skip its wall-face emission).
+        self._wall_extruder.extrude_slabs_only(mesh, building)
+
+        # Walls with real punched openings.
+        storey_heights = [s.height_m for s in building.storeys if not s.is_basement]
+        self._wall_subdivider.emit(mesh, building, storey_heights)
+
         self._add_roof(mesh, building)
         self._add_roof_extras(mesh, building)
         return mesh

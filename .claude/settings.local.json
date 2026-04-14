@@ -20,7 +20,19 @@
       "Bash(mv *.shp *.dbf *.shx *.prj *.cpg *.qmd data/raw/shp/)",
       "Bash(mv *.tif *.tif.aux.xml data/raw/raster/)",
       "Bash(mv *.xlsx data/raw/excel/)",
-      "Bash(mv *.qgz data/raw/qgis/)"
+      "Bash(mv *.qgz data/raw/qgis/)",
+      "Bash(git init:*)",
+      "Bash(git branch:*)",
+      "Bash(git add:*)",
+      "Bash(git commit -m ':*)",
+      "Bash(.venv/bin/pip install:*)",
+      "Bash(.venv/bin/python -c \"import pygltflib; print\\('pygltflib', pygltflib.__version__\\)\")",
+      "Bash(.venv/bin/python -c \"import ifcopenshell; print\\('ifcopenshell ok:', ifcopenshell.version\\)\")",
+      "Bash(make prd003:*)",
+      "Bash(PYTHONPATH=src .venv/bin/python -m hums prd003)",
+      "Bash(PYTHONPATH=src .venv/bin/python -u -m hums prd003)",
+      "Bash(.venv/bin/python -u -c ':*)",
+      "*"
     ]
   }
 }

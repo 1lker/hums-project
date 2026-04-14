@@ -112,11 +112,35 @@ class BuildingMesh:
 
 
 @dataclass
+class GroundPlane:
+    half_extent_m: float
+    z: float = -0.01
+    color_rgb: tuple[int, int, int] = (115, 110, 100)
+
+
+@dataclass
+class CameraPose:
+    position: tuple[float, float, float]
+    target: tuple[float, float, float] = (0.0, 0.0, 0.0)
+    yfov_deg: float = 45.0
+
+
+@dataclass
+class DirectionalLight:
+    direction: tuple[float, float, float]   # world-space unit vector (points *from* sun)
+    color_rgb: tuple[int, int, int] = (255, 240, 210)
+    intensity: float = 3.0                  # lumens/sr (gltf 2.0 convention)
+
+
+@dataclass
 class SceneGraph:
     """Collection of BuildingMeshes + the block centroid used as world origin."""
     buildings: list[BuildingMesh] = field(default_factory=list)
     block_centroid_utm: tuple[float, float] = (0.0, 0.0)
     metadata: dict = field(default_factory=dict)
+    ground: GroundPlane | None = None
+    camera: CameraPose | None = None
+    lights: list[DirectionalLight] = field(default_factory=list)
 
     def face_count_by_role(self) -> dict[str, int]:
         agg: dict[str, int] = {}

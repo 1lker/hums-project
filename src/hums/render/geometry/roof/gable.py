@@ -62,5 +62,5 @@ class GableRoof(RoofGenerator):
                 p2=(b[0], b[1], z_b), p3=(b[0], b[1], eaves_z),
                 role="RoofSurface",
                 surface_id=f"{pid}.roof.{i}",
-                material_key="roof",
+                material_key="tile_terracotta",
             )

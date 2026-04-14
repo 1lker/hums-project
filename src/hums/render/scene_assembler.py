@@ -10,7 +10,9 @@ import math
 from dataclasses import dataclass
 
 from ..common.prd import prd
-from .mesh_graph import BuildingMesh, SceneGraph
+from .mesh_graph import (
+    BuildingMesh, CameraPose, DirectionalLight, GroundPlane, SceneGraph,
+)
 
 
 @dataclass
@@ -26,7 +28,27 @@ class SceneAssembler:
         scene.metadata["placements"] = [
             self._compute_placement(m, block_centroid_utm) for m in meshes
         ]
+
+        # Scene context — ground + camera + sun.
+        extent = self._scene_extent(meshes)
+        scene.ground = GroundPlane(half_extent_m=extent + 25.0)
+        scene.camera = CameraPose(
+            position=(-extent * 0.9, -extent * 0.7, extent * 0.55),
+            target=(0.0, 0.0, extent * 0.2),
+        )
+        scene.lights = [
+            DirectionalLight(direction=(0.35, 0.45, -0.82)),   # SE afternoon sun
+        ]
         return scene
+
+    @staticmethod
+    def _scene_extent(meshes: list[BuildingMesh]) -> float:
+        placements = []
+        for m in meshes:
+            placements.append(abs(m.placement_origin_utm[0]))
+            placements.append(abs(m.placement_origin_utm[1]))
+        # very rough half-extent in local block frame
+        return max(25.0, max((abs(v.x) for m in meshes for v in m.vertices), default=25.0))
 
     @staticmethod
     def _compute_placement(mesh: BuildingMesh, block_centroid_utm: tuple[float, float]) -> dict:

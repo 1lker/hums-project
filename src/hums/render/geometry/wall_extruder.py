@@ -17,24 +17,31 @@ from ..mesh_graph import BuildingMesh
 @prd("003", "§6.1 WallExtruder")
 class WallExtruder:
     def extrude(self, mesh: BuildingMesh, building: Building) -> None:
+        """Full extrusion: ground + walls + floors. (Legacy path, kept for
+        the `fountain` / simple-volume case.)"""
         non_basement = [s for s in building.storeys if not s.is_basement]
         if not non_basement:
             return
 
-        # z offsets: stack storeys upward
         z_levels = [0.0]
         for s in non_basement:
             z_levels.append(z_levels[-1] + s.height_m)
         total_height = z_levels[-1]
 
-        # Ground surface: fan-triangulate the footprint at z=0.
         self._emit_ground(mesh, building)
-
-        # For each wall segment, emit outer face from z=0 to total_height.
         for idx, seg in enumerate(building.wall_segments):
             self._emit_wall_face(mesh, building, seg, idx, total_height)
+        self._emit_floor_slabs(mesh, building, z_levels, non_basement)
 
-        # FloorSurface planes at each intermediate storey top.
+    def extrude_slabs_only(self, mesh: BuildingMesh, building: Building) -> None:
+        """Emit ground + floor slabs only — walls come from WallSubdivider."""
+        non_basement = [s for s in building.storeys if not s.is_basement]
+        if not non_basement:
+            return
+        z_levels = [0.0]
+        for s in non_basement:
+            z_levels.append(z_levels[-1] + s.height_m)
+        self._emit_ground(mesh, building)
         self._emit_floor_slabs(mesh, building, z_levels, non_basement)
 
     def _emit_ground(self, mesh: BuildingMesh, building: Building) -> None:
