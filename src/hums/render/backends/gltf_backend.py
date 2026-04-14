@@ -27,12 +27,12 @@ class GltfBackend:
         buffer = bytearray()
         placements = {p["parcel_id"]: p for p in scene.metadata.get("placements", [])}
 
-        # Y-up wrapper node (rotates our Z-up world).
+        # Single Z-up → Y-up rotation at the root; per-building nodes stay in Z-up.
         _set_y_up_root(root)
 
         for mesh in scene.buildings:
             placement = placements.get(mesh.parcel_id, {
-                "translation": [0, 0, 0], "rotation_deg_z": 0.0,
+                "translation": [0.0, 0.0, 0.0], "rotation_deg_z": 0.0,
             })
             self._add_building(root, buffer, mesh, placement)
 
@@ -69,13 +69,14 @@ class GltfBackend:
         mesh_index = len(root.meshes)
         root.meshes.append(gltf_mesh)
 
-        # Y-up placement: world (ox, oy, 0) → glTF (ox, 0, -oy); rotation around Z → around Y(-)
-        tx, ty, tz = placement.get("translation", [0, 0, 0])
+        # Everything stays in Z-up. The root node (created by _set_y_up_root)
+        # rotates the entire scene -90° about X for glTF's Y-up convention.
+        tx, ty, tz = placement.get("translation", [0.0, 0.0, 0.0])
         node = gl.Node(
             mesh=mesh_index,
             name=mesh.parcel_id,
-            translation=[tx, tz, -ty],
-            rotation=_euler_z_to_quat_y_up(placement.get("rotation_deg_z", 0.0)),
+            translation=[tx, ty, tz],
+            rotation=_quat_rot_z(placement.get("rotation_deg_z", 0.0)),
             extras={
                 "parcel_id": mesh.parcel_id,
                 "structure_type": mesh.metadata.get("structure_type"),
@@ -152,8 +153,15 @@ def _new_gltf() -> gl.GLTF2:
 
 
 def _set_y_up_root(root: gl.GLTF2) -> None:
-    # Add identity root node 0 — children appended later.
-    root.nodes.append(gl.Node(name="block147_root", children=[]))
+    """Create root node 0 with a -90° rotation about X to convert our Z-up
+    world to glTF's Y-up convention. Child nodes can stay in Z-up locally.
+    """
+    half = math.radians(-90.0) / 2.0
+    root.nodes.append(gl.Node(
+        name="block147_root",
+        children=[],
+        rotation=[math.sin(half), 0.0, 0.0, math.cos(half)],
+    ))
 
 
 def _append_view(root: gl.GLTF2, buffer: bytearray, data: bytes, target: int) -> int:
@@ -227,11 +235,10 @@ def _color_for(palette, material_key: str) -> tuple[int, int, int]:
     return (int(v[0]), int(v[1]), int(v[2]))
 
 
-def _euler_z_to_quat_y_up(deg_z: float) -> list[float]:
-    # Rotation around world Z in our frame becomes rotation around glTF -Y.
-    theta = math.radians(-deg_z)
-    half = theta / 2.0
-    return [0.0, math.sin(half), 0.0, math.cos(half)]
+def _quat_rot_z(deg_z: float) -> list[float]:
+    """Quaternion for rotation about world Z (our Z-up frame)."""
+    half = math.radians(deg_z) / 2.0
+    return [0.0, 0.0, math.sin(half), math.cos(half)]
 
 
 def _finalize(root: gl.GLTF2, buffer: bytearray, out_path: Path) -> None:

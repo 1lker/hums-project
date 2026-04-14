@@ -41,12 +41,14 @@ class WallExtruder:
         ring = building.footprint_local
         if len(ring) < 3:
             return
-        indices = [mesh.add_vertex(x, y, 0.0) for (x, y) in ring]
+        # Ground surface faces DOWN (CityGML convention). Reverse the ring so
+        # the winding gives a -Z normal.
+        indices = [mesh.add_vertex(x, y, 0.0) for (x, y) in reversed(ring)]
         mesh.add_face(
             indices,
             role="GroundSurface",
             surface_id=f"{building.parcel_id}.ground",
-            material_key="wall_main",  # invisible from above but consistent palette
+            material_key="wall_main",
             storey_level=0,
         )
 
@@ -56,12 +58,15 @@ class WallExtruder:
         face_id = f"{building.parcel_id}.wall.{seg.face}.{idx}"
         role = "WallSurface" if seg.is_street_facing or seg.face != "INT" else "WallSurface"
         material = "wall_main"
-        # Outer wall quad (CCW when viewed from outside)
+        # Outer wall quad. Ring is CCW from above, so for the wall normal to
+        # face OUTWARD we must wind bottom-start → top-start → top-end →
+        # bottom-end (clockwise when viewed from outside). Right-hand rule
+        # then gives an outward normal.
         mesh.add_quad(
             p0=(sx, sy, 0.0),
-            p1=(ex, ey, 0.0),
+            p1=(sx, sy, top_z),
             p2=(ex, ey, top_z),
-            p3=(sx, sy, top_z),
+            p3=(ex, ey, 0.0),
             role=role,
             surface_id=face_id,
             material_key=material,

@@ -56,9 +56,10 @@ class GableRoof(RoofGenerator):
             # determine z at each vertex: linear from eaves → eaves+rise at ridge
             z_a = eaves_z + (1 - abs(t_a - t_mid) / max(span / 2.0, 0.001)) * rise
             z_b = eaves_z + (1 - abs(t_b - t_mid) / max(span / 2.0, 0.001)) * rise
+            # Wind CCW from above so normal has +Z component (points up/out).
             mesh.add_quad(
-                p0=(a[0], a[1], eaves_z), p1=(b[0], b[1], eaves_z),
-                p2=(b[0], b[1], z_b), p3=(a[0], a[1], z_a),
+                p0=(a[0], a[1], eaves_z), p1=(a[0], a[1], z_a),
+                p2=(b[0], b[1], z_b), p3=(b[0], b[1], eaves_z),
                 role="RoofSurface",
                 surface_id=f"{pid}.roof.{i}",
                 material_key="roof",

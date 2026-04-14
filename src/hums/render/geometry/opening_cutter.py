@@ -63,11 +63,12 @@ class OpeningCutter:
         material = "door_panel" if op.kind == "door" else "window_glass"
         face_id = f"{building.parcel_id}.{op.kind}.{seg.face}.{wall_idx}.{opening_idx}"
 
+        # Match wall winding (clockwise from outside) so normals agree.
         mesh.add_quad(
             p0=(ax, ay, z0),
-            p1=(bx, by, z0),
+            p1=(ax, ay, z1),
             p2=(bx, by, z1),
-            p3=(ax, ay, z1),
+            p3=(bx, by, z0),
             role=role,
             surface_id=face_id,
             material_key=material,
