@@ -26,11 +26,13 @@ class Prd002Pipeline:
         parcels = json.loads(PARCELS_JSON.read_text())
         block = _first_polygon(BLOCK_GEOJSON)
 
-        # Index footprints by matched parcel_id.
-        traced_by_pid: dict[str, dict] = {}
+        # Index footprints by matched parcel_id. **Multiple footprints per
+        # parcel are allowed** (e.g. W-32 has 3 magazine polygons that all
+        # map to the same Excel row — each is a physically distinct volume).
+        traced_by_pid: dict[str, list[dict]] = {}
         for feat in json.loads(FOOTPRINTS_GEOJSON.read_text())["features"]:
             for pid in feat["properties"].get("parcel_ids_matched") or []:
-                traced_by_pid.setdefault(pid, feat)  # first match wins
+                traced_by_pid.setdefault(pid, []).append(feat)
 
         # Generate stubs for INT-* parcels.
         stubs = StubGenerator().generate_and_persist()
@@ -41,30 +43,45 @@ class Prd002Pipeline:
 
         for parcel in parcels:
             pid = parcel["parcel_id"]
-            feat = traced_by_pid.get(pid)
-            footprint_source = None
-            source_file = None
-            polygon = None
+            feats = traced_by_pid.get(pid) or []
 
-            if feat:
-                polygon = shape(feat["geometry"])
-                # Handle shared footprints: split along long axis by parcel count.
-                matched_ids = feat["properties"].get("parcel_ids_matched") or []
-                if len(matched_ids) > 1:
-                    polygon = _split_share(polygon, matched_ids, pid)
-                footprint_source = "traced"
-                source_file = feat["properties"].get("source_file")
-            elif pid in stubs:
+            if feats:
+                # Emit ONE Building per physical footprint (handles W-32's 3
+                # magazines, plus any other parcel whose override maps to
+                # multiple traced polygons).
+                for sub_idx, feat in enumerate(feats):
+                    polygon = shape(feat["geometry"])
+                    matched_ids = feat["properties"].get("parcel_ids_matched") or []
+                    if len(matched_ids) > 1:
+                        polygon = _split_share(polygon, matched_ids, pid)
+                    suffix_pid = pid if len(feats) == 1 else f"{pid}#{sub_idx + 1}"
+                    p_copy = {**parcel, "parcel_id": suffix_pid}
+                    building = builder.build(
+                        p_copy, polygon, "traced",
+                        feat["properties"].get("source_file"), tracker,
+                    )
+                    building.reference_imagery = ReferenceManifest.load_for(pid)
+                    if len(feats) > 1:
+                        building.shared_footprint_group_id = f"{pid}.multi"
+                        building.notes["base_parcel_id"] = pid
+                        building.notes["sub_index"] = sub_idx + 1
+                    elif len(matched_ids) > 1:
+                        building.shared_footprint_group_id = "|".join(matched_ids)
+                    buildings.append(building)
+                continue
+
+            # No traced polygon — stub or missing.
+            if pid in stubs:
                 polygon = stubs[pid]
                 footprint_source = "stub"
                 source_file = "stubs.geojson"
             else:
+                polygon = None
                 footprint_source = "missing"
+                source_file = None
 
             building = builder.build(parcel, polygon, footprint_source, source_file, tracker)
             building.reference_imagery = ReferenceManifest.load_for(pid)
-            if feat and len(feat["properties"].get("parcel_ids_matched") or []) > 1:
-                building.shared_footprint_group_id = "|".join(feat["properties"]["parcel_ids_matched"])
             buildings.append(building)
 
         _persist_buildings(buildings)

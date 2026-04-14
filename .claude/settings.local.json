@@ -37,7 +37,10 @@
       "Bash(mv data/raw/shp/blobk-147-layer.* data/raw/_deprecated/)",
       "Bash(ls data/raw/shp/blobk* data/raw/kml/blobk*)",
       "Bash(PYTHONPATH=src .venv/bin/python -m hums diagnostic-map)",
-      "Bash(git commit -m 'feat\\(prd-004\\): 2D diagnostic SVG map for placement verification:*)"
+      "Bash(git commit -m 'feat\\(prd-004\\): 2D diagnostic SVG map for placement verification:*)",
+      "Skill(update-config)",
+      "Skill(update-config:*)",
+      "Bash(git commit -m 'fix\\(prd-002,004\\): one Building per traced footprint + broad approve perms:*)"
     ]
   }
 }
