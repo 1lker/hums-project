@@ -70,7 +70,14 @@ class BuildingBuilder:
 
         frame, local_ring = self._frame_builder.build(footprint_utm)
         thickness = self._wall_thickness(material_class, parcel, tracker)
-        segments = self._wall_segmenter.segment(local_ring, footprint_utm, thickness, parcel_id=pid)
+        height_m = _above_grade_height(storeys)
+        segments = self._wall_segmenter.segment(
+            local_ring,
+            footprint_utm,
+            thickness,
+            parcel_id=pid,
+            building_height_m=height_m,
+        )
 
         placer_ctx = {**parcel, "_structure_type": structure_type}
         for placer in self._openers:
@@ -214,6 +221,10 @@ def _gf_use_label(gf: dict, parcel: dict) -> str:
     if "magazine" in use:
         return "magazine"
     return gf.get("use") or "ground_floor"
+
+
+def _above_grade_height(storeys: list[Storey]) -> float:
+    return sum(s.height_m for s in storeys if not s.is_basement)
 
 
 def _snapshot(parcel: dict) -> dict:
