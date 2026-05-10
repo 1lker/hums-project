@@ -104,7 +104,7 @@ def _write_opening_audit(scene: SceneGraph, path: Path) -> None:
     }
     lines = [
         "# Opening And Material Audit\n",
-        "Doors and shopfronts are map/Excel-frontage driven. Upper windows remain typology assumptions unless source text says otherwise.\n",
+        "Doors, shopfronts, and vitrines are restricted to map/manual evidence. Upper-floor typology windows are suppressed in the visible model.\n",
         "| parcel_id | material | footprint | strict street edges | doors | shopfronts | upper windows | source notes |",
         "|---|---|---|---:|---:|---:|---:|---|",
     ]
