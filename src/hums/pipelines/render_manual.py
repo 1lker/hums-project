@@ -46,6 +46,32 @@ OUT_ROOT = PROJECT_ROOT / "output" / "buildings"
 @prd("005", "ManualRenderer")
 class ManualRenderer:
     def render(self, label_key: str) -> Path:
+        label, meshes, block_centroid = self.build_meshes(label_key)
+        scene = SceneAssembler().assemble(meshes, block_centroid)
+
+        out_dir = OUT_ROOT / label.label
+        out_dir.mkdir(parents=True, exist_ok=True)
+        glb = out_dir / f"{label.label}.glb"
+        GltfBackend().export_scene(scene, glb)
+
+        profile = out_dir / f"{label.label}_profile.md"
+        profile.write_text(self._profile(label, meshes))
+
+        print(f"Rendered {label_key}")
+        print(f"  label: {label.label}  parcels: {label.parcel_ids}")
+        print(f"  zones rendered: {len(meshes)}/{len(label.zones)}")
+        print(f"  faces total: {sum(len(m.faces) for m in meshes)}")
+        print(f"  3D: {glb.relative_to(PROJECT_ROOT)}")
+        print(f"  report: {profile.relative_to(PROJECT_ROOT)}")
+        return out_dir
+
+    def build_meshes(self, label_key: str):
+        """Build manual-zone meshes without exporting them.
+
+        PRD-003 uses this to substitute map-verified manual labels into the
+        full block scene while keeping this focused renderer as the source of
+        truth for the zone split.
+        """
         label = self._find_label(label_key)
         if label is None:
             raise SystemExit(f"no manual label found for {label_key!r}")
@@ -95,23 +121,7 @@ class ManualRenderer:
                 continue
             meshes.append(mesh)
 
-        scene = SceneAssembler().assemble(meshes, block_centroid)
-
-        out_dir = OUT_ROOT / label.label
-        out_dir.mkdir(parents=True, exist_ok=True)
-        glb = out_dir / f"{label.label}.glb"
-        GltfBackend().export_scene(scene, glb)
-
-        profile = out_dir / f"{label.label}_profile.md"
-        profile.write_text(self._profile(label, meshes))
-
-        print(f"Rendered {label_key}")
-        print(f"  label: {label.label}  parcels: {label.parcel_ids}")
-        print(f"  zones rendered: {len(meshes)}/{len(label.zones)}")
-        print(f"  faces total: {sum(len(m.faces) for m in meshes)}")
-        print(f"  3D: {glb.relative_to(PROJECT_ROOT)}")
-        print(f"  report: {profile.relative_to(PROJECT_ROOT)}")
-        return out_dir
+        return label, meshes, block_centroid
 
     # ---- helpers -----------------------------------------------------------
     def _find_label(self, key: str) -> ManualLabel | None:

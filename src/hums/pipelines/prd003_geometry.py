@@ -18,12 +18,17 @@ from ..render.reports.geometry_manifest import write_reports
 from ..render.scene_assembler import SceneAssembler
 from ..render.scene.street_mesh import load_block_ring_local
 from ..render.special.church_builder import ChurchBuilder
+from .render_manual import ManualRenderer
 
 BUILDINGS_JSON = PARSED / "buildings.json"
 OUTPUT = PROJECT_ROOT / "output"
 IFC_DIR = OUTPUT / "ifc"
 GLTF_DIR = OUTPUT / "gltf"
 REPORT_DIR = OUTPUT / "reports"
+
+MANUAL_SCENE_REPLACEMENTS = {
+    "N-40-42": {"N-40", "N-42"},
+}
 
 
 @prd("003", "Pipeline")
@@ -32,10 +37,14 @@ class Prd003Pipeline:
         buildings = [_building_from_dict(d) for d in json.loads(BUILDINGS_JSON.read_text())]
         geom_builder = BuildingGeometryBuilder()
         meshes = []
+        manual_meshes, replaced_parcels = _manual_replacement_meshes()
         for b in buildings:
+            if b.parcel_id in replaced_parcels:
+                continue
             m = geom_builder.build(b)
             if m:
                 meshes.append(m)
+        meshes.extend(manual_meshes)
 
         block_centroid = _block_centroid()
         church_mesh = ChurchBuilder().build(block_centroid)
@@ -81,6 +90,21 @@ def _block_centroid() -> tuple[float, float]:
         return (0.0, 0.0)
     c = shape(feats[0]["geometry"]).centroid
     return (c.x, c.y)
+
+
+def _manual_replacement_meshes() -> tuple[list, set[str]]:
+    meshes = []
+    replaced_parcels: set[str] = set()
+    renderer = ManualRenderer()
+    for label_key, configured_parcels in MANUAL_SCENE_REPLACEMENTS.items():
+        label, label_meshes, _ = renderer.build_meshes(label_key)
+        meshes.extend(label_meshes)
+        replaced_parcels.update(configured_parcels)
+        replaced_parcels.update(label.parcel_ids)
+        for mesh in label_meshes:
+            mesh.metadata["manual_scene_replacement"] = label.label
+            mesh.metadata["replaces_parcels"] = sorted(label.parcel_ids)
+    return meshes, replaced_parcels
 
 
 def _building_from_dict(d: dict) -> Building:
