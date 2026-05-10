@@ -14,7 +14,7 @@ from .assumption_tracker import AssumptionTracker
 from .building import Building, Opening, Storey, Provenance
 from .facade_palette import FacadePaletteBuilder
 from .local_frame import LocalFrameBuilder
-from .opening_placer import DoorPlacer, ShopWindowPlacer, UpperWindowPlacer, _is_shop_use
+from .opening_placer import DoorPlacer, ShopWindowPlacer, _is_shop_use
 from .party_wall_index import PartyWallIndex
 from .roof_descriptor import RoofDescriptorBuilder
 from .structure_classifier import StructureClassifier
@@ -30,7 +30,7 @@ class BuildingBuilder:
         self._roof_builder = RoofDescriptorBuilder()
         self._palette_builder = FacadePaletteBuilder()
         self._structure_classifier = StructureClassifier()
-        self._openers = [DoorPlacer(), ShopWindowPlacer(), UpperWindowPlacer()]
+        self._openers = [DoorPlacer(), ShopWindowPlacer()]
 
     def build(
         self,
@@ -133,31 +133,7 @@ class BuildingBuilder:
                 color_source="map:pervititch:W-32 west entrance arrow",
             ))
 
-        upper_levels = [s.level for s in storeys if s.level >= 1 and not s.is_basement]
-        if not upper_levels:
-            return
-        count = max(1, min(2, int(chosen.length_m // 2.2)))
-        gap = (chosen.length_m - count * o.upper_window_w_m) / (count + 1)
-        if gap < 0.25:
-            count = 1
-            gap = (chosen.length_m - o.upper_window_w_m) / 2.0
-        for level in upper_levels[:1]:
-            for i in range(count):
-                pos = max(0.2, gap + i * (o.upper_window_w_m + gap))
-                chosen.openings.append(Opening(
-                    kind="window",
-                    storey_level=level,
-                    position_along_wall_m=round(pos, 3),
-                    width_m=o.upper_window_w_m,
-                    height_m=1.35,
-                    sill_m=1.0,
-                    style="arched",
-                    pane_layout="2x2",
-                    has_shutters=False,
-                    frame_profile="moulded",
-                    color_source="assumption:W-32 stone magazine facade",
-                ))
-        tracker.record(pid, "openings.W-32", "map:pervititch+assumption", "west door plus conservative upper stone-magazine windows")
+        tracker.record(pid, "openings.W-32", "map:pervititch", "west door only; unmarked window assumptions suppressed")
 
     def _storeys(self, parcel: dict, tracker: AssumptionTracker, structure_type: str = "building") -> list[Storey]:
         # Monuments (çeşme etc.) get a single short body storey; no upper levels, no basement.
