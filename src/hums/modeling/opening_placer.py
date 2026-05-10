@@ -235,19 +235,31 @@ def _is_glazed_structure(excel: dict) -> bool:
 
 
 def _door_faces(openings: dict) -> list[Face]:
-    raw_fields = [
-        openings.get("primary_door_face") or "",
-        openings.get("secondary_door_face") or "",
-    ]
     faces: list[Face] = []
-    for raw in raw_fields:
+    for raw in [openings.get("primary_door_face") or ""]:
         raw_s = str(raw)
         if _says_internal_only(raw_s.lower()):
             continue
         for face in _faces_from_text(raw_s):
             if face not in faces:
                 faces.append(face)
+    if _secondary_is_exterior(openings):
+        raw_s = str(openings.get("secondary_door_face") or "")
+        for face in _faces_from_text(raw_s):
+            if face not in faces:
+                faces.append(face)
     return faces
+
+
+def _secondary_is_exterior(openings: dict) -> bool:
+    text = " ".join(str(openings.get(k) or "") for k in ("secondary_door_face", "secondary_door_type")).lower()
+    if not text.strip() or text.strip(" —-") == "":
+        return False
+    if any(token in text for token in ("street", "courtyard", "gate", "corner")):
+        return True
+    if any(token in text for token in ("internal", "passage", "shared", "connection")):
+        return False
+    return bool(_faces_from_text(text))
 
 
 def _faces_from_text(text: str) -> list[Face]:
