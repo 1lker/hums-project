@@ -49,10 +49,16 @@ class DoorPlacer(OpeningPlacer):
         if not target_faces and _blocks_exterior_openings(excel):
             tracker.record(parcel_id, "wall.door", "map:pervititch", "no street door indicated")
             return
+        if not target_faces:
+            tracker.record(parcel_id, "wall.door", "map:pervititch", "no explicit mapped door face")
+            return
+        if _negative_door_evidence(openings) and not _is_glazed_structure(excel):
+            tracker.record(parcel_id, "wall.door", "map:pervititch", "door evidence marked uncertain/negative")
+            return
 
         placed = 0
         used_segments: set[int] = set()
-        for target_face in target_faces or [None]:
+        for target_face in target_faces:
             chosen = self._choose_segment(segments, target_face, strict_street=target_face is None)
             if chosen is None and target_face is not None:
                 chosen = self._choose_unused_strict_street_segment(segments, used_segments)
@@ -77,8 +83,8 @@ class DoorPlacer(OpeningPlacer):
             ))
             tracker.record(parcel_id, f"wall[{chosen.face}].door", src, {"w": w, "h": o.door_h_m})
             placed += 1
-        if placed == 0 and not target_faces and not _blocks_exterior_openings(excel):
-            tracker.record(parcel_id, "wall.door", "assumption:pervititch_1923", "no eligible exterior segment")
+        if placed == 0:
+            tracker.record(parcel_id, "wall.door", "map:pervititch", "no eligible exterior segment")
 
     def _choose_segment(self, segments, target_face, strict_street: bool):
         exterior = [s for s in segments if s.is_street_facing and not s.is_party_wall and s.length_m > 1.5]
@@ -253,6 +259,23 @@ def _blocks_exterior_openings(excel: dict) -> bool:
     if _says_internal_only(text):
         return True
     return "no arrow" in text and not _door_faces(openings)
+
+
+def _negative_door_evidence(openings: dict) -> bool:
+    text = _openings_text(openings)
+    if "glazed porch" in text or "glass wall" in text or "transparent entrance" in text:
+        return False
+    return any(token in text for token in (
+        "not arrow",
+        "not entrance",
+        "no clear arrow",
+        "no explicit arrow",
+        "inferred from typology",
+        "may share",
+        "possible shared",
+        "possible ↓",
+        "possible gate",
+    ))
 
 
 def _is_glazed_structure(excel: dict) -> bool:

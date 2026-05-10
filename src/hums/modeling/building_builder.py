@@ -14,7 +14,7 @@ from .assumption_tracker import AssumptionTracker
 from .building import Building, Opening, Storey, Provenance
 from .facade_palette import FacadePaletteBuilder
 from .local_frame import LocalFrameBuilder
-from .opening_placer import DoorPlacer, ShopWindowPlacer, _is_shop_use
+from .opening_placer import DoorPlacer, _is_shop_use
 from .party_wall_index import PartyWallIndex
 from .roof_descriptor import RoofDescriptorBuilder
 from .structure_classifier import StructureClassifier
@@ -30,7 +30,7 @@ class BuildingBuilder:
         self._roof_builder = RoofDescriptorBuilder()
         self._palette_builder = FacadePaletteBuilder()
         self._structure_classifier = StructureClassifier()
-        self._openers = [DoorPlacer(), ShopWindowPlacer()]
+        self._openers = [DoorPlacer()]
 
     def build(
         self,

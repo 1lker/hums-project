@@ -34,7 +34,7 @@ from ..modeling.party_wall_index import PartyWallIndex
 from ..modeling.facade_palette import FacadePaletteBuilder
 from ..modeling.assumption_tracker import AssumptionTracker
 from ..modeling.local_frame import LocalFrameBuilder
-from ..modeling.opening_placer import DoorPlacer, ShopWindowPlacer
+from ..modeling.opening_placer import DoorPlacer
 from ..modeling.wall_segmenter import WallSegmenter
 from ..render.backends.gltf_backend import GltfBackend
 from ..render.building_geometry_builder import BuildingGeometryBuilder
@@ -292,7 +292,7 @@ class ManualRenderer:
         if primary_face or secondary_face:
             DoorPlacer().place(segments, storeys_proxy, ctx, zone_pid, tracker)
         self._place_manual_entrances(label, zone, segments, tracker, zone_pid)
-        ShopWindowPlacer().place(segments, storeys_proxy, ctx, zone_pid, tracker)
+        self._place_explicit_vitrine(label, zone, segments, tracker, zone_pid)
 
     def _place_manual_entrances(self, label: ManualLabel, zone: Zone,
                                 segments: list[WallSegment], tracker,
@@ -352,6 +352,64 @@ class ManualRenderer:
                 "map:pervititch",
                 {"count": count, "description": hint.description},
             )
+
+    def _place_explicit_vitrine(self, label: ManualLabel, zone: Zone,
+                                segments: list[WallSegment], tracker,
+                                zone_pid: str) -> None:
+        text = " ".join([zone.id, zone.description, *zone.map_labels]).lower()
+        if "vitr" not in text and "cam" not in text and "glaz" not in text:
+            return
+        preferred_faces = []
+        if label.facades.secondary_door and label.facades.secondary_door.zone == zone.id:
+            preferred_faces.append(label.facades.secondary_door.face)
+        if label.facades.primary_door and label.facades.primary_door.zone == zone.id:
+            preferred_faces.append(label.facades.primary_door.face)
+
+        pool = [
+            s for s in segments
+            if not s.is_party_wall
+            and s.length_m > 1.2
+            and (not preferred_faces or s.face in preferred_faces)
+        ]
+        if not pool:
+            pool = [s for s in segments if not s.is_party_wall and s.length_m > 1.2]
+        if not pool:
+            return
+        seg = max(pool, key=lambda s: s.length_m)
+        o = PROFILE.openings
+        door_ranges = [
+            (op.position_along_wall_m, op.position_along_wall_m + op.width_m)
+            for op in seg.openings
+            if op.kind == "door"
+        ]
+        width = min(o.shop_window_w_m, max(0.8, seg.length_m - 0.5))
+        candidates = [
+            0.25,
+            max(0.2, seg.length_m - width - 0.25),
+            max(0.2, (seg.length_m - width) / 2.0),
+        ]
+        for pos in candidates:
+            if not any(not (pos + width < a or pos > b) for a, b in door_ranges):
+                break
+        else:
+            return
+        seg.openings.append(Opening(
+            kind="shop_window",
+            storey_level=0,
+            position_along_wall_m=round(pos, 3),
+            width_m=round(width, 3),
+            height_m=o.shop_window_h_m,
+            sill_m=o.shop_window_sill_m,
+            style="rectangular",
+            frame_profile="moulded",
+            color_source=f"map:pervititch:{label.label}:explicit-vitrine",
+        ))
+        tracker.record(
+            zone_pid,
+            f"wall[{seg.face}].explicit_vitrine",
+            "map:pervititch",
+            {"zone": zone.id, "labels": zone.map_labels},
+        )
 
     def _profile(self, label: ManualLabel, meshes) -> str:
         from collections import Counter
