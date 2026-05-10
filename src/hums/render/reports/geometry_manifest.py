@@ -202,7 +202,12 @@ def _write_roof_visual_audit(scene: SceneGraph, path: Path) -> None:
         elif "sheet_metal_grey" in roof_materials:
             note = "T rendered as aged sheet metal"
         elif mesh.metadata.get("structure_type") == "church":
-            note = "special church roof: low tile body, high drum/kubbe, clocher"
+            clocher_top = mesh.metadata.get("clocher_top_m")
+            clocher_src = mesh.metadata.get("clocher_source")
+            if clocher_top and clocher_src:
+                note = f"special church roof: low tile body, high drum/kubbe; clocher {clocher_top} m from {clocher_src}"
+            else:
+                note = "special church roof: low tile body, high drum/kubbe, clocher"
         lines.append(
             "| {pid} | {shape} | {material} | {pitch} | {keys} | {note} |".format(
                 pid=mesh.parcel_id,

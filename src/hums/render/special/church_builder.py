@@ -13,7 +13,8 @@ from __future__ import annotations
 import json
 import math
 
-from shapely.geometry import Polygon, shape
+from shapely.geometry import Point, Polygon, shape
+from shapely.ops import nearest_points
 
 from ...common.paths import NON_PARCEL_FOOTPRINTS_GEOJSON
 from ...common.prd import prd
@@ -32,10 +33,11 @@ DOME_RINGS = 16
 LANTERN_HEIGHT = 2.2
 LANTERN_RADIUS = 0.75
 LANTERN_SEGMENTS = 8
-CLOCHER_BASE_STOREY = 4.5     # lower stone storey
-CLOCHER_BELFRY_H = 3.0        # octagonal belfry with arched openings
-CLOCHER_PEAK_H = 4.5          # tall pyramidal cap
+CLOCHER_BASE_STOREY = 6.2     # lower stone storey
+CLOCHER_BELFRY_H = 4.1        # octagonal belfry with arched openings
+CLOCHER_PEAK_H = 5.0          # tall pyramidal cap
 CLOCHER_FINIAL_H = 1.2
+CLOCHER_MAP_CENTER_UTM = (670344.05, 4539694.10)
 
 
 STONE_PALETTE = FacadePalette(
@@ -282,26 +284,47 @@ class ChurchBuilder:
 
         The `church-entrence-camli-area-(39-1*39-2)-with-clocher.kml` polygon
         contains BOTH the camli vestibule and the bell tower's physical base.
-        We find that polygon, take the sub-region closest to the church,
-        and place a slender octagonal tower on its centroid so it lands
-        exactly where the 1923 Pervititch map shows it.
+        We find that polygon, take the traced edge that touches the church,
+        and place a slender octagonal tower just inside that edge so it lands
+        where the 1923 Pervititch map labels "Clocher".
         """
         clocher_poly = _load_w39_1_polygon()
         if clocher_poly is None:
             # fall back to old behaviour if the data moves
             return
-        # The W-39/1 polygon includes camli + clocher; the clocher sits at the
-        # portion closest to the church body. Approximate that as a bounding
-        # rectangle corner closest to (church_cx, church_cy).
-        bx0, by0, bx1, by1 = clocher_poly.bounds
-        candidates = [(bx0, by0), (bx0, by1), (bx1, by0), (bx1, by1)]
-        nx, ny = min(candidates, key=lambda p: (p[0] - church_cx) ** 2 + (p[1] - church_cy) ** 2)
-        # Pull a little back from the corner so the tower sits ON the polygon.
-        inset = 1.3
-        cx = nx + (clocher_poly.centroid.x - nx) * (inset / max(0.1, math.hypot(clocher_poly.centroid.x - nx,
-                                                                                  clocher_poly.centroid.y - ny)))
-        cy = ny + (clocher_poly.centroid.y - ny) * (inset / max(0.1, math.hypot(clocher_poly.centroid.x - nx,
-                                                                                  clocher_poly.centroid.y - ny)))
+        church_poly = _load_church_polygon()
+        if church_poly is None:
+            return
+
+        # The map shows a distinct small square with the "Clocher" label at
+        # the south-east / lower-right edge of the church complex. The W-39/1
+        # footprint covers the whole camli/clocher porch, so the tower center
+        # must be pinned to that visible square, not to W-39/1's centroid or
+        # nearest boundary point.
+        map_center = Point(*CLOCHER_MAP_CENTER_UTM)
+        if clocher_poly.buffer(0.2).contains(map_center):
+            cx, cy = CLOCHER_MAP_CENTER_UTM
+            anchor_utm = CLOCHER_MAP_CENTER_UTM
+            source = "Pervititch raster clocher square within W-39/1"
+        else:
+            # Fallback if the source footprint is retraced later.
+            _, anchor = nearest_points(church_poly.boundary, clocher_poly.boundary)
+            nx, ny = anchor.x, anchor.y
+            inset = 1.3
+            center_target = clocher_poly.centroid
+            anchor_to_center = math.hypot(center_target.x - nx, center_target.y - ny)
+            cx = nx + (center_target.x - nx) * (inset / max(0.1, anchor_to_center))
+            cy = ny + (center_target.y - ny) * (inset / max(0.1, anchor_to_center))
+            anchor_utm = (nx, ny)
+            source = "fallback W-39/1 nearest church-edge clocher/camli footprint"
+
+        mesh.metadata["clocher_source"] = source
+        mesh.metadata["clocher_anchor_utm"] = tuple(round(v, 3) for v in anchor_utm)
+        mesh.metadata["clocher_center_utm"] = (round(cx, 3), round(cy, 3))
+        mesh.metadata["clocher_top_m"] = round(
+            CLOCHER_BASE_STOREY + 0.6 + CLOCHER_BELFRY_H + CLOCHER_PEAK_H + CLOCHER_FINIAL_H,
+            2,
+        )
         # Local coords around the church centroid (stored in church mesh).
         cx -= church_cx
         cy -= church_cy
