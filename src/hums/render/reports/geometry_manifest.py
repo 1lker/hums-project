@@ -18,6 +18,7 @@ def write_reports(scene: SceneGraph, out_dir: Path) -> None:
     _write_lod3_coverage(scene, out_dir / "lod3_coverage.md")
     _write_opening_audit(scene, out_dir / "opening_audit.md")
     _write_roof_visual_audit(scene, out_dir / "roof_visual_audit.md")
+    _write_scene_source_audit(scene, out_dir / "scene_source_audit.md")
 
 
 def _write_manifest(scene: SceneGraph, path: Path) -> None:
@@ -211,4 +212,37 @@ def _write_roof_visual_audit(scene: SceneGraph, path: Path) -> None:
                 note=note,
             )
         )
+    path.write_text("\n".join(lines) + "\n")
+
+
+def _write_scene_source_audit(scene: SceneGraph, path: Path) -> None:
+    lines = [
+        "# Scene Source Audit\n",
+        "Visible 3D meshes only. This report is used to catch any independent interior/stub buildings that were not traced from a KML/SHP/manual source.\n",
+        "| parcel_id | footprint_source | source file | manual replacement | warning |",
+        "|---|---|---|---|---|",
+    ]
+    warnings: list[str] = []
+    for mesh in scene.buildings:
+        source = mesh.metadata.get("source_footprint_file") or ""
+        manual = mesh.metadata.get("manual_scene_replacement") or ""
+        footprint_source = mesh.metadata.get("footprint_source") or ""
+        warning = ""
+        if footprint_source not in {"traced"}:
+            warning = "not traced"
+        if mesh.parcel_id.startswith("INT-"):
+            warning = "independent INT mesh should not be visible"
+        if not source and not manual and mesh.parcel_id != "CHURCH":
+            warning = warning or "missing source file"
+        if warning:
+            warnings.append(mesh.parcel_id)
+        lines.append(
+            f"| {mesh.parcel_id} | {footprint_source} | {source} | {manual} | {warning} |"
+        )
+    if warnings:
+        lines.append("\n## Warnings\n")
+        for pid in warnings:
+            lines.append(f"- {pid}")
+    else:
+        lines.append("\nNo independent INT/stub/missing-source meshes are visible in the scene.")
     path.write_text("\n".join(lines) + "\n")
