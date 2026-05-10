@@ -54,10 +54,11 @@ class Prd002Pipeline:
         # knows which of its edges are shared with a neighbour.
         from ..modeling.party_wall_index import PartyWallIndex
         party_index = PartyWallIndex()
+        parcel_heights = {p["parcel_id"]: _parcel_height_m(p) for p in parcels}
         for feats in traced_by_pid.values():
             for feat in feats:
                 for pid in feat["properties"].get("parcel_ids_matched") or []:
-                    party_index.register(pid, shape(feat["geometry"]))
+                    party_index.register(pid, shape(feat["geometry"]), parcel_heights.get(pid))
         builder = BuildingBuilder(block, party_index=party_index)
         buildings = []
 
@@ -152,6 +153,21 @@ def _split_share(polygon, matched_ids, pid: str):
     if hasattr(clipped, "geoms"):
         clipped = max(clipped.geoms, key=lambda g: g.area)
     return clipped
+
+
+def _parcel_height_m(parcel: dict) -> float:
+    from ..common.heritage_profile import PROFILE
+    if parcel.get("structure_type") == "fountain":
+        return 1.8
+    s_info = parcel.get("storeys") or {}
+    count = s_info.get("count") or 1
+    mezzanine = bool(s_info.get("has_mezzanine"))
+    h = PROFILE.storeys
+    total = h.ground_shop_m
+    if mezzanine:
+        total += h.mezzanine_m
+    total += max(0, count - 1) * h.upper_residential_m
+    return total
 
 
 def _persist_buildings(buildings):
