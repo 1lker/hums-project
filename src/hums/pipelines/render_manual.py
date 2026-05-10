@@ -20,6 +20,7 @@ from pathlib import Path
 
 from shapely.geometry import shape
 
+from ..common.heritage_profile import PROFILE
 from ..common.paths import BLOCK_GEOJSON, FOOTPRINTS_GEOJSON, PROJECT_ROOT
 from ..common.prd import prd
 from ..manual.label_loader import ManualLabelLoader, MANUAL_ROOT
@@ -301,7 +302,7 @@ class ManualRenderer:
         if not hints:
             return
 
-        o = __import__("hums.common.heritage_profile", fromlist=["PROFILE"]).PROFILE.openings
+        o = PROFILE.openings
         for hint in hints:
             pool = [
                 s for s in segments
