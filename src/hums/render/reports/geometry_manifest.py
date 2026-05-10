@@ -1,7 +1,9 @@
 """PRD-003 · §11 — per-building geometry manifest + LOD3 coverage report."""
 from __future__ import annotations
+import json
 from pathlib import Path
 
+from ...common.paths import PARSED
 from ...common.prd import prd
 from ..mesh_graph import SceneGraph
 
@@ -14,6 +16,7 @@ def write_reports(scene: SceneGraph, out_dir: Path) -> None:
     out_dir.mkdir(parents=True, exist_ok=True)
     _write_manifest(scene, out_dir / "geometry_manifest.md")
     _write_lod3_coverage(scene, out_dir / "lod3_coverage.md")
+    _write_opening_audit(out_dir / "opening_audit.md")
 
 
 def _write_manifest(scene: SceneGraph, path: Path) -> None:
@@ -37,6 +40,7 @@ def _write_lod3_coverage(scene: SceneGraph, path: Path) -> None:
              "| parcel_id | GroundSurface | WallSurface | RoofSurface | Window | Door | complete? |",
              "|---|---|---|---|---|---|---|"]
     incomplete: list[str] = []
+    intentional_closed = _intentional_no_exterior_openings()
     for b in scene.buildings:
         counts = b.face_count_by_role()
         row = [b.parcel_id]
@@ -44,7 +48,11 @@ def _write_lod3_coverage(scene: SceneGraph, path: Path) -> None:
         for role in REQUIRED_LOD3_ROLES:
             n = counts.get(role, 0)
             row.append(str(n))
-            if n == 0 and b.metadata.get("structure_type") == "building":
+            if (
+                n == 0
+                and b.metadata.get("structure_type") == "building"
+                and not (role in {"Window", "Door"} and b.parcel_id in intentional_closed)
+            ):
                 complete = False
         row.append("✅" if complete else "⚠️")
         if not complete:
@@ -55,4 +63,81 @@ def _write_lod3_coverage(scene: SceneGraph, path: Path) -> None:
         lines.append("\n## Incomplete buildings (missing required roles)\n")
         for pid in incomplete:
             lines.append(f"- {pid}")
+    path.write_text("\n".join(lines) + "\n")
+
+
+def _intentional_no_exterior_openings() -> set[str]:
+    buildings_path = PARSED / "buildings.json"
+    if not buildings_path.exists():
+        return set()
+    out: set[str] = set()
+    for b in json.loads(buildings_path.read_text()):
+        segments = b.get("wall_segments") or []
+        opening_count = sum(len(s.get("openings") or []) for s in segments)
+        if opening_count:
+            continue
+        text_parts = [
+            (b.get("excel_snapshot") or {}).get("bim_notes"),
+            ((b.get("excel_snapshot") or {}).get("street_facing")),
+            str(b.get("notes") or ""),
+        ]
+        text = " ".join(str(t) for t in text_parts if t).lower()
+        if any(token in text for token in ("internal only", "no street", "no direct street", "no arrow")):
+            out.add(b["parcel_id"])
+    return out
+
+
+def _write_opening_audit(path: Path) -> None:
+    buildings_path = PARSED / "buildings.json"
+    if not buildings_path.exists():
+        path.write_text("# Opening And Material Audit\n\n_No buildings.json available._\n")
+        return
+
+    buildings = json.loads(buildings_path.read_text())
+    lines = [
+        "# Opening And Material Audit\n",
+        "Doors and shopfronts are map/Excel-frontage driven. Upper windows remain typology assumptions unless source text says otherwise.\n",
+        "| parcel_id | material | footprint | strict street edges | doors | shopfronts | upper windows | source notes |",
+        "|---|---|---|---:|---:|---:|---:|---|",
+    ]
+    for b in buildings:
+        if b.get("footprint_source") in {"missing", "absorbed"}:
+            continue
+        segments = b.get("wall_segments") or []
+        counts = {"door": 0, "shop_window": 0, "window": 0}
+        source_counts: dict[str, int] = {}
+        for seg in segments:
+            for op in seg.get("openings") or []:
+                kind = op.get("kind")
+                if kind in counts:
+                    counts[kind] += 1
+                src = op.get("color_source") or "unknown"
+                source_counts[src] = source_counts.get(src, 0) + 1
+
+        notes = []
+        bim_notes = (b.get("excel_snapshot") or {}).get("bim_notes")
+        source_text = " ".join(str(v) for v in (bim_notes, b.get("notes") or {}) if v).lower()
+        if counts["door"] == 0 and counts["shop_window"] == 0 and counts["window"] == 0:
+            if b.get("structure_type") != "building":
+                notes.append("non-building asset")
+            elif any(token in source_text for token in ("internal only", "no street", "no direct street", "no arrow")):
+                notes.append("closed by map/notes")
+            else:
+                notes.append("needs manual opening placement")
+        notes.extend(f"{src}: {n}" for src, n in sorted(source_counts.items()))
+        if bim_notes and any(token in str(bim_notes).lower() for token in ("no street", "internal", "glazed", "dual", "arrow")):
+            notes.append(str(bim_notes).replace("|", "/"))
+
+        lines.append(
+            "| {pid} | {mat} | {footprint} | {streets} | {doors} | {shops} | {windows} | {notes} |".format(
+                pid=b.get("parcel_id"),
+                mat=b.get("material_class") or "",
+                footprint=(b.get("provenance") or {}).get("footprint_source_file") or b.get("footprint_source") or "",
+                streets=sum(1 for s in segments if s.get("hatch_pattern") == "_street"),
+                doors=counts["door"],
+                shops=counts["shop_window"],
+                windows=counts["window"],
+                notes="<br>".join(notes) if notes else "none",
+            )
+        )
     path.write_text("\n".join(lines) + "\n")

@@ -68,12 +68,13 @@ class DoorPlacer(OpeningPlacer):
                 continue
             pos = max(0.2, (chosen.length_m - w) / 2.0)
 
+            src = "map:pervititch" if target_face else "assumption:pervititch_1923"
             chosen.openings.append(Opening(
                 kind="door", storey_level=0,
                 position_along_wall_m=round(pos, 3),
                 width_m=round(w, 3), height_m=o.door_h_m, sill_m=0.0,
+                color_source=src,
             ))
-            src = "map:pervititch" if target_face else "assumption:pervititch_1923"
             tracker.record(parcel_id, f"wall[{chosen.face}].door", src, {"w": w, "h": o.door_h_m})
             placed += 1
         if placed == 0 and not target_faces and not _blocks_exterior_openings(excel):
@@ -144,6 +145,7 @@ class ShopWindowPlacer(OpeningPlacer):
                     width_m=o.shop_window_w_m, height_m=o.shop_window_h_m,
                     sill_m=o.shop_window_sill_m,
                     style="rectangular", frame_profile="moulded",
+                    color_source="map:pervititch:shop-frontage + assumption:spacing",
                 ))
             tracker.record(parcel_id, f"wall[{seg.face}].shop_windows.count", "map:pervititch", count)
 
@@ -183,6 +185,7 @@ class UpperWindowPlacer(OpeningPlacer):
                         pane_layout="2x2",
                         has_shutters=material_class.startswith("C"),
                         frame_profile="moulded",
+                        color_source="assumption:facade_typology",
                     ))
             tracker.record(parcel_id, f"wall[{seg.face}].upper_windows.count_per_storey", "assumption:facade_typology", count)
 
