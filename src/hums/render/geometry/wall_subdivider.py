@@ -74,18 +74,19 @@ class WallSubdivider:
 
         pid = building.parcel_id
         face_id_prefix = f"{pid}.wall.{seg.face}.{idx}"
+        wall_mat = _wall_material(building)
 
         # Subdivide the wall rectangle [0,length] × [0,total_height] minus holes.
         rects = _subtract_holes_axis(length, total_height, [(h[0], h[1], h[2], h[3]) for h in holes])
         for j, rect in enumerate(rects):
-            self._emit_wall_rect(mesh, face_id_prefix, sx, sy, ux, uy, 0.0, rect, j)
+            self._emit_wall_rect(mesh, face_id_prefix, sx, sy, ux, uy, 0.0, rect, j, wall_mat)
 
         # Now emit reveals + glazing per hole.
         for k, (u0, z0, u1, z1, op) in enumerate(holes):
-            self._emit_opening(mesh, building, face_id_prefix, sx, sy, ux, uy, nx, ny, u0, z0, u1, z1, op, k)
+            self._emit_opening(mesh, building, face_id_prefix, sx, sy, ux, uy, nx, ny, u0, z0, u1, z1, op, k, wall_mat)
 
     # -- wall rect ------------------------------------------------------------
-    def _emit_wall_rect(self, mesh, prefix, sx, sy, ux, uy, n_off, rect: _Rect, j: int) -> None:
+    def _emit_wall_rect(self, mesh, prefix, sx, sy, ux, uy, n_off, rect: _Rect, j: int, wall_mat: str) -> None:
         if not rect.valid():
             return
         p_bl = (sx + ux * rect.u0, sy + uy * rect.u0, rect.z0)
@@ -97,12 +98,13 @@ class WallSubdivider:
             p0=p_bl, p1=p_tl, p2=p_tr, p3=p_br,
             role="WallSurface",
             surface_id=f"{prefix}.piece.{j}",
-            material_key="wall_main",
+            material_key=wall_mat,
         )
 
     # -- opening --------------------------------------------------------------
     def _emit_opening(self, mesh, building, prefix, sx, sy, ux, uy, nx, ny,
-                      u0: float, z0: float, u1: float, z1: float, op: Opening, k: int) -> None:
+                      u0: float, z0: float, u1: float, z1: float, op: Opening, k: int,
+                      wall_mat: str) -> None:
         pid = building.parcel_id
         # outward points (wall face, z is already known)
         def P(u, z, inset=0.0):
@@ -146,10 +148,9 @@ class WallSubdivider:
                       role=role, surface_id=f"{prefix}.{op.kind}.{k}.glass",
                       material_key=glass_mat, storey_level=op.storey_level)
 
-        # Upper-storey windows get a gentle segmental arch on top — a very
-        # period-correct detail for 1900 Istanbul masonry buildings. Only
-        # if the opening is above the ground floor and not a door.
-        if op.kind == "window" and op.storey_level is not None and op.storey_level >= 1:
+        # Arches are only emitted when the data/model explicitly marks the
+        # opening as arched. Pervititch parcel maps do not show window shapes.
+        if op.kind == "window" and op.style == "arched" and op.storey_level is not None and op.storey_level >= 1:
             arch_rise = (u1 - u0) * ARCH_RISE_FRACTION
             arch_apex_z = z1 + arch_rise
             # Apex vertex on the glazing plane
@@ -174,7 +175,7 @@ class WallSubdivider:
                     p3=P(u_b, z1),
                     role="WallSurface",
                     surface_id=f"{prefix}.{op.kind}.{k}.arch_wall.{s}",
-                    material_key="wall_main",
+                    material_key=wall_mat,
                 )
                 # inner arch glass panel
                 mesh.add_quad(
@@ -219,6 +220,24 @@ def _storey_floor_zs(heights: list[float]) -> list[float]:
     for h in heights[:-1]:
         out.append(out[-1] + h)
     return out
+
+
+def _wall_material(building: Building) -> str:
+    cls = (building.material_class or "").lower()
+    notes = " ".join(str(v) for v in (building.notes or {}).values()).lower()
+    snapshot = building.excel_snapshot or {}
+    source = " ".join(str(v) for v in (
+        cls,
+        notes,
+        snapshot.get("bim_notes"),
+        ((snapshot.get("material") or {}).get("raw_material_label") if isinstance(snapshot.get("material"), dict) else None),
+        ((snapshot.get("material") or {}).get("decoded") if isinstance(snapshot.get("material"), dict) else None),
+        snapshot.get("vault_code"),
+    ) if v is not None).lower()
+    roof_mat = ((building.roof.material if building.roof else "") or "").lower()
+    if "glass" in source or "glazed" in source or "camlı" in source or "camli" in source or roof_mat == "glass":
+        return "window_glass"
+    return "wall_main"
 
 
 def _subtract_holes_axis(width: float, height: float,

@@ -17,13 +17,18 @@ class FacadePaletteBuilder:
         p = PROFILE.palette
         cls = (material_class or "").upper()
 
-        if cls == "A":
+        if "GLASS" in cls:
+            wall, accent, trim, shutters, roof = (
+                (132, 174, 190), (92, 118, 130), (68, 74, 72), (0, 0, 0), (112, 128, 136)
+            )
+            shopfront = None
+        elif cls.startswith("A"):
             wall, accent, trim, shutters, roof = p.masonry_A
             shopfront = p.masonry_B_shop_gf if gf_is_shop else None
-        elif cls == "B":
+        elif cls.startswith("B"):
             wall, accent, trim, shutters, roof = p.masonry_B
             shopfront = p.masonry_B_shop_gf if gf_is_shop else None
-        elif cls == "C":
+        elif cls.startswith("C"):
             wall, accent, trim, shutters, roof = p.wooden_C
             shopfront = None
         else:

@@ -27,7 +27,7 @@ class ShuttersAndBalconies:
         floor_zs = _floor_zs(storey_heights)
         pid = building.parcel_id
         for idx, seg in enumerate(building.wall_segments):
-            if not seg.is_street_facing:
+            if not _is_strict_street(seg):
                 continue
             for k, op in enumerate(seg.openings):
                 z0 = floor_zs.get(op.storey_level, 0.0) + op.sill_m
@@ -132,3 +132,7 @@ def _floor_zs(heights: list[float]) -> dict[int, float]:
         out[lvl] = z
         z += h
     return out
+
+
+def _is_strict_street(seg: WallSegment) -> bool:
+    return seg.hatch_pattern == "_street"

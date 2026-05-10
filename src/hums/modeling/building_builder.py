@@ -137,7 +137,7 @@ class BuildingBuilder:
 
     def _wall_thickness(self, material_class, parcel, tracker) -> float:
         # Future: parse parcel['wall']['thickness_raw'] if populated.
-        if (material_class or "").upper() == "C":
+        if (material_class or "").upper().startswith("C"):
             tracker.assume(parcel["parcel_id"], "wall.thickness_m", PROFILE.walls.wooden_m)
             return PROFILE.walls.wooden_m
         tracker.assume(parcel["parcel_id"], "wall.thickness_m", PROFILE.walls.masonry_m)

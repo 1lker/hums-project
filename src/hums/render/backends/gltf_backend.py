@@ -202,13 +202,15 @@ def _new_accessor(root, view_idx, count, type_, component, mins=None, maxs=None)
 def _material_for(root: gl.GLTF2, palette, material_key: str, meta: dict) -> int:
     if not hasattr(root, "_material_cache"):
         root._material_cache = {}  # type: ignore[attr-defined]
-    cache_key = f"{material_key}|{meta.get('footprint_source')}"
-    if cache_key in root._material_cache:  # type: ignore[attr-defined]
-        return root._material_cache[cache_key]  # type: ignore[attr-defined]
-
     rgb = _color_for(palette, material_key)
     # Tint stubs for visual clarity
     alpha = 0.75 if meta.get("footprint_source") == "stub" else 1.0
+    if material_key == "window_glass":
+        alpha = min(alpha, 0.45)
+    cache_key = f"{material_key}|{meta.get('footprint_source')}|{rgb}|{alpha}"
+    if cache_key in root._material_cache:  # type: ignore[attr-defined]
+        return root._material_cache[cache_key]  # type: ignore[attr-defined]
+
     mat = gl.Material(
         name=material_key,
         pbrMetallicRoughness=gl.PbrMetallicRoughness(
