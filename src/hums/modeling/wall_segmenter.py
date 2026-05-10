@@ -34,6 +34,7 @@ class WallSegmenter:
         footprint_utm: Polygon,
         thickness_m: float,
         parcel_id: str | None = None,
+        building_height_m: float | None = None,
     ) -> list[WallSegment]:
         # Pair local and utm coords by index (both have same orientation).
         utm_coords = list(footprint_utm.exterior.coords)
@@ -55,8 +56,12 @@ class WallSegmenter:
             b_local = footprint_local[(i + 1) % n]
             a_utm = utm_coords[i]
             b_utm = utm_coords[(i + 1) % n]
-            is_party = (self._party_index is not None and parcel_id is not None
-                        and self._party_index.is_party(parcel_id, a_utm, b_utm))
+            adjacent_height = (
+                self._party_index.adjacent_height(parcel_id, a_utm, b_utm)
+                if self._party_index is not None and parcel_id is not None
+                else None
+            )
+            is_party = adjacent_height is not None
             # New, simpler classification for block-scale reconstruction:
             #   * edge shared with a neighbour → party wall (no openings)
             #   * everything else → exterior, can have openings
@@ -74,6 +79,7 @@ class WallSegmenter:
                 face=face,
                 is_street_facing=is_exterior,     # read as "opening-eligible"
                 is_party_wall=is_party,
+                adjacent_height_m=adjacent_height,
             ))
             # Store the strict on-block flag in a metadata channel for shops.
             segments[-1].hatch_pattern = "_street" if is_street else None
