@@ -119,6 +119,10 @@ class ManualRenderer:
             mesh = geom_builder.build(building)
             if mesh is None:
                 continue
+            mesh.metadata["source_footprint_file"] = label.footprint_ref
+            mesh.metadata["manual_label"] = label.label
+            mesh.metadata["manual_zone"] = z.id
+            mesh.metadata["opening_counts"] = self._opening_counts(building)
             meshes.append(mesh)
 
         return label, meshes, block_centroid
@@ -235,6 +239,15 @@ class ManualRenderer:
             ),
             excel_snapshot={"parcel_ids": label.parcel_ids, "manual": True},
         )
+
+    @staticmethod
+    def _opening_counts(building: Building) -> dict[str, int]:
+        counts = {"door": 0, "shop_window": 0, "window": 0}
+        for seg in building.wall_segments:
+            for opening in seg.openings:
+                if opening.kind in counts:
+                    counts[opening.kind] += 1
+        return counts
 
     def _place_zone_openings(self, label: ManualLabel, zone: Zone,
                              segments: list[WallSegment], tracker,

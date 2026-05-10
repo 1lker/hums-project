@@ -16,7 +16,7 @@ def write_reports(scene: SceneGraph, out_dir: Path) -> None:
     out_dir.mkdir(parents=True, exist_ok=True)
     _write_manifest(scene, out_dir / "geometry_manifest.md")
     _write_lod3_coverage(scene, out_dir / "lod3_coverage.md")
-    _write_opening_audit(out_dir / "opening_audit.md")
+    _write_opening_audit(scene, out_dir / "opening_audit.md")
 
 
 def _write_manifest(scene: SceneGraph, path: Path) -> None:
@@ -87,13 +87,18 @@ def _intentional_no_exterior_openings() -> set[str]:
     return out
 
 
-def _write_opening_audit(path: Path) -> None:
+def _write_opening_audit(scene: SceneGraph, path: Path) -> None:
     buildings_path = PARSED / "buildings.json"
     if not buildings_path.exists():
         path.write_text("# Opening And Material Audit\n\n_No buildings.json available._\n")
         return
 
     buildings = json.loads(buildings_path.read_text())
+    replaced_parcels = {
+        parcel_id
+        for mesh in scene.buildings
+        for parcel_id in mesh.metadata.get("replaces_parcels", [])
+    }
     lines = [
         "# Opening And Material Audit\n",
         "Doors and shopfronts are map/Excel-frontage driven. Upper windows remain typology assumptions unless source text says otherwise.\n",
@@ -101,6 +106,8 @@ def _write_opening_audit(path: Path) -> None:
         "|---|---|---|---:|---:|---:|---:|---|",
     ]
     for b in buildings:
+        if b.get("parcel_id") in replaced_parcels:
+            continue
         if b.get("footprint_source") in {"missing", "absorbed"}:
             continue
         segments = b.get("wall_segments") or []
@@ -138,6 +145,23 @@ def _write_opening_audit(path: Path) -> None:
                 shops=counts["shop_window"],
                 windows=counts["window"],
                 notes="<br>".join(notes) if notes else "none",
+            )
+        )
+    for mesh in scene.buildings:
+        label = mesh.metadata.get("manual_scene_replacement")
+        if not label:
+            continue
+        counts = mesh.metadata.get("opening_counts") or {}
+        lines.append(
+            "| {pid} | {mat} | {footprint} | {streets} | {doors} | {shops} | {windows} | {notes} |".format(
+                pid=mesh.parcel_id,
+                mat=mesh.metadata.get("material_class") or "",
+                footprint=mesh.metadata.get("source_footprint_file") or "manual",
+                streets="manual",
+                doors=counts.get("door", 0),
+                shops=counts.get("shop_window", 0),
+                windows=counts.get("window", 0),
+                notes=f"manual map-zoned replacement for {', '.join(mesh.metadata.get('replaces_parcels', []))}",
             )
         )
     path.write_text("\n".join(lines) + "\n")
