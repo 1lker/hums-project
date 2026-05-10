@@ -22,7 +22,7 @@ from .base import RoofGenerator
 class GableRoof(RoofGenerator):
     def generate(self, mesh: BuildingMesh, building: Building, eaves_z: float) -> None:
         ring = building.footprint_local
-        if len(ring) < 4:
+        if len(ring) < 3:
             return
         pitch_rad = math.radians(building.roof.pitch_deg if building.roof else 30.0)
         roof_mat = self.material_key(building)
