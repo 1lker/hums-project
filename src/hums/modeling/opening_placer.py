@@ -46,15 +46,19 @@ class DoorPlacer(OpeningPlacer):
         openings = excel.get("openings") or {}
         text = _openings_text(openings)
         target_faces = _door_faces(openings)
-        if not target_faces and _says_internal_only(text):
+        if not target_faces and _blocks_exterior_openings(excel):
             tracker.record(parcel_id, "wall.door", "map:pervititch", "no street door indicated")
             return
 
         placed = 0
+        used_segments: set[int] = set()
         for target_face in target_faces or [None]:
             chosen = self._choose_segment(segments, target_face, strict_street=target_face is None)
+            if chosen is None and target_face is not None:
+                chosen = self._choose_unused_strict_street_segment(segments, used_segments)
             if chosen is None:
                 continue
+            used_segments.add(id(chosen))
             if any(op.kind == "door" for op in chosen.openings):
                 continue
 
@@ -72,7 +76,7 @@ class DoorPlacer(OpeningPlacer):
             src = "map:pervititch" if target_face else "assumption:pervititch_1923"
             tracker.record(parcel_id, f"wall[{chosen.face}].door", src, {"w": w, "h": o.door_h_m})
             placed += 1
-        if placed == 0 and not target_faces and not _says_internal_only(text):
+        if placed == 0 and not target_faces and not _blocks_exterior_openings(excel):
             tracker.record(parcel_id, "wall.door", "assumption:pervititch_1923", "no eligible exterior segment")
 
     def _choose_segment(self, segments, target_face, strict_street: bool):
@@ -84,9 +88,24 @@ class DoorPlacer(OpeningPlacer):
             if matches:
                 matches.sort(key=lambda s: s.length_m, reverse=True)
                 return matches[0]
+            return None
         pool = [s for s in exterior if _is_strict_street(s)] if strict_street else exterior
         if not pool:
             pool = exterior
+        pool.sort(key=lambda s: s.length_m, reverse=True)
+        return pool[0]
+
+    def _choose_unused_strict_street_segment(self, segments, used_segments: set[int]):
+        pool = [
+            s for s in segments
+            if _is_strict_street(s)
+            and not s.is_party_wall
+            and s.length_m > 1.5
+            and id(s) not in used_segments
+            and not any(op.kind == "door" for op in s.openings)
+        ]
+        if not pool:
+            return None
         pool.sort(key=lambda s: s.length_m, reverse=True)
         return pool[0]
 
@@ -96,6 +115,8 @@ class ShopWindowPlacer(OpeningPlacer):
         if excel.get("_structure_type") != "building":
             return
         if _is_glazed_structure(excel):
+            return
+        if _blocks_exterior_openings(excel):
             return
         gf = excel.get("ground_floor") or {}
         if not _is_shop_use(gf.get("code"), gf.get("use")):
@@ -132,6 +153,8 @@ class UpperWindowPlacer(OpeningPlacer):
         if excel.get("_structure_type") != "building":
             return
         if _is_glazed_structure(excel):
+            return
+        if _blocks_exterior_openings(excel):
             return
         o = PROFILE.openings
         material_class = ((excel.get("material") or {}).get("class") or "").upper()
@@ -186,8 +209,15 @@ def _says_internal_only(text: str) -> bool:
         "no street door",
         "no street access",
         "no direct street access",
-        "no arrow",
     ))
+
+
+def _blocks_exterior_openings(excel: dict) -> bool:
+    openings = excel.get("openings") or {}
+    text = _openings_text(openings)
+    if _says_internal_only(text):
+        return True
+    return "no arrow" in text and not _door_faces(openings)
 
 
 def _is_glazed_structure(excel: dict) -> bool:
@@ -222,16 +252,17 @@ def _door_faces(openings: dict) -> list[Face]:
 
 def _faces_from_text(text: str) -> list[Face]:
     t = text.upper()
+    letter = "A-ZÇĞİÖŞÜ"
     pairs: list[tuple[int, Face]] = []
     for pattern, face in (
         (r"\bNORTH\b", "N"),
         (r"\bEAST\b", "E"),
         (r"\bSOUTH\b", "S"),
         (r"\bWEST\b", "W"),
-        (r"(?<![A-Z])N(?![A-Z])", "N"),
-        (r"(?<![A-Z])E(?![A-Z])", "E"),
-        (r"(?<![A-Z])S(?![A-Z])", "S"),
-        (r"(?<![A-Z])W(?![A-Z])", "W"),
+        (rf"(?<![{letter}])N(?![{letter}])", "N"),
+        (rf"(?<![{letter}])E(?![{letter}])", "E"),
+        (rf"(?<![{letter}])S(?![{letter}])", "S"),
+        (rf"(?<![{letter}])W(?![{letter}])", "W"),
     ):
         m = re.search(pattern, t)
         if m:
