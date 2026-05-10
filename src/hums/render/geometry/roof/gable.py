@@ -8,9 +8,13 @@ complex_pitched for those).
 from __future__ import annotations
 import math
 
+from shapely.geometry import LineString
+from shapely.ops import split
+
 from ....common.prd import prd
 from ....modeling.building import Building
 from ...mesh_graph import BuildingMesh
+from ..footprint_ops import to_polygon
 from .base import RoofGenerator
 
 
@@ -57,49 +61,37 @@ class GableRoof(RoofGenerator):
                 z,
             )
 
-        z_ridge = eaves_z + rise
-        # Two real pitched planes with a continuous ridge. This is intentionally
-        # bbox-based: most Pervititch parcels here are narrow rectangles, and a
-        # clear roof silhouette reads much better than a nearly-flat fan.
-        mesh.add_quad(
-            p0=p(u_min, t_min, eaves_z),
-            p1=p(u_max, t_min, eaves_z),
-            p2=p(u_max, t_mid, z_ridge),
-            p3=p(u_min, t_mid, z_ridge),
-            role="RoofSurface",
-            surface_id=f"{pid}.roof.slope.low",
-            material_key=roof_mat,
-        )
-        mesh.add_quad(
-            p0=p(u_min, t_mid, z_ridge),
-            p1=p(u_max, t_mid, z_ridge),
-            p2=p(u_max, t_max, eaves_z),
-            p3=p(u_min, t_max, eaves_z),
-            role="RoofSurface",
-            surface_id=f"{pid}.roof.slope.high",
-            material_key=roof_mat,
-        )
+        def z_at(x: float, y: float) -> float:
+            t = x * perp[0] + y * perp[1]
+            return eaves_z + (1 - abs(t - t_mid) / max(span / 2.0, 0.001)) * rise
 
-        # Gable end walls close the triangular ends under the roof.
-        for label, u in (("start", u_min), ("end", u_max)):
-            e0 = mesh.add_vertex(*p(u, t_min, eaves_z))
-            ridge = mesh.add_vertex(*p(u, t_mid, z_ridge))
-            e1 = mesh.add_vertex(*p(u, t_max, eaves_z))
+        poly = to_polygon(ring)
+        margin = max(u_max - u_min, span) + 5.0
+        ridge_line = LineString([
+            p(u_min - margin, t_mid, eaves_z)[:2],
+            p(u_max + margin, t_mid, eaves_z)[:2],
+        ])
+        try:
+            pieces = list(split(poly, ridge_line).geoms)
+        except Exception:
+            pieces = [poly]
+
+        if len(pieces) < 2:
+            # Fallback remains exact to the KML footprint: no bbox roof.
+            pieces = [poly]
+
+        for idx, piece in enumerate(pieces):
+            if piece.is_empty or piece.area < 0.01:
+                continue
+            coords = list(piece.exterior.coords)
+            if coords and coords[0] == coords[-1]:
+                coords = coords[:-1]
+            if len(coords) < 3:
+                continue
+            verts = [mesh.add_vertex(x, y, z_at(x, y)) for x, y in coords]
             mesh.add_face(
-                [e0, ridge, e1],
-                role="WallSurface",
-                surface_id=f"{pid}.gable_end.{label}",
-                material_key="wall_main",
+                verts,
+                role="RoofSurface",
+                surface_id=f"{pid}.roof.kml_gable.{idx}",
+                material_key=roof_mat,
             )
-
-        # A narrow cap at the ridge gives the roof a finished, less-CAD-flat edge.
-        cap_w = min(0.16, span * 0.035)
-        mesh.add_quad(
-            p0=p(u_min, t_mid - cap_w, z_ridge + 0.03),
-            p1=p(u_max, t_mid - cap_w, z_ridge + 0.03),
-            p2=p(u_max, t_mid + cap_w, z_ridge + 0.03),
-            p3=p(u_min, t_mid + cap_w, z_ridge + 0.03),
-            role="RoofSurface",
-            surface_id=f"{pid}.roof.ridge_cap",
-            material_key=roof_mat,
-        )

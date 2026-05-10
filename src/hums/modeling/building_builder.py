@@ -11,7 +11,7 @@ from shapely.geometry import Polygon
 from ..common.prd import prd
 from ..common.heritage_profile import PROFILE
 from .assumption_tracker import AssumptionTracker
-from .building import Building, Storey, Provenance
+from .building import Building, Opening, Storey, Provenance
 from .facade_palette import FacadePaletteBuilder
 from .local_frame import LocalFrameBuilder
 from .opening_placer import DoorPlacer, ShopWindowPlacer, UpperWindowPlacer, _is_shop_use
@@ -75,6 +75,8 @@ class BuildingBuilder:
         placer_ctx = {**parcel, "_structure_type": structure_type}
         for placer in self._openers:
             placer.place(segments, storeys, placer_ctx, pid, tracker)
+        if pid.startswith("W-32#"):
+            self._place_w32_magazine_openings(pid, segments, storeys, tracker)
 
         return Building(
             parcel_id=pid,
@@ -91,6 +93,64 @@ class BuildingBuilder:
             provenance=Provenance(footprint_source_file=source_file),
             excel_snapshot=_snapshot(parcel),
         )
+
+    def _place_w32_magazine_openings(self, pid: str, segments, storeys, tracker) -> None:
+        """W-32 has three traced magazine polygons, but only parcel-level map
+        text. The map arrow confirms west-facing access; add a conservative
+        door and small upper openings on the best west/outer segment instead
+        of leaving these as blank stone blocks.
+        """
+        candidates = [s for s in segments if s.length_m > 1.0]
+        if not candidates:
+            return
+        west = [s for s in candidates if s.face == "W"]
+        pool = west or candidates
+        chosen = max(pool, key=lambda s: s.length_m)
+        chosen.is_party_wall = False
+        chosen.is_street_facing = True
+        chosen.hatch_pattern = "_street"
+
+        o = PROFILE.openings
+        door_w = min(o.door_w_m, max(0.75, chosen.length_m - 0.4))
+        door_pos = max(0.2, (chosen.length_m - door_w) / 2.0)
+        if not any(op.kind == "door" for op in chosen.openings):
+            chosen.openings.append(Opening(
+                kind="door",
+                storey_level=0,
+                position_along_wall_m=round(door_pos, 3),
+                width_m=round(door_w, 3),
+                height_m=o.door_h_m,
+                sill_m=0.0,
+                style="arched",
+                frame_profile="moulded",
+                color_source="map:pervititch:W-32 west entrance arrow",
+            ))
+
+        upper_levels = [s.level for s in storeys if s.level >= 1 and not s.is_basement]
+        if not upper_levels:
+            return
+        count = max(1, min(2, int(chosen.length_m // 2.2)))
+        gap = (chosen.length_m - count * o.upper_window_w_m) / (count + 1)
+        if gap < 0.25:
+            count = 1
+            gap = (chosen.length_m - o.upper_window_w_m) / 2.0
+        for level in upper_levels[:1]:
+            for i in range(count):
+                pos = max(0.2, gap + i * (o.upper_window_w_m + gap))
+                chosen.openings.append(Opening(
+                    kind="window",
+                    storey_level=level,
+                    position_along_wall_m=round(pos, 3),
+                    width_m=o.upper_window_w_m,
+                    height_m=1.35,
+                    sill_m=1.0,
+                    style="arched",
+                    pane_layout="2x2",
+                    has_shutters=False,
+                    frame_profile="moulded",
+                    color_source="assumption:W-32 stone magazine facade",
+                ))
+        tracker.record(pid, "openings.W-32", "map:pervititch+assumption", "west door plus conservative upper stone-magazine windows")
 
     def _storeys(self, parcel: dict, tracker: AssumptionTracker, structure_type: str = "building") -> list[Storey]:
         # Monuments (çeşme etc.) get a single short body storey; no upper levels, no basement.

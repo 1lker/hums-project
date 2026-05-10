@@ -46,6 +46,7 @@ class BuildingGeometryBuilder:
                 "roof_shape": building.roof.shape if building.roof else None,
                 "roof_material": building.roof.material if building.roof else None,
                 "roof_pitch_deg": building.roof.pitch_deg if building.roof else None,
+                "source_footprint_file": building.provenance.footprint_source_file,
             },
         )
 
@@ -65,15 +66,9 @@ class BuildingGeometryBuilder:
         self._shutters_balconies.emit(mesh, building)
         self._period_detail.emit(mesh, building, RoofGenerator.total_wall_height(building))
 
-        # Safety-net cap at eaves height: covers any gap between the walls'
-        # top and the first pitched roof face (edge-winding rounding errors,
-        # hip/gable apex misses, complex_pitched fallback quirks). Emitted
-        # BEFORE the pitched roof so the sloped tiles sit on top of it.
         eaves_z = RoofGenerator.total_wall_height(building)
-        self._emit_eaves_cap(mesh, building, eaves_z)
 
         self._add_roof(mesh, building)
-        self._roof_overhang.emit(mesh, building, eaves_z)
         self._add_roof_extras(mesh, building)
         return mesh
 
