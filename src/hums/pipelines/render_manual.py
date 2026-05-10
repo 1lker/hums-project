@@ -96,7 +96,12 @@ class ManualRenderer:
         # shared block-perimeter walls are recognised.
         party_index = PartyWallIndex()
         for zid, poly in zone_polys.items():
-            party_index.register(f"{label.label}.{zid}", poly)
+            zone = next((z for z in label.zones if z.id == zid), None)
+            party_index.register(
+                f"{label.label}.{zid}",
+                poly,
+                sum(zone.storey_heights_m) if zone else None,
+            )
         for feat in self._other_parcel_features(label):
             for matched in feat["properties"].get("parcel_ids_matched") or []:
                 party_index.register(matched, shape(feat["geometry"]))
@@ -184,7 +189,13 @@ class ManualRenderer:
         zone_pid = f"{label.label}.{zone.id}"
         frame, local_ring = frame_builder.build(sub_poly)
         thickness = 0.55 if zone.material_class in ("A", "B") else 0.20
-        segments = segmenter.segment(local_ring, sub_poly, thickness, parcel_id=zone_pid)
+        segments = segmenter.segment(
+            local_ring,
+            sub_poly,
+            thickness,
+            parcel_id=zone_pid,
+            building_height_m=sum(zone.storey_heights_m),
+        )
 
         storeys: list[Storey] = []
         if zone.has_basement:

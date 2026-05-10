@@ -19,6 +19,7 @@ def write_reports(scene: SceneGraph, out_dir: Path) -> None:
     _write_opening_audit(scene, out_dir / "opening_audit.md")
     _write_roof_visual_audit(scene, out_dir / "roof_visual_audit.md")
     _write_scene_source_audit(scene, out_dir / "scene_source_audit.md")
+    _write_adjacency_opening_audit(out_dir / "adjacency_opening_audit.md")
 
 
 def _write_manifest(scene: SceneGraph, path: Path) -> None:
@@ -245,4 +246,48 @@ def _write_scene_source_audit(scene: SceneGraph, path: Path) -> None:
             lines.append(f"- {pid}")
     else:
         lines.append("\nNo independent INT/stub/missing-source meshes are visible in the scene.")
+    path.write_text("\n".join(lines) + "\n")
+
+
+def _write_adjacency_opening_audit(path: Path) -> None:
+    buildings_path = PARSED / "buildings.json"
+    if not buildings_path.exists():
+        path.write_text("# Adjacency Opening Audit\n\n_No buildings.json available._\n")
+        return
+    buildings = json.loads(buildings_path.read_text())
+    lines = [
+        "# Adjacency Opening Audit\n",
+        "Checks the rule: no openings on same-height party walls; openings on party walls are allowed only where the current building rises above the neighbor.\n",
+        "| parcel_id | party openings | height-difference party openings | same-height violations | exterior/courtyard upper windows | street upper windows |",
+        "|---|---:|---:|---:|---:|---:|",
+    ]
+    total_violations = 0
+    for b in buildings:
+        if b.get("footprint_source") != "traced":
+            continue
+        party = height_diff = violations = courtyard = street = 0
+        height = sum(s.get("height_m", 0.0) for s in b.get("storeys") or [] if not s.get("is_basement"))
+        for seg in b.get("wall_segments") or []:
+            adjacent = seg.get("adjacent_height_m")
+            for op in seg.get("openings") or []:
+                if op.get("kind") != "window":
+                    continue
+                src = op.get("color_source") or ""
+                if seg.get("is_party_wall"):
+                    party += 1
+                    if src.startswith("assumption:height-difference"):
+                        height_diff += 1
+                    else:
+                        if adjacent is None or adjacent >= height - 0.2:
+                            violations += 1
+                elif seg.get("hatch_pattern") == "_street":
+                    street += 1
+                else:
+                    courtyard += 1
+        total_violations += violations
+        if any((party, height_diff, violations, courtyard, street)):
+            lines.append(
+                f"| {b.get('parcel_id')} | {party} | {height_diff} | {violations} | {courtyard} | {street} |"
+            )
+    lines.append(f"\nSame-height party-wall opening violations: **{total_violations}**")
     path.write_text("\n".join(lines) + "\n")

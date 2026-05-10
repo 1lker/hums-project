@@ -140,6 +140,8 @@ def _building_from_dict(d: dict) -> Building:
             start=tuple(seg["start"]), end=tuple(seg["end"]),
             thickness_m=seg["thickness_m"], face=seg["face"],
             is_street_facing=seg["is_street_facing"],
+            is_party_wall=seg.get("is_party_wall", False),
+            adjacent_height_m=seg.get("adjacent_height_m"),
             hatch_pattern=seg.get("hatch_pattern"),
             openings=openings,
         ))
