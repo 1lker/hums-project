@@ -1,0 +1,65 @@
+{
+  "parcel_ids": ["S-41", "S-43", "S-45", "E-16"],
+  "label": "S-41-43-45-E16",
+  "verified": false,
+
+  "map_notes": "The `buildingentrence41-43-45-16` trace is not four separate building footprints. On the Pervititch map it reads as one connected south/east corner mass with four numbered entrances/units (41, 43, 45, 16) under a common roof line. Treat parcel numbers as entrances/sub-units, not as four standalone triangular/cut buildings. The final scene must therefore use the full traced polygon as one merged building mass with one shared roof; add multiple street doors rather than slicing the footprint into separate triangular volumes.",
+
+  "footprint_ref": "building-entrence-41-43-45-16.shp",
+
+  "structure_type": "building",
+
+  "primary_zone_axis": "west_to_east",
+
+  "zones": [
+    {
+      "id": "merged_mass",
+      "description": "Merged south/east corner row containing the 41, 43, 45 and 16 entrances. Four map labels indicate entrances/sub-units, not separate roof masses.",
+      "material_class": "B",
+      "map_colour": "pink",
+      "storeys_above_grade": 2,
+      "has_mezzanine": false,
+      "has_basement": false,
+      "storey_heights_m": [3.8, 3.2],
+      "ground_floor_use": "shop",
+      "roof": {
+        "shape": "hip",
+        "material": "sheet_metal_T",
+        "pitch_deg": 16.0,
+        "has_chimney": false,
+        "has_skylight": false
+      },
+      "footprint_fraction": [0.0, 1.0],
+      "map_labels": ["41", "43", "45", "16", "Mg.", "T"]
+    }
+  ],
+
+  "facades": {
+    "street_facing_faces": ["S", "E", "W"],
+    "primary_door": null,
+    "secondary_door": null,
+    "entrance_hints": [
+      {
+        "face": "S",
+        "zone": "merged_mass",
+        "count": 3,
+        "description": "Entrances 41, 43 and 45 along the south street frontage."
+      },
+      {
+        "face": "E",
+        "zone": "merged_mass",
+        "count": 1,
+        "description": "Entrance 16 / corner entry on the east side."
+      }
+    ],
+    "shop_windows": true,
+    "balconies": [],
+    "shutters_on_upper": false
+  },
+
+  "palette_override": null,
+
+  "open_questions": [
+    "The exact door spacing for the 41/43/45/16 entrances is map-derived but still approximate; use the zoom overlay for final hand adjustment if required."
+  ]
+}
