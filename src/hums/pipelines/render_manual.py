@@ -365,34 +365,43 @@ class ManualRenderer:
         if label.facades.primary_door and label.facades.primary_door.zone == zone.id:
             preferred_faces.append(label.facades.primary_door.face)
 
-        pool = [
+        o = PROFILE.openings
+        preferred_pool = [
             s for s in segments
             if not s.is_party_wall
-            and s.length_m > 1.2
-            and (not preferred_faces or s.face in preferred_faces)
+            and s.length_m > 1.0
+            and preferred_faces
+            and s.face in preferred_faces
         ]
-        if not pool:
-            pool = [s for s in segments if not s.is_party_wall and s.length_m > 1.2]
-        if not pool:
-            return
-        seg = max(pool, key=lambda s: s.length_m)
-        o = PROFILE.openings
-        door_ranges = [
-            (op.position_along_wall_m, op.position_along_wall_m + op.width_m)
-            for op in seg.openings
-            if op.kind == "door"
+        fallback_pool = [
+            s for s in segments
+            if not s.is_party_wall
+            and s.length_m > 1.0
+            and s not in preferred_pool
         ]
-        width = min(o.shop_window_w_m, max(0.8, seg.length_m - 0.5))
-        candidates = [
-            0.25,
-            max(0.2, seg.length_m - width - 0.25),
-            max(0.2, (seg.length_m - width) / 2.0),
-        ]
-        for pos in candidates:
-            if not any(not (pos + width < a or pos > b) for a, b in door_ranges):
+
+        placement = None
+        for seg in sorted(preferred_pool + fallback_pool, key=lambda s: s.length_m, reverse=True):
+            door_ranges = [
+                (op.position_along_wall_m, op.position_along_wall_m + op.width_m)
+                for op in seg.openings
+                if op.kind == "door"
+            ]
+            width = min(o.shop_window_w_m, max(0.55, seg.length_m - 0.45))
+            candidates = [
+                0.2,
+                max(0.15, seg.length_m - width - 0.2),
+                max(0.15, (seg.length_m - width) / 2.0),
+            ]
+            for pos in candidates:
+                if not any(not (pos + width < a or pos > b) for a, b in door_ranges):
+                    placement = (seg, pos, width)
+                    break
+            if placement is not None:
                 break
-        else:
+        if placement is None:
             return
+        seg, pos, width = placement
         seg.openings.append(Opening(
             kind="shop_window",
             storey_level=0,
