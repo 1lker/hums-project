@@ -44,7 +44,7 @@ class PeriodDetail:
         band_top = band_bot + DENTIL_H
         pid = building.parcel_id
         for idx, seg in enumerate(building.wall_segments):
-            if not seg.is_street_facing:
+            if not _is_strict_street(seg):
                 continue
             length = _seg_length(seg)
             if length < 0.8:
@@ -104,7 +104,7 @@ class PeriodDetail:
         total_height = sum(s.height_m for s in building.storeys if not s.is_basement)
         for i, seg in enumerate(building.wall_segments):
             next_seg = building.wall_segments[(i + 1) % n]
-            if not (seg.is_street_facing and next_seg.is_street_facing):
+            if not (_is_strict_street(seg) and _is_strict_street(next_seg)):
                 continue
             # Corner point = end of current seg (= start of next seg)
             cx, cy = seg.end
@@ -199,6 +199,10 @@ class PeriodDetail:
 
 def _seg_length(seg: WallSegment) -> float:
     return math.hypot(seg.end[0] - seg.start[0], seg.end[1] - seg.start[1])
+
+
+def _is_strict_street(seg: WallSegment) -> bool:
+    return seg.hatch_pattern == "_street"
 
 
 def _seg_axes(seg: WallSegment):

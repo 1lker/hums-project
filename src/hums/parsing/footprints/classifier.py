@@ -20,6 +20,7 @@ class FootprintKind(str, Enum):
     FOUNTAIN = "fountain"
     MAGAZINE = "magazine"
     OTHER_NON_PARCEL = "other_non_parcel"
+    IGNORED = "ignored"
 
 
 @dataclass
@@ -63,7 +64,7 @@ class FilenameClassifier:
                     parent_parcel_id=parent,
                 )
             # Empty override list → explicit "ignore this file".
-            return Classification(FootprintKind.OTHER_NON_PARCEL)
+            return Classification(FootprintKind.IGNORED)
 
         for kind, hints in _NON_PARCEL_KINDS:
             if any(h in b for h in hints):

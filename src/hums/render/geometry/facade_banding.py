@@ -29,7 +29,7 @@ class FacadeBanding:
         # dark plinth (painted).
         plinth_mat = "plinth_stone" if cls in ("A", "B") else "trim"
         for idx, seg in enumerate(building.wall_segments):
-            if not seg.is_street_facing:
+            if not _is_strict_street(seg):
                 continue
             self._emit_strip(
                 mesh, seg, z0=0.0, z1=PLINTH_H,
@@ -47,7 +47,7 @@ class FacadeBanding:
             floor_zs.append(floor_zs[-1] + s.height_m)
         for i, z in enumerate(floor_zs[1:-1], start=1):
             for idx, seg in enumerate(building.wall_segments):
-                if not seg.is_street_facing:
+                if not _is_strict_street(seg):
                     continue
                 self._emit_strip(
                     mesh, seg,
@@ -96,3 +96,7 @@ class FacadeBanding:
             p2=(ex, ey, z0), p3=(sx, sy, z0),
             role=role, surface_id=f"{surface_id}.bot", material_key=material_key,
         )
+
+
+def _is_strict_street(seg: WallSegment) -> bool:
+    return seg.hatch_pattern == "_street"

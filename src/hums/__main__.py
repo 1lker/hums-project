@@ -35,6 +35,13 @@ def main(argv: list[str]) -> int:
         from .pipelines.render_building import render_building
         render_building(argv[2])
         return 0
+    if cmd == "render-manual":
+        if len(argv) < 3:
+            print("usage: python -m hums render-manual <label>", file=sys.stderr)
+            return 2
+        from .pipelines.render_manual import ManualRenderer
+        ManualRenderer().render(argv[2])
+        return 0
     if cmd == "diagnostic-map":
         from .render.reports.diagnostic_map import render
         p = render()

@@ -42,6 +42,8 @@ class FootprintBuilder:
                 continue
 
             cls = self._classifier.classify(src.display_name)
+            if cls.kind == FootprintKind.IGNORED:
+                continue
 
             for ring in rings:
                 poly = self._to_metric_polygon(ring)

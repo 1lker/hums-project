@@ -38,18 +38,29 @@ class ShapefileReader(FootprintReader):
 
 
 class KmlReader(FootprintReader):
+    _POLYGON_TAG = "{http://www.opengis.net/kml/2.2}Polygon"
+    _OUTER_TAG = "{http://www.opengis.net/kml/2.2}outerBoundaryIs"
+    _LINEAR_RING_TAG = "{http://www.opengis.net/kml/2.2}LinearRing"
     _COORDS_TAG = "{http://www.opengis.net/kml/2.2}coordinates"
 
     def read(self, path: Path) -> list[Ring]:
         rings: list[Ring] = []
         tree = ET.parse(path)
-        for el in tree.getroot().iter(self._COORDS_TAG):
-            txt = (el.text or "").strip()
-            pts: Ring = []
-            for token in txt.split():
-                parts = token.split(",")
-                if len(parts) >= 2:
-                    pts.append((float(parts[0]), float(parts[1])))
-            if len(pts) >= 3:
-                rings.append(pts)
+        for polygon in tree.getroot().iter(self._POLYGON_TAG):
+            for outer in polygon.iter(self._OUTER_TAG):
+                coords = outer.find(f"./{self._LINEAR_RING_TAG}/{self._COORDS_TAG}")
+                if coords is None:
+                    continue
+                pts = self._parse_coordinates(coords.text or "")
+                if len(pts) >= 3:
+                    rings.append(pts)
         return rings
+
+    @staticmethod
+    def _parse_coordinates(text: str) -> Ring:
+        pts: Ring = []
+        for token in text.strip().split():
+            parts = token.split(",")
+            if len(parts) >= 2:
+                pts.append((float(parts[0]), float(parts[1])))
+        return pts

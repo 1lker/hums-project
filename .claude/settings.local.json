@@ -50,7 +50,9 @@
       "Bash(make render-building:*)",
       "Bash(PYTHONPATH=src .venv/bin/python -m hums render-building N-40)",
       "Bash(git commit -m 'feat\\(prd-005\\): scaffold manual per-parcel labelling \\(replace Excel\\):*)",
-      "Bash(git commit -m 'feat\\(prd-005\\): rewrite N-40-42 as one multi-zone wooden building:*)"
+      "Bash(git commit -m 'feat\\(prd-005\\): rewrite N-40-42 as one multi-zone wooden building:*)",
+      "Bash(git commit -m 'fix\\(prd-005\\): N-40-42 is NOT the FIRIN — remove chimney + bakery:*)",
+      "Bash(make render-manual:*)"
     ]
   }
 }

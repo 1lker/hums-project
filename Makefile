@@ -41,6 +41,10 @@ render-building:
 	@test -n "$(PARCEL)" || (echo "usage: make render-building PARCEL=N-40"; exit 2)
 	PYTHONPATH=$(PKG_SRC) $(VPY) -m hums render-building $(PARCEL)
 
+render-manual:
+	@test -n "$(LABEL)" || (echo "usage: make render-manual LABEL=N-40-42"; exit 2)
+	PYTHONPATH=$(PKG_SRC) $(VPY) -m hums render-manual $(LABEL)
+
 diagnostic-map:
 	PYTHONPATH=$(PKG_SRC) $(VPY) -m hums diagnostic-map
 

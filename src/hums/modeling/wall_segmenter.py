@@ -39,8 +39,11 @@ class WallSegmenter:
         utm_coords = list(footprint_utm.exterior.coords)
         if utm_coords[0] == utm_coords[-1]:
             utm_coords = utm_coords[:-1]
+        if _signed_area(utm_coords) < 0:
+            utm_coords.reverse()
 
-        # footprint_local already CCW; utm may differ. Align by index modulo.
+        # footprint_local is CCW; keep UTM in the same winding so edge-indexed
+        # street/party-wall classification attaches to the same local segment.
         if len(utm_coords) != len(footprint_local):
             # fallback: derive faces purely from local; skip street detection
             return self._segment_from_local_only(footprint_local, thickness_m)
@@ -107,3 +110,12 @@ class WallSegmenter:
         if ang >= 135 or ang < -135:
             return "W"
         return "S"
+
+
+def _signed_area(ring: list[tuple[float, float]]) -> float:
+    s = 0.0
+    for i in range(len(ring)):
+        x1, y1 = ring[i]
+        x2, y2 = ring[(i + 1) % len(ring)]
+        s += x1 * y2 - x2 * y1
+    return s / 2.0

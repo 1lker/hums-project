@@ -11,6 +11,7 @@ Strategies:
 from __future__ import annotations
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
+import re
 
 from ..common.prd import prd
 from .building import Opening, WallSegment, Face, Storey
@@ -38,64 +39,70 @@ class OpeningPlacer(ABC):
 
 class DoorPlacer(OpeningPlacer):
     """Primary door on the face matching Excel 'primary_door_face'."""
-    FACE_MAP = {"N": "N", "NORTH": "N", "E": "E", "EAST": "E",
-                "S": "S", "SOUTH": "S", "W": "W", "WEST": "W"}
 
     def place(self, segments, storeys, excel, parcel_id, tracker):
         if excel.get("_structure_type") != "building":
             return
-        primary_face_raw = (excel.get("openings") or {}).get("primary_door_face") or ""
-        target_face: Face | None = None
-        for key, val in self.FACE_MAP.items():
-            if key in primary_face_raw.upper():
-                target_face = val  # type: ignore[assignment]
-                break
-
-        chosen = self._choose_segment(segments, target_face)
-        if chosen is None:
+        openings = excel.get("openings") or {}
+        text = _openings_text(openings)
+        target_faces = _door_faces(openings)
+        if not target_faces and _says_internal_only(text):
+            tracker.record(parcel_id, "wall.door", "map:pervititch", "no street door indicated")
             return
 
-        o = PROFILE.openings
-        w = min(o.door_w_m, max(0.0, chosen.length_m - 0.4))
-        if w < 0.6:
-            return
-        pos = max(0.2, (chosen.length_m - w) / 2.0)
+        placed = 0
+        for target_face in target_faces or [None]:
+            chosen = self._choose_segment(segments, target_face, strict_street=target_face is None)
+            if chosen is None:
+                continue
+            if any(op.kind == "door" for op in chosen.openings):
+                continue
 
-        chosen.openings.append(Opening(
-            kind="door", storey_level=0,
-            position_along_wall_m=round(pos, 3),
-            width_m=round(w, 3), height_m=o.door_h_m, sill_m=0.0,
-        ))
-        src = "excel" if target_face else "assumption:pervititch_1923"
-        tracker.record(parcel_id, f"wall[{chosen.face}].door", src, {"w": w, "h": o.door_h_m})
+            o = PROFILE.openings
+            w = min(o.door_w_m, max(0.0, chosen.length_m - 0.4))
+            if w < 0.6:
+                continue
+            pos = max(0.2, (chosen.length_m - w) / 2.0)
 
-    def _choose_segment(self, segments, target_face):
-        street = [s for s in segments if s.is_street_facing and not s.is_party_wall and s.length_m > 1.5]
-        if not street:
+            chosen.openings.append(Opening(
+                kind="door", storey_level=0,
+                position_along_wall_m=round(pos, 3),
+                width_m=round(w, 3), height_m=o.door_h_m, sill_m=0.0,
+            ))
+            src = "map:pervititch" if target_face else "assumption:pervititch_1923"
+            tracker.record(parcel_id, f"wall[{chosen.face}].door", src, {"w": w, "h": o.door_h_m})
+            placed += 1
+        if placed == 0 and not target_faces and not _says_internal_only(text):
+            tracker.record(parcel_id, "wall.door", "assumption:pervititch_1923", "no eligible exterior segment")
+
+    def _choose_segment(self, segments, target_face, strict_street: bool):
+        exterior = [s for s in segments if s.is_street_facing and not s.is_party_wall and s.length_m > 1.5]
+        if not exterior:
             return None
         if target_face:
-            matches = [s for s in street if s.face == target_face]
+            matches = [s for s in exterior if s.face == target_face]
             if matches:
                 matches.sort(key=lambda s: s.length_m, reverse=True)
                 return matches[0]
-        street.sort(key=lambda s: s.length_m, reverse=True)
-        return street[0]
+        pool = [s for s in exterior if _is_strict_street(s)] if strict_street else exterior
+        if not pool:
+            pool = exterior
+        pool.sort(key=lambda s: s.length_m, reverse=True)
+        return pool[0]
 
 
 class ShopWindowPlacer(OpeningPlacer):
     def place(self, segments, storeys, excel, parcel_id, tracker):
         if excel.get("_structure_type") != "building":
             return
+        if _is_glazed_structure(excel):
+            return
         gf = excel.get("ground_floor") or {}
         if not _is_shop_use(gf.get("code"), gf.get("use")):
             return
         o = PROFILE.openings
         for seg in segments:
-            # Shop windows on every exterior (non-party) face. The old
-            # "only on block perimeter" gate was dropping corner-shop
-            # frontages whenever the KML was traced slightly inside the
-            # block outline.
-            if seg.is_party_wall:
+            if seg.is_party_wall or not _is_strict_street(seg):
                 continue
             # reserve door zone: skip if a door already placed here
             door_ranges = [(op.position_along_wall_m, op.position_along_wall_m + op.width_m)
@@ -117,19 +124,22 @@ class ShopWindowPlacer(OpeningPlacer):
                     sill_m=o.shop_window_sill_m,
                     style="rectangular", frame_profile="moulded",
                 ))
-            tracker.assume(parcel_id, f"wall[{seg.face}].shop_windows.count", count)
+            tracker.record(parcel_id, f"wall[{seg.face}].shop_windows.count", "map:pervititch", count)
 
 
 class UpperWindowPlacer(OpeningPlacer):
     def place(self, segments, storeys, excel, parcel_id, tracker):
         if excel.get("_structure_type") != "building":
             return
+        if _is_glazed_structure(excel):
+            return
         o = PROFILE.openings
+        material_class = ((excel.get("material") or {}).get("class") or "").upper()
         upper_levels = [s.level for s in storeys if s.level >= 1 and not s.is_basement]
         if not upper_levels:
             return
         for seg in segments:
-            if not seg.is_street_facing or seg.is_party_wall or seg.length_m < 1.5:
+            if not _is_strict_street(seg) or seg.is_party_wall or seg.length_m < 1.5:
                 continue
             count = max(1, int(round(seg.length_m / o.upper_window_spacing_m)))
             if count == 0:
@@ -148,10 +158,10 @@ class UpperWindowPlacer(OpeningPlacer):
                         sill_m=o.upper_window_sill_m,
                         style="rectangular",
                         pane_layout="2x2",
-                        has_shutters=True,
+                        has_shutters=material_class.startswith("C"),
                         frame_profile="moulded",
                     ))
-            tracker.assume(parcel_id, f"wall[{seg.face}].upper_windows.count_per_storey", count)
+            tracker.record(parcel_id, f"wall[{seg.face}].upper_windows.count_per_storey", "assumption:facade_typology", count)
 
 
 def _overlaps(a0, a1, ranges):
@@ -159,3 +169,76 @@ def _overlaps(a0, a1, ranges):
         if not (a1 < b0 or a0 > b1):
             return True
     return False
+
+
+def _is_strict_street(seg: WallSegment) -> bool:
+    return seg.hatch_pattern == "_street"
+
+
+def _openings_text(openings: dict) -> str:
+    return " ".join(str(v) for v in openings.values() if v is not None).lower()
+
+
+def _says_internal_only(text: str) -> bool:
+    return any(token in text for token in (
+        "internal only",
+        "internal access only",
+        "no street door",
+        "no street access",
+        "no direct street access",
+        "no arrow",
+    ))
+
+
+def _is_glazed_structure(excel: dict) -> bool:
+    material = (excel.get("material") or {})
+    roof = excel.get("roof") or {}
+    text = " ".join(str(v) for v in (
+        material.get("class"),
+        material.get("raw_material_label"),
+        (excel.get("ground_floor") or {}).get("use"),
+        roof.get("material_code"),
+        roof.get("material_decoded"),
+        excel.get("bim_notes"),
+    ) if v is not None).lower()
+    return "glass" in text or "glazed" in text or "camlı" in text or "camli" in text
+
+
+def _door_faces(openings: dict) -> list[Face]:
+    raw_fields = [
+        openings.get("primary_door_face") or "",
+        openings.get("secondary_door_face") or "",
+    ]
+    faces: list[Face] = []
+    for raw in raw_fields:
+        raw_s = str(raw)
+        if _says_internal_only(raw_s.lower()):
+            continue
+        for face in _faces_from_text(raw_s):
+            if face not in faces:
+                faces.append(face)
+    return faces
+
+
+def _faces_from_text(text: str) -> list[Face]:
+    t = text.upper()
+    pairs: list[tuple[int, Face]] = []
+    for pattern, face in (
+        (r"\bNORTH\b", "N"),
+        (r"\bEAST\b", "E"),
+        (r"\bSOUTH\b", "S"),
+        (r"\bWEST\b", "W"),
+        (r"(?<![A-Z])N(?![A-Z])", "N"),
+        (r"(?<![A-Z])E(?![A-Z])", "E"),
+        (r"(?<![A-Z])S(?![A-Z])", "S"),
+        (r"(?<![A-Z])W(?![A-Z])", "W"),
+    ):
+        m = re.search(pattern, t)
+        if m:
+            pairs.append((m.start(), face))  # type: ignore[arg-type]
+    pairs.sort(key=lambda item: item[0])
+    out: list[Face] = []
+    for _, face in pairs:
+        if face not in out:
+            out.append(face)
+    return out
