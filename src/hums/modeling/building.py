@@ -67,7 +67,7 @@ class Storey:
 @dataclass
 class RoofDescriptor:
     shape: Literal["gable", "hip", "mansard", "flat", "complex_pitched", "vault_flat"]
-    material: Literal["tile_TR", "sheet_metal_T", "vault_VF", "vault_VT", "unknown"]
+    material: Literal["tile_TR", "tile_TF", "sheet_metal_T", "vault_VF", "vault_VT", "unknown"]
     pitch_deg: float
     slope_direction: str | None
     has_chimney: bool = False

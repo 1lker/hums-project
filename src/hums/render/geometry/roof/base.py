@@ -22,6 +22,6 @@ class RoofGenerator(ABC):
         material = (building.roof.material if building.roof else "") or ""
         if material == "sheet_metal_T":
             return "sheet_metal_grey"
-        if material in {"tile_TR"}:
+        if material in {"tile_TR", "tile_TF"}:
             return "tile_terracotta"
         return "roof"

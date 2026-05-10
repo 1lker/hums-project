@@ -21,10 +21,12 @@ class RoofDescriptorBuilder:
             material, pitch = "vault_VF", PROFILE.roofs.vault_flat_deg
         elif "VT" in code:
             material, pitch = "vault_VT", PROFILE.roofs.vault_flat_deg
-        elif code.startswith("T") and "TR" not in code:
-            material, pitch = "sheet_metal_T", PROFILE.roofs.sheet_metal_T_deg
+        elif "TF" in code:
+            material, pitch = "tile_TF", PROFILE.roofs.tile_TR_deg
         elif "TR" in code or "TILE" in code:
             material, pitch = "tile_TR", PROFILE.roofs.tile_TR_deg
+        elif code.startswith("T"):
+            material, pitch = "sheet_metal_T", PROFILE.roofs.sheet_metal_T_deg
 
         if any(w in shape_raw for w in ("complex", "multi")):
             shape = "complex_pitched"
