@@ -163,17 +163,40 @@ class UpperWindowPlacer(OpeningPlacer):
         upper_levels = [s.level for s in storeys if s.level >= 1 and not s.is_basement]
         if not upper_levels:
             return
+        floor_zs = _storey_floor_zs(storeys)
         for seg in segments:
-            if not _is_strict_street(seg) or seg.is_party_wall or seg.length_m < 1.5:
+            if seg.length_m < 1.5:
+                continue
+            if seg.is_party_wall:
+                adjacent_height = seg.adjacent_height_m
+                if adjacent_height is None:
+                    continue
+                eligible_levels = [
+                    lvl for lvl in upper_levels
+                    if floor_zs.get(lvl, 0.0) + o.upper_window_sill_m >= adjacent_height + 0.2
+                ]
+                if not eligible_levels:
+                    continue
+                src = "assumption:height-difference-exposed-party-wall"
+            elif seg.is_street_facing:
+                eligible_levels = upper_levels
+                src = (
+                    "assumption:facade_typology:street"
+                    if _is_strict_street(seg)
+                    else "assumption:facade_typology:courtyard"
+                )
+            else:
                 continue
             count = max(1, int(round(seg.length_m / o.upper_window_spacing_m)))
+            if not _is_strict_street(seg):
+                count = max(1, min(count, int(max(1, seg.length_m // 3.0))))
             if count == 0:
                 continue
             gap = (seg.length_m - count * o.upper_window_w_m) / (count + 1)
             if gap < 0.3:
                 count = max(1, count - 1)
                 gap = (seg.length_m - count * o.upper_window_w_m) / (count + 1)
-            for lvl in upper_levels:
+            for lvl in eligible_levels:
                 for i in range(count):
                     pos = gap + i * (o.upper_window_w_m + gap)
                     seg.openings.append(Opening(
@@ -185,9 +208,9 @@ class UpperWindowPlacer(OpeningPlacer):
                         pane_layout="2x2",
                         has_shutters=material_class.startswith("C"),
                         frame_profile="moulded",
-                        color_source="assumption:facade_typology",
+                        color_source=src,
                     ))
-            tracker.record(parcel_id, f"wall[{seg.face}].upper_windows.count_per_storey", "assumption:facade_typology", count)
+            tracker.record(parcel_id, f"wall[{seg.face}].upper_windows.count_per_storey", src, count)
 
 
 def _overlaps(a0, a1, ranges):
@@ -199,6 +222,15 @@ def _overlaps(a0, a1, ranges):
 
 def _is_strict_street(seg: WallSegment) -> bool:
     return seg.hatch_pattern == "_street"
+
+
+def _storey_floor_zs(storeys: list[Storey]) -> dict[int, float]:
+    z = 0.0
+    out: dict[int, float] = {}
+    for s in sorted([s for s in storeys if not s.is_basement], key=lambda item: item.level):
+        out[s.level] = z
+        z += s.height_m
+    return out
 
 
 def _openings_text(openings: dict) -> str:
