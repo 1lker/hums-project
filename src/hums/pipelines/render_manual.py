@@ -253,6 +253,16 @@ class ManualRenderer:
                              segments: list[WallSegment], tracker,
                              zone_pid: str) -> None:
         """Run the usual placers on non-party walls, respecting manual hints."""
+        primary_face = (
+            label.facades.primary_door.face
+            if label.facades.primary_door and label.facades.primary_door.zone == zone.id
+            else None
+        )
+        secondary_face = (
+            label.facades.secondary_door.face
+            if label.facades.secondary_door and label.facades.secondary_door.zone == zone.id
+            else None
+        )
         ctx = {
             "_structure_type": "building",
             "ground_floor": {
@@ -260,15 +270,16 @@ class ManualRenderer:
                 "use": zone.ground_floor_use,
             },
             "openings": {
-                "primary_door_face": label.facades.primary_door.face
-                                      if (label.facades.primary_door and
-                                          label.facades.primary_door.zone == zone.id)
-                                      else None,
+                "primary_door_face": primary_face,
+                "secondary_door_face": secondary_face,
+                "secondary_door_type": "courtyard/service" if secondary_face else None,
             },
         }
         storeys_proxy = [Storey(level=i, height_m=h)
                           for i, h in enumerate(zone.storey_heights_m)]
-        for placer in (DoorPlacer(), ShopWindowPlacer(), UpperWindowPlacer()):
+        if primary_face or secondary_face:
+            DoorPlacer().place(segments, storeys_proxy, ctx, zone_pid, tracker)
+        for placer in (ShopWindowPlacer(), UpperWindowPlacer()):
             placer.place(segments, storeys_proxy, ctx, zone_pid, tracker)
 
     def _profile(self, label: ManualLabel, meshes) -> str:
