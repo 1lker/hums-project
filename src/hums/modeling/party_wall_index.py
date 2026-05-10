@@ -31,9 +31,9 @@ class PartyWallIndex:
     ANGLE_TOL_RAD = math.radians(15.0)
 
     def __init__(self) -> None:
-        self._edges: list[tuple[EdgeKey, str]] = []   # (key, owner_parcel_id)
+        self._edges: list[tuple[EdgeKey, str, float | None]] = []   # (key, owner_parcel_id, owner_height_m)
 
-    def register(self, owner_parcel_id: str, polygon_utm: Polygon) -> None:
+    def register(self, owner_parcel_id: str, polygon_utm: Polygon, owner_height_m: float | None = None) -> None:
         coords = list(polygon_utm.exterior.coords)
         if coords and coords[0] == coords[-1]:
             coords = coords[:-1]
@@ -48,18 +48,23 @@ class PartyWallIndex:
             mid_x = (a[0] + b[0]) / 2
             mid_y = (a[1] + b[1]) / 2
             angle = math.atan2(dy, dx) % math.pi   # undirected
-            self._edges.append((EdgeKey(mid_x, mid_y, angle), owner_parcel_id))
+            self._edges.append((EdgeKey(mid_x, mid_y, angle), owner_parcel_id, owner_height_m))
 
     def is_party(self, owner_parcel_id: str, edge_utm_start, edge_utm_end) -> bool:
+        return self.adjacent_height(owner_parcel_id, edge_utm_start, edge_utm_end) is not None
+
+    def adjacent_height(self, owner_parcel_id: str, edge_utm_start, edge_utm_end) -> float | None:
         dx = edge_utm_end[0] - edge_utm_start[0]
         dy = edge_utm_end[1] - edge_utm_start[1]
         length = math.hypot(dx, dy)
         if length < 0.4:
-            return False
+            return None
         mx = (edge_utm_start[0] + edge_utm_end[0]) / 2
         my = (edge_utm_start[1] + edge_utm_end[1]) / 2
         angle = math.atan2(dy, dx) % math.pi
-        for other_key, other_owner in self._edges:
+        matched_height: float | None = None
+        matched = False
+        for other_key, other_owner, other_height in self._edges:
             if other_owner == owner_parcel_id:
                 continue
             if abs(other_key.mid_x - mx) > self.MIDPOINT_TOL_M:
@@ -72,5 +77,9 @@ class PartyWallIndex:
             dtheta = abs(other_key.angle_rad - angle)
             dtheta = min(dtheta, math.pi - dtheta)
             if dtheta <= self.ANGLE_TOL_RAD:
-                return True
-        return False
+                matched = True
+                if other_height is not None:
+                    matched_height = max(matched_height or 0.0, other_height)
+        if matched:
+            return matched_height if matched_height is not None else 0.0
+        return None

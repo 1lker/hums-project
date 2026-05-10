@@ -45,6 +45,7 @@ class WallSegment:
     face: Face
     is_street_facing: bool
     is_party_wall: bool = False      # shared with a neighbour — no openings
+    adjacent_height_m: float | None = None  # if party wall, neighbour's total above-grade height
     hatch_pattern: str | None = None
     openings: list[Opening] = field(default_factory=list)
 
