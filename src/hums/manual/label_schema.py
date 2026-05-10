@@ -45,10 +45,19 @@ class DoorHint:
 
 
 @dataclass
+class EntranceHint:
+    face: Face
+    zone: str
+    count: int = 1
+    description: str | None = None
+
+
+@dataclass
 class Facades:
     street_facing_faces: list[Face]
     primary_door: DoorHint | None = None
     secondary_door: DoorHint | None = None
+    entrance_hints: list[EntranceHint] = field(default_factory=list)
     shop_windows: bool = False
     balconies: list[dict] = field(default_factory=list)
     shutters_on_upper: bool = False

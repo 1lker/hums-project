@@ -5,7 +5,7 @@ from pathlib import Path
 
 from ..common.prd import prd
 from .label_schema import (
-    DoorHint, Facades, ManualLabel, Zone, ZoneRoof,
+    DoorHint, EntranceHint, Facades, ManualLabel, Zone, ZoneRoof,
 )
 
 MANUAL_ROOT = Path(__file__).resolve().parents[3] / "data" / "manual" / "parcels"
@@ -51,6 +51,16 @@ class ManualLabelLoader:
             street_facing_faces=list(facades_d.get("street_facing_faces", [])),
             primary_door=_door(facades_d.get("primary_door")),
             secondary_door=_door(facades_d.get("secondary_door")),
+            entrance_hints=[
+                EntranceHint(
+                    face=e["face"],
+                    zone=e.get("zone", ""),
+                    count=int(e.get("count", 1)),
+                    description=e.get("description"),
+                )
+                for e in facades_d.get("entrance_hints", [])
+                if isinstance(e, dict) and e.get("face")
+            ],
             shop_windows=bool(facades_d.get("shop_windows", False)),
             balconies=list(facades_d.get("balconies", [])),
             shutters_on_upper=bool(facades_d.get("shutters_on_upper", False)),

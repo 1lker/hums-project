@@ -290,8 +290,68 @@ class ManualRenderer:
                           for i, h in enumerate(zone.storey_heights_m)]
         if primary_face or secondary_face:
             DoorPlacer().place(segments, storeys_proxy, ctx, zone_pid, tracker)
+        self._place_manual_entrances(label, zone, segments, tracker, zone_pid)
         for placer in (ShopWindowPlacer(), UpperWindowPlacer()):
             placer.place(segments, storeys_proxy, ctx, zone_pid, tracker)
+
+    def _place_manual_entrances(self, label: ManualLabel, zone: Zone,
+                                segments: list[WallSegment], tracker,
+                                zone_pid: str) -> None:
+        hints = [h for h in label.facades.entrance_hints if h.zone == zone.id]
+        if not hints:
+            return
+
+        o = __import__("hums.common.heritage_profile", fromlist=["PROFILE"]).PROFILE.openings
+        for hint in hints:
+            pool = [
+                s for s in segments
+                if s.face == hint.face
+                and not s.is_party_wall
+                and s.length_m > 1.5
+            ]
+            if not pool:
+                pool = [
+                    s for s in segments
+                    if not s.is_party_wall and s.length_m > 1.5
+                ]
+            if not pool:
+                continue
+
+            pool.sort(key=lambda s: s.length_m, reverse=True)
+            seg = pool[0]
+            count = max(1, min(int(hint.count), max(1, int(seg.length_m // 1.8))))
+            door_w = min(o.door_w_m, max(0.75, (seg.length_m - 0.5 * (count + 1)) / count))
+            gap = (seg.length_m - count * door_w) / (count + 1)
+            if gap < 0.2:
+                gap = 0.2
+            existing = [
+                (op.position_along_wall_m, op.position_along_wall_m + op.width_m)
+                for op in seg.openings
+                if op.kind == "door"
+            ]
+            for i in range(count):
+                pos = max(0.15, gap + i * (door_w + gap))
+                end = pos + door_w
+                if any(not (end < a or pos > b) for a, b in existing):
+                    continue
+                seg.openings.append(Opening(
+                    kind="door",
+                    storey_level=0,
+                    position_along_wall_m=round(pos, 3),
+                    width_m=round(door_w, 3),
+                    height_m=o.door_h_m,
+                    sill_m=0.0,
+                    style="rectangular",
+                    frame_profile="moulded",
+                    color_source=f"map:pervititch:{label.label}:entrance-labels",
+                ))
+                existing.append((pos, end))
+            tracker.record(
+                zone_pid,
+                f"wall[{hint.face}].manual_entrances",
+                "map:pervititch",
+                {"count": count, "description": hint.description},
+            )
 
     def _profile(self, label: ManualLabel, meshes) -> str:
         from collections import Counter
