@@ -84,7 +84,7 @@ class BuildingGeometryBuilder:
             idx,
             role="RoofSurface",
             surface_id=f"{building.parcel_id}.eaves_cap",
-            material_key="tile_terracotta",
+            material_key=RoofGenerator.material_key(building),
         )
 
     def _add_roof(self, mesh: BuildingMesh, building: Building) -> None:

@@ -26,6 +26,7 @@ class HipRoof(RoofGenerator):
         if len(ring) < 3:
             return
         pitch_rad = math.radians(building.roof.pitch_deg if building.roof else 30.0)
+        roof_mat = self.material_key(building)
 
         from shapely.geometry import Polygon
         poly = Polygon(ring)
@@ -55,7 +56,7 @@ class HipRoof(RoofGenerator):
                 ib = mesh.add_vertex(b[0], b[1], eaves_z)
                 # CCW from above so normal points up/out.
                 mesh.add_face([ia, apex, ib], role="RoofSurface",
-                              surface_id=f"{pid}.roof.tri.{i}", material_key="tile_terracotta")
+                              surface_id=f"{pid}.roof.tri.{i}", material_key=roof_mat)
             return
 
         # Build hip quads: outer edge → matching inner edge
@@ -73,9 +74,9 @@ class HipRoof(RoofGenerator):
                 p2=(ib[0], ib[1], eaves_z + rise), p3=(b[0], b[1], eaves_z),
                 role="RoofSurface",
                 surface_id=f"{pid}.roof.hip.{i}",
-                material_key="tile_terracotta",
+                material_key=roof_mat,
             )
         # Top deck (CCW from above) — small flat ridge region.
         top_idx = [mesh.add_vertex(x, y, eaves_z + rise) for (x, y) in inner]
         mesh.add_face(top_idx, role="RoofSurface",
-                      surface_id=f"{pid}.roof.deck", material_key="tile_terracotta")
+                      surface_id=f"{pid}.roof.deck", material_key=roof_mat)

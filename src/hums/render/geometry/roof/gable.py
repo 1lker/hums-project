@@ -21,6 +21,7 @@ class GableRoof(RoofGenerator):
         if len(ring) < 4:
             return
         pitch_rad = math.radians(building.roof.pitch_deg if building.roof else 30.0)
+        roof_mat = self.material_key(building)
 
         # Find longest edge → ridge direction
         best_len = 0.0
@@ -62,5 +63,5 @@ class GableRoof(RoofGenerator):
                 p2=(b[0], b[1], z_b), p3=(b[0], b[1], eaves_z),
                 role="RoofSurface",
                 surface_id=f"{pid}.roof.{i}",
-                material_key="tile_terracotta",
+                material_key=roof_mat,
             )
