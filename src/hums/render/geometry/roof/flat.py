@@ -13,12 +13,13 @@ class FlatRoof(RoofGenerator):
     def generate(self, mesh: BuildingMesh, building: Building, eaves_z: float) -> None:
         ring = building.footprint_local
         parapet = PROFILE.storeys.parapet_m
+        roof_mat = self.material_key(building)
         # Deck at eaves_z
         deck_idx = [mesh.add_vertex(x, y, eaves_z) for (x, y) in ring]
         mesh.add_face(
             deck_idx, role="RoofSurface",
             surface_id=f"{building.parcel_id}.roof.deck",
-            material_key="roof",
+            material_key=roof_mat,
         )
         # Parapet outer strip
         for i, (x, y) in enumerate(ring):

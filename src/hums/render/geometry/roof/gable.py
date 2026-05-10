@@ -37,31 +37,69 @@ class GableRoof(RoofGenerator):
         # Perpendicular to ridge = span direction
         perp = (-best_axis[1], best_axis[0])
 
-        # Project footprint vertices onto perp to find min/max span
+        # Project footprint vertices onto the roof coordinate frame.
+        u_values = [v[0] * best_axis[0] + v[1] * best_axis[1] for v in ring]
         t_values = [v[0] * perp[0] + v[1] * perp[1] for v in ring]
+        u_min, u_max = min(u_values), max(u_values)
         t_min, t_max = min(t_values), max(t_values)
         span = t_max - t_min
-        rise = (span / 2.0) * math.tan(pitch_rad)
-
-        # Ridge line = midline along axis
+        if span <= 0.2 or (u_max - u_min) <= 0.2:
+            return
+        rise = max(0.35, min((span / 2.0) * math.tan(pitch_rad), 3.0))
         t_mid = (t_min + t_max) / 2.0
 
-        # Build roof faces: for each pair of consecutive vertices, raise them
-        # to a ridge-projected point and emit two sloped quads.
         pid = building.parcel_id
-        for i in range(len(ring)):
-            a = ring[i]
-            b = ring[(i + 1) % len(ring)]
-            t_a = a[0] * perp[0] + a[1] * perp[1]
-            t_b = b[0] * perp[0] + b[1] * perp[1]
-            # determine z at each vertex: linear from eaves → eaves+rise at ridge
-            z_a = eaves_z + (1 - abs(t_a - t_mid) / max(span / 2.0, 0.001)) * rise
-            z_b = eaves_z + (1 - abs(t_b - t_mid) / max(span / 2.0, 0.001)) * rise
-            # Wind CCW from above so normal has +Z component (points up/out).
-            mesh.add_quad(
-                p0=(a[0], a[1], eaves_z), p1=(a[0], a[1], z_a),
-                p2=(b[0], b[1], z_b), p3=(b[0], b[1], eaves_z),
-                role="RoofSurface",
-                surface_id=f"{pid}.roof.{i}",
-                material_key=roof_mat,
+
+        def p(u: float, t: float, z: float) -> tuple[float, float, float]:
+            return (
+                best_axis[0] * u + perp[0] * t,
+                best_axis[1] * u + perp[1] * t,
+                z,
             )
+
+        z_ridge = eaves_z + rise
+        # Two real pitched planes with a continuous ridge. This is intentionally
+        # bbox-based: most Pervititch parcels here are narrow rectangles, and a
+        # clear roof silhouette reads much better than a nearly-flat fan.
+        mesh.add_quad(
+            p0=p(u_min, t_min, eaves_z),
+            p1=p(u_max, t_min, eaves_z),
+            p2=p(u_max, t_mid, z_ridge),
+            p3=p(u_min, t_mid, z_ridge),
+            role="RoofSurface",
+            surface_id=f"{pid}.roof.slope.low",
+            material_key=roof_mat,
+        )
+        mesh.add_quad(
+            p0=p(u_min, t_mid, z_ridge),
+            p1=p(u_max, t_mid, z_ridge),
+            p2=p(u_max, t_max, eaves_z),
+            p3=p(u_min, t_max, eaves_z),
+            role="RoofSurface",
+            surface_id=f"{pid}.roof.slope.high",
+            material_key=roof_mat,
+        )
+
+        # Gable end walls close the triangular ends under the roof.
+        for label, u in (("start", u_min), ("end", u_max)):
+            e0 = mesh.add_vertex(*p(u, t_min, eaves_z))
+            ridge = mesh.add_vertex(*p(u, t_mid, z_ridge))
+            e1 = mesh.add_vertex(*p(u, t_max, eaves_z))
+            mesh.add_face(
+                [e0, ridge, e1],
+                role="WallSurface",
+                surface_id=f"{pid}.gable_end.{label}",
+                material_key="wall_main",
+            )
+
+        # A narrow cap at the ridge gives the roof a finished, less-CAD-flat edge.
+        cap_w = min(0.16, span * 0.035)
+        mesh.add_quad(
+            p0=p(u_min, t_mid - cap_w, z_ridge + 0.03),
+            p1=p(u_max, t_mid - cap_w, z_ridge + 0.03),
+            p2=p(u_max, t_mid + cap_w, z_ridge + 0.03),
+            p3=p(u_min, t_mid + cap_w, z_ridge + 0.03),
+            role="RoofSurface",
+            surface_id=f"{pid}.roof.ridge_cap",
+            material_key=roof_mat,
+        )

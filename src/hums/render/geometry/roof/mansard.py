@@ -33,6 +33,7 @@ class MansardRoof(RoofGenerator):
         upper = inset_ring(ring, upper_inset)
         if not lower or not upper:
             return
+        roof_mat = self.material_key(building)
         pid = building.parcel_id
         n = len(ring)
         # Lower steep band
@@ -44,7 +45,7 @@ class MansardRoof(RoofGenerator):
                 p0=(a[0], a[1], eaves_z), p1=(b[0], b[1], eaves_z),
                 p2=(ib[0], ib[1], eaves_z + lower_rise), p3=(ia[0], ia[1], eaves_z + lower_rise),
                 role="RoofSurface",
-                surface_id=f"{pid}.roof.mansard_lower.{i}", material_key="roof",
+                surface_id=f"{pid}.roof.mansard_lower.{i}", material_key=roof_mat,
             )
         # Upper shallow band
         for i in range(len(lower)):
@@ -55,9 +56,9 @@ class MansardRoof(RoofGenerator):
                 p0=(a[0], a[1], eaves_z + lower_rise), p1=(b[0], b[1], eaves_z + lower_rise),
                 p2=(ib[0], ib[1], eaves_z + lower_rise + upper_rise), p3=(ia[0], ia[1], eaves_z + lower_rise + upper_rise),
                 role="RoofSurface",
-                surface_id=f"{pid}.roof.mansard_upper.{i}", material_key="roof",
+                surface_id=f"{pid}.roof.mansard_upper.{i}", material_key=roof_mat,
             )
         # Flat top deck
         deck = [mesh.add_vertex(x, y, eaves_z + lower_rise + upper_rise) for (x, y) in upper]
         mesh.add_face(deck, role="RoofSurface",
-                      surface_id=f"{pid}.roof.deck", material_key="roof")
+                      surface_id=f"{pid}.roof.deck", material_key=roof_mat)

@@ -211,12 +211,24 @@ def _material_for(root: gl.GLTF2, palette, material_key: str, meta: dict) -> int
     if cache_key in root._material_cache:  # type: ignore[attr-defined]
         return root._material_cache[cache_key]  # type: ignore[attr-defined]
 
+    metallic = 0.0
+    roughness = 0.85
+    if material_key == "window_glass":
+        roughness = 0.25
+    elif material_key in {"sheet_metal_grey", "dome_lead"}:
+        metallic = 0.18
+        roughness = 0.42
+    elif material_key in {"tile_terracotta", "tile_marseille", "vault_roof_masonry"}:
+        roughness = 0.92
+    elif material_key == "roof_unknown_muted":
+        roughness = 0.78
+
     mat = gl.Material(
         name=material_key,
         pbrMetallicRoughness=gl.PbrMetallicRoughness(
             baseColorFactor=[rgb[0] / 255, rgb[1] / 255, rgb[2] / 255, alpha],
-            metallicFactor=0.0,
-            roughnessFactor=0.85 if material_key != "window_glass" else 0.25,
+            metallicFactor=metallic,
+            roughnessFactor=roughness,
         ),
         alphaMode="BLEND" if alpha < 1.0 or material_key == "window_glass" else "OPAQUE",
         # Walls, roofs, sills, etc. are thin single-sided quads in the current
@@ -249,11 +261,14 @@ def _color_for(palette, material_key: str) -> tuple[int, int, int]:
         "chimney_brick": (146, 72, 55),
         "monument_stone": (220, 205, 180),
         "stub_marker": (200, 200, 80),
-        "tile_terracotta": (162, 78, 52),
-        "sheet_metal_grey": (86, 92, 98),
+        "tile_terracotta": (166, 82, 52),
+        "tile_marseille": (185, 88, 48),
+        "sheet_metal_grey": (104, 111, 113),
+        "vault_roof_masonry": (178, 160, 132),
+        "roof_unknown_muted": (126, 112, 94),
         "plinth_stone": (160, 148, 130),
         "cornice_paint": (236, 225, 205),
-        "dome_lead": (98, 104, 110),
+        "dome_lead": (112, 120, 122),
         "balcony_iron": (45, 40, 38),
     }
     v = mapping.get(material_key, fallback)

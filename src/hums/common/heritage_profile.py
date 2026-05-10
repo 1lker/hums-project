@@ -50,14 +50,14 @@ class OpeningSizes:
 class FacadePaletteDefaults:
     # (main, accent, trim, shutters, roof) per material class
     masonry_A: tuple[RGB, RGB, RGB, RGB, RGB] = (
-        (201, 183, 156), (176, 155, 122), (110, 90, 62),  (70, 50, 35),  (142, 74, 50))
+        (198, 184, 160), (169, 151, 124), (105, 88, 68),  (62, 45, 30),  (166, 82, 52))
     masonry_B: tuple[RGB, RGB, RGB, RGB, RGB] = (
-        (224, 201, 174), (201, 170, 140), (90, 74, 58),   (60, 45, 30),  (142, 74, 50))
-    masonry_B_shop_gf: RGB = (181, 83, 60)  # Kadıköy shop red
+        (218, 193, 166), (190, 154, 130), (92, 75, 58),   (58, 42, 28),  (166, 82, 52))
+    masonry_B_shop_gf: RGB = (155, 72, 55)  # muted Kadıköy shop red
     wooden_C: tuple[RGB, RGB, RGB, RGB, RGB] = (
-        (210, 184, 119), (180, 150, 95),  (61, 42, 26),   (40, 30, 20),  (78, 82, 86))
+        (202, 164, 96),  (150, 112, 66),  (66, 43, 28),   (45, 33, 22),  (104, 111, 113))
     church_stone: tuple[RGB, RGB, RGB, RGB, RGB] = (
-        (216, 204, 179), (196, 182, 156), (90, 78, 60),   (0, 0, 0),     (91, 96, 104))
+        (216, 204, 179), (196, 182, 156), (90, 78, 60),   (0, 0, 0),     (112, 120, 122))
 
 
 @dataclass(frozen=True)

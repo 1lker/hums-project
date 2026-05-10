@@ -12,12 +12,15 @@ class RoofDescriptorBuilder:
     def build(self, roof_excel: dict, parcel_id: str, tracker: AssumptionTracker) -> RoofDescriptor:
         shape_raw = (roof_excel.get("shape") or "").lower()
         code = (roof_excel.get("material_code") or "").upper()
+        roof_text = " ".join(str(v) for v in roof_excel.values() if v is not None).lower()
 
         material = "unknown"
         pitch = PROFILE.roofs.tile_TR_deg
         pitch_source = "assumption:pervititch_1923"
 
-        if "VF" in code:
+        if "GLASS" in code or "glass" in roof_text or "glazed" in roof_text or "camlı" in roof_text or "camli" in roof_text:
+            material, pitch = "glass_roof", PROFILE.roofs.vault_flat_deg
+        elif "VF" in code:
             material, pitch = "vault_VF", PROFILE.roofs.vault_flat_deg
         elif "VT" in code:
             material, pitch = "vault_VT", PROFILE.roofs.vault_flat_deg
@@ -36,7 +39,7 @@ class RoofDescriptorBuilder:
             shape = "hip"
         elif "gable" in shape_raw:
             shape = "gable"
-        elif "flat" in shape_raw or material.startswith("vault"):
+        elif "flat" in shape_raw or material.startswith("vault") or material == "glass_roof":
             shape = "vault_flat" if material.startswith("vault") else "flat"
         else:
             shape = "gable"

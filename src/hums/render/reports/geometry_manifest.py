@@ -17,6 +17,7 @@ def write_reports(scene: SceneGraph, out_dir: Path) -> None:
     _write_manifest(scene, out_dir / "geometry_manifest.md")
     _write_lod3_coverage(scene, out_dir / "lod3_coverage.md")
     _write_opening_audit(scene, out_dir / "opening_audit.md")
+    _write_roof_visual_audit(scene, out_dir / "roof_visual_audit.md")
 
 
 def _write_manifest(scene: SceneGraph, path: Path) -> None:
@@ -162,6 +163,52 @@ def _write_opening_audit(scene: SceneGraph, path: Path) -> None:
                 shops=counts.get("shop_window", 0),
                 windows=counts.get("window", 0),
                 notes=f"manual map-zoned replacement for {', '.join(mesh.metadata.get('replaces_parcels', []))}",
+            )
+        )
+    path.write_text("\n".join(lines) + "\n")
+
+
+def _write_roof_visual_audit(scene: SceneGraph, path: Path) -> None:
+    lines = [
+        "# Roof Visual Audit\n",
+        "Roof shapes and materials used by the visible scene. Material keys are the glTF/BIM presentation materials, not raw Pervititch text.\n",
+        "| parcel_id | shape | source material | pitch | rendered roof materials | note |",
+        "|---|---|---|---:|---|---|",
+    ]
+    for mesh in scene.buildings:
+        roof_materials = sorted({
+            f.material_key
+            for f in mesh.faces
+            if f.semantic_role in {"RoofSurface", "ChurchDome", "Skylight"}
+        })
+        shape = mesh.metadata.get("roof_shape") or (
+            "church_special" if mesh.metadata.get("structure_type") == "church" else ""
+        )
+        material = mesh.metadata.get("roof_material") or (
+            "kiremit + lead/zinc dome" if mesh.metadata.get("structure_type") == "church" else ""
+        )
+        pitch = mesh.metadata.get("roof_pitch_deg")
+        note = ""
+        if "window_glass" in roof_materials and material == "glass_roof":
+            note = "Camlı/Vitre rendered as glazed roof"
+        elif "roof_unknown_muted" in roof_materials:
+            note = "map roof material unreadable; muted neutral used"
+        elif "vault_roof_masonry" in roof_materials:
+            note = "VF/VT rendered as shallow barrel/vault roof"
+        elif "tile_marseille" in roof_materials:
+            note = "TF rendered as French/Marseille clay tile"
+        elif "sheet_metal_grey" in roof_materials:
+            note = "T rendered as aged sheet metal"
+        elif mesh.metadata.get("structure_type") == "church":
+            note = "special church roof: low tile body, high drum/kubbe, clocher"
+        lines.append(
+            "| {pid} | {shape} | {material} | {pitch} | {keys} | {note} |".format(
+                pid=mesh.parcel_id,
+                shape=shape,
+                material=material,
+                pitch="" if pitch is None else pitch,
+                keys=", ".join(roof_materials) if roof_materials else "",
+                note=note,
             )
         )
     path.write_text("\n".join(lines) + "\n")

@@ -30,6 +30,9 @@ MaterialKey = Literal[
     "wall_main", "wall_accent", "trim", "shutters", "roof",
     "gf_shopfront", "window_glass", "door_panel", "chimney_brick",
     "monument_stone", "stub_marker",
+    "tile_terracotta", "tile_marseille", "sheet_metal_grey",
+    "vault_roof_masonry", "roof_unknown_muted", "dome_lead",
+    "plinth_stone", "cornice_paint", "balcony_iron",
 ]
 
 

@@ -43,6 +43,9 @@ class BuildingGeometryBuilder:
                 "footprint_source": building.footprint_source,
                 "notes": building.notes,
                 "shared_footprint_group_id": building.shared_footprint_group_id,
+                "roof_shape": building.roof.shape if building.roof else None,
+                "roof_material": building.roof.material if building.roof else None,
+                "roof_pitch_deg": building.roof.pitch_deg if building.roof else None,
             },
         )
 

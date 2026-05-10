@@ -42,7 +42,7 @@ STONE_PALETTE = FacadePalette(
     wall_main=(216, 204, 179),
     wall_accent=(196, 182, 156),
     trim=(120, 100, 80),
-    roof=(98, 104, 110),
+    roof=(112, 120, 122),
     shutters=None,
     gf_shopfront=None,
     source="church_period_default",
@@ -75,7 +75,7 @@ class ChurchBuilder:
 
         self._emit_plinth(mesh, ring_local)
         self._emit_body(mesh, ring_local)
-        self._emit_low_roof_apron(mesh, ring_local)
+        self._emit_low_tile_roof(mesh, ring_local)
         self._emit_drum(mesh, ring_local)
         self._emit_kubbe(mesh, ring_local)
         self._emit_lantern(mesh, ring_local)
@@ -117,46 +117,46 @@ class ChurchBuilder:
                 material_key="wall_main",
             )
 
-    def _emit_low_roof_apron(self, mesh: BuildingMesh, ring) -> None:
-        """Almost-flat hip apron so the drum/dome reads as the dominant mass."""
+    def _emit_low_tile_roof(self, mesh: BuildingMesh, ring) -> None:
+        """Continuous low kiremit roof with a lead flashing collar.
+
+        The Pervititch sheet and historical descriptions both read as a tiled
+        masonry church roof with the central kubbe as the dominant element.
+        Keep the body roof low, but make it continuous so no gaps appear around
+        the drum in glTF viewers.
+        """
         pid = mesh.parcel_id
-        # Minor rise (50 cm) toward the centroid — reads as a low hip, not a pyramid.
         cx = sum(p[0] for p in ring) / len(ring)
         cy = sum(p[1] for p in ring) / len(ring)
-        rise = 0.5
-        ridge_z = BODY_HEIGHT + rise
+        roof_peak_z = BODY_HEIGHT + 0.32
+        center = mesh.add_vertex(cx, cy, roof_peak_z)
         for i in range(len(ring)):
             a = ring[i]
             b = ring[(i + 1) % len(ring)]
-            # trapezoid from outer edge rising to the midline point
             ia = mesh.add_vertex(a[0], a[1], BODY_HEIGHT)
             ib = mesh.add_vertex(b[0], b[1], BODY_HEIGHT)
-            # interior point = 25% from edge to centroid
-            midax = a[0] + (cx - a[0]) * 0.25
-            miday = a[1] + (cy - a[1]) * 0.25
-            midbx = b[0] + (cx - b[0]) * 0.25
-            midby = b[1] + (cy - b[1]) * 0.25
-            ma = mesh.add_vertex(midax, miday, ridge_z)
-            mb = mesh.add_vertex(midbx, midby, ridge_z)
-            mesh.add_face([ia, ma, mb, ib], role="RoofSurface",
-                          surface_id=f"{pid}.roof.apron.{i}",
+            mesh.add_face([ia, center, ib], role="RoofSurface",
+                          surface_id=f"{pid}.roof.tile.{i}",
                           material_key="tile_terracotta")
-        # Top flat ring around the drum base (matches drum footprint radius).
-        # Emit a concentric deck between the apron inner edge and the drum base.
-        deck_inner: list[int] = []
+
+        # Lead/zinc flashing collar where the roof meets the high drum.
+        outer: list[int] = []
+        inner: list[int] = []
+        collar_outer_r = DRUM_RADIUS * 1.08
         for k in range(DOME_SEGMENTS):
             ang = 2 * math.pi * k / DOME_SEGMENTS
-            deck_inner.append(mesh.add_vertex(cx + DRUM_RADIUS * math.cos(ang),
-                                              cy + DRUM_RADIUS * math.sin(ang),
-                                              DRUM_BASE_Z))
-        # One triangle fan from deck_inner to a central apex (just below drum base) → fills the gap.
-        apex = mesh.add_vertex(cx, cy, DRUM_BASE_Z - 0.05)
+            outer.append(mesh.add_vertex(cx + collar_outer_r * math.cos(ang),
+                                         cy + collar_outer_r * math.sin(ang),
+                                         roof_peak_z + 0.03))
+            inner.append(mesh.add_vertex(cx + DRUM_RADIUS * math.cos(ang),
+                                         cy + DRUM_RADIUS * math.sin(ang),
+                                         DRUM_BASE_Z))
         for k in range(DOME_SEGMENTS):
             kp = (k + 1) % DOME_SEGMENTS
-            mesh.add_face([apex, deck_inner[k], deck_inner[kp]],
+            mesh.add_face([outer[k], inner[k], inner[kp], outer[kp]],
                           role="RoofSurface",
-                          surface_id=f"{pid}.roof.deck.{k}",
-                          material_key="tile_terracotta")
+                          surface_id=f"{pid}.roof.flashing.{k}",
+                          material_key="dome_lead")
 
     def _emit_drum(self, mesh: BuildingMesh, ring) -> None:
         pid = mesh.parcel_id
