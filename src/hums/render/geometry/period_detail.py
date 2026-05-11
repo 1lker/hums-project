@@ -83,11 +83,13 @@ class PeriodDetail:
                 surface_id=f"{pid}.firin_frontage.{seg.face}.{idx}.stone_base",
                 material_key="plinth_stone",
             )
-            # A plain render band separates the service/bakery ground floor
-            # from upper masonry without reading as a row of Mg. shop signs.
+            has_firin_door = any(op.kind == "door" and op.storey_level == 0 for op in seg.openings)
+            # Only the actual Firin entrance gets a small plain header band.
+            # Continuous bands across every west segment started reading like
+            # a magazine row, which the map text does not support here.
             band_bot = min(ground_h - 0.42, 2.78)
-            band_top = min(ground_h - 0.18, band_bot + 0.22)
-            if band_top > band_bot:
+            band_top = min(ground_h - 0.18, band_bot + 0.18)
+            if has_firin_door and band_top > band_bot:
                 mesh.add_quad(
                     p0=p(u0, band_bot, 0.056),
                     p1=p(u0, band_top, 0.056),

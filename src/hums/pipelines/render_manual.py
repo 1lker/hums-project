@@ -416,30 +416,42 @@ class ManualRenderer:
         if not main_doors:
             return
 
-        sx, sy = main_seg.start
-        corner_candidates = []
-        for seg in segments:
-            if seg is main_seg or seg.is_party_wall or seg.length_m < 0.72:
-                continue
-            touches_main_start = (
-                _pt_dist(seg.start, main_seg.start) < 0.08
-                or _pt_dist(seg.end, main_seg.start) < 0.08
+        diagonal_w_candidates = [
+            s for s in segments
+            if s is not main_seg
+            and s.face == "W"
+            and not s.is_party_wall
+            and 1.45 <= s.length_m <= 2.75
+        ]
+        if diagonal_w_candidates:
+            # The map kink for the Firin door is the short diagonal W face
+            # immediately before the long west frontage, not the tiny connector
+            # segment between the two.
+            corner_seg = max(
+                diagonal_w_candidates,
+                key=lambda s: ((s.start[1] + s.end[1]) * 0.5, s.length_m),
             )
-            if not touches_main_start:
-                continue
-            # This is the short diagonal/kink before the long west bakery
-            # facade. It is where the leftmost Firin entrance sits on the map.
-            dx = seg.end[0] - seg.start[0]
-            dy = seg.end[1] - seg.start[1]
-            diagonal_score = abs(dx) + abs(dy) - max(abs(dx), abs(dy))
-            corner_candidates.append((diagonal_score, seg))
-        if not corner_candidates:
-            return
-
-        corner_seg = max(corner_candidates, key=lambda item: item[0])[1]
+        else:
+            corner_candidates = []
+            for seg in segments:
+                if seg is main_seg or seg.is_party_wall or seg.length_m < 0.72:
+                    continue
+                touches_main_start = (
+                    _pt_dist(seg.start, main_seg.start) < 0.08
+                    or _pt_dist(seg.end, main_seg.start) < 0.08
+                )
+                if not touches_main_start:
+                    continue
+                dx = seg.end[0] - seg.start[0]
+                dy = seg.end[1] - seg.start[1]
+                diagonal_score = abs(dx) + abs(dy) - max(abs(dx), abs(dy))
+                corner_candidates.append((diagonal_score, seg))
+            if not corner_candidates:
+                return
+            corner_seg = max(corner_candidates, key=lambda item: item[0])[1]
         moved = min(main_doors, key=lambda op: op.position_along_wall_m)
         main_seg.openings.remove(moved)
-        width = min(1.18, max(0.86, corner_seg.length_m - 0.30))
+        width = min(1.12, max(0.82, corner_seg.length_m - 0.36))
         moved.position_along_wall_m = round(max(0.12, (corner_seg.length_m - width) / 2.0), 3)
         moved.width_m = round(width, 3)
         moved.height_m = max(moved.height_m, 2.55)
