@@ -34,6 +34,7 @@ class BuildingGeometryBuilder:
     def build(self, building: Building) -> BuildingMesh | None:
         if not building.footprint_local or not building.local_frame:
             return None
+        _prepare_openings_for_render(building)
 
         mesh = BuildingMesh(
             parcel_id=building.parcel_id,
@@ -276,3 +277,43 @@ def _opening_source_counts(building: Building) -> dict[str, int]:
             source = op.color_source or "unknown"
             counts[source] = counts.get(source, 0) + 1
     return counts
+
+
+def _prepare_openings_for_render(building: Building) -> None:
+    if not _is_magasin_like(building):
+        return
+    for seg in building.wall_segments:
+        length = seg.length_m
+        if length <= 1.0:
+            continue
+        for op in seg.openings:
+            if op.kind != "door" or op.storey_level != 0:
+                continue
+            target_w = min(max(op.width_m, 1.42), max(0.85, length - 0.45))
+            center = op.position_along_wall_m + op.width_m / 2.0
+            op.width_m = round(target_w, 3)
+            op.height_m = round(max(op.height_m, 2.5), 3)
+            op.position_along_wall_m = round(
+                max(0.18, min(length - target_w - 0.18, center - target_w / 2.0)),
+                3,
+            )
+            if "magasin-entry" not in op.color_source:
+                op.color_source = f"{op.color_source}:magasin-entry"
+
+
+def _is_magasin_like(building: Building) -> bool:
+    texts: list[str] = []
+    for storey in building.storeys:
+        if storey.level == 0 and storey.use:
+            texts.append(storey.use)
+    snap = building.excel_snapshot or {}
+    texts.extend([
+        str(snap.get("wall_code") or ""),
+        str(snap.get("bim_notes") or ""),
+    ])
+    gf = snap.get("ground_floor") or {}
+    if isinstance(gf, dict):
+        texts.extend(str(v) for v in gf.values() if v)
+    texts.append(str(building.notes or {}))
+    text = " ".join(texts).lower()
+    return any(token in text for token in ("mg", "magasin", "magazine", "shop", "bakery", "fırın", "firin"))
