@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-05-12 01:22",
+  "generated_at": "2026-05-12 01:54",
   "model_units": [
     {
       "model_id": "CHURCH",
@@ -745,7 +745,7 @@
       "rendered_roof_materials": "roof_unknown_muted",
       "doors": 0,
       "shopfronts": 0,
-      "upper_windows": 4,
+      "upper_windows": 7,
       "strict_street_edges": "manual",
       "palette_source": "period_default",
       "roles": "FloorSurface, GroundSurface, HeaderSurface, JambSurface, Mullion, RoofSurface, SillSurface, WallSurface, Window",

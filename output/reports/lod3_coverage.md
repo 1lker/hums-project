@@ -22,7 +22,7 @@ Required roles per building: GroundSurface, WallSurface, RoofSurface, Window, Do
 | N-40-42.middle_four_storey | 1 | 17 | 4 | 3 | 0 | ⚠️ |
 | N-40-42.south_three_storey_vitrine | 1 | 20 | 4 | 3 | 17 | ✅ |
 | N-50.north_front_two_storey_flat | 1 | 13 | 2 | 1 | 13 | ✅ |
-| N-50.south_rear_three_storey_roofed | 1 | 24 | 7 | 4 | 0 | ⚠️ |
+| N-50.south_rear_three_storey_roofed | 1 | 33 | 7 | 7 | 0 | ⚠️ |
 | N-52-54-E2.corner_mass | 1 | 38 | 8 | 14 | 43 | ✅ |
 | S-41-43-45-E16.merged_mass | 1 | 25 | 7 | 7 | 62 | ✅ |
 | W-34-36-FIRIN.bakery_mass | 1 | 66 | 10 | 23 | 9 | ✅ |

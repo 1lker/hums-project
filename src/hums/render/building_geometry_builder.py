@@ -386,27 +386,27 @@ class BuildingGeometryBuilder:
             _facade_line(mesh, pid, p, u0, z0, u1, z1, 0.035, "fountain_gold",
                          f"inscription.gold_stroke.{i}", out=0.49)
 
-        # User/map correction: the çeşme also has a door on its left side.
-        # Keep it as an adjacent wall door, not as part of the water niche.
-        left_wall_u0 = -facade_w / 2 - 1.76
-        left_wall_u1 = -facade_w / 2 - 0.58
+        # User/map correction: a separate wall door sits further left of the
+        # fountain. It must not visually attach to the fountain slab.
+        left_wall_u0 = -facade_w / 2 - 2.54
+        left_wall_u1 = -facade_w / 2 - 1.08
         left_wall_top = min(height - 0.30, 2.62)
-        left_wall_front_out = 0.15
-        door_out = left_wall_front_out + 0.016
-        trim_out = left_wall_front_out + 0.045
-        detail_out = left_wall_front_out + 0.064
-        knob_out = left_wall_front_out + 0.092
-        _facade_box(mesh, pid, p, left_wall_u0, left_wall_u1, -0.04, left_wall_front_out, 0.00,
+        left_wall_front_out = 0.18
+        door_out = left_wall_front_out + 0.004
+        trim_out = left_wall_front_out + 0.022
+        detail_out = left_wall_front_out + 0.034
+        knob_out = left_wall_front_out + 0.060
+        _facade_box(mesh, pid, p, left_wall_u0, left_wall_u1, -0.06, left_wall_front_out, 0.00,
                     left_wall_top, "monument_stone", "left_side_door.wall_back")
-        _facade_box(mesh, pid, p, left_wall_u0 - 0.04, left_wall_u1 + 0.04, 0.13, 0.28,
+        _facade_box(mesh, pid, p, left_wall_u0 - 0.04, left_wall_u1 + 0.04, 0.14, 0.24,
                     left_wall_top - 0.18, left_wall_top, "plinth_stone",
                     "left_side_door.top_lintel")
-        door_u0 = left_wall_u0 + 0.18
-        door_u1 = min(left_wall_u1 - 0.18, door_u0 + 0.68)
+        door_u0 = left_wall_u0 + 0.33
+        door_u1 = min(left_wall_u1 - 0.28, door_u0 + 0.72)
         door_z0 = 0.14
         door_z1 = min(2.04, left_wall_top - 0.26)
         _facade_role_quad(mesh, pid, p, door_u0, door_z0, door_u1, door_z1,
-                          "fountain_side_door", "left_side_door.panel", role="Door", out=door_out)
+                          "door_panel", "left_side_door.panel", role="Door", out=door_out)
         for name, u0, u1, z0, z1 in (
             ("left_jamb", door_u0 - 0.06, door_u0, door_z0, door_z1 + 0.06),
             ("right_jamb", door_u1, door_u1 + 0.06, door_z0, door_z1 + 0.06),

@@ -22,7 +22,7 @@ Doors, shopfronts, and vitrines are restricted to map/manual evidence. Upper-flo
 | N-40-42.middle_four_storey | C | building-entrence-40-42.shp | manual | 0 | 0 | 3 | manual map-zoned replacement for N-40, N-42 |
 | N-40-42.south_three_storey_vitrine | C | building-entrence-40-42.shp | manual | 1 | 1 | 2 | manual map-zoned replacement for N-40, N-42 |
 | N-50.north_front_two_storey_flat | B | building-entrence-50.shp | manual | 1 | 0 | 1 | manual map-zoned replacement for N-50 |
-| N-50.south_rear_three_storey_roofed | B | building-entrence-50.shp | manual | 0 | 0 | 4 | manual map-zoned replacement for N-50 |
+| N-50.south_rear_three_storey_roofed | B | building-entrence-50.shp | manual | 0 | 0 | 7 | manual map-zoned replacement for N-50 |
 | N-52-54-E2.corner_mass | B | building-entrence-52-54-02.shp | manual | 3 | 0 | 14 | manual map-zoned replacement for E-2, N-52, N-54 |
 | S-41-43-45-E16.merged_mass | B | building-entrence-41-43-45-16.shp | manual | 4 | 0 | 7 | manual map-zoned replacement for E-16, S-41, S-43, S-45 |
 | W-34-36-FIRIN.bakery_mass | B | building-entrence-34-36-38.shp | manual | 3 | 0 | 20 | manual map-zoned replacement for W-34, W-36 |

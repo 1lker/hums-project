@@ -416,15 +416,15 @@ def _emit_map_tree(mesh: BuildingMesh, origin, utm: tuple[float, float]) -> None
     cx = utm[0] - origin.x
     cy = utm[1] - origin.y
     base = (cx, cy, 0.05)
-    fork = (cx + 0.10, cy - 0.04, 3.10)
-    _emit_cylinder(mesh, base, fork, 0.30, 0.18, 14, "tree_trunk", "tree.trunk.main")
+    fork = (cx + 0.12, cy - 0.05, 3.65)
+    _emit_cylinder(mesh, base, fork, 0.42, 0.26, 16, "tree_trunk", "tree.trunk.main")
 
     branches = [
-        ((cx + 0.10, cy - 0.04, 2.30), (cx - 1.02, cy + 0.56, 4.25), 0.16, 0.08, "west"),
-        ((cx + 0.08, cy - 0.02, 2.55), (cx + 1.08, cy + 0.50, 4.38), 0.15, 0.075, "east"),
-        ((cx + 0.10, cy - 0.04, 2.85), (cx - 0.25, cy - 1.18, 4.30), 0.14, 0.07, "south"),
-        ((cx + 0.10, cy - 0.04, 2.95), (cx + 0.34, cy + 1.18, 4.55), 0.14, 0.07, "north"),
-        ((cx + 0.06, cy - 0.02, 3.05), (cx + 0.16, cy + 0.04, 5.05), 0.13, 0.065, "leader"),
+        ((cx + 0.12, cy - 0.05, 2.55), (cx - 1.36, cy + 0.70, 4.95), 0.22, 0.11, "west"),
+        ((cx + 0.10, cy - 0.04, 2.82), (cx + 1.42, cy + 0.62, 5.08), 0.21, 0.105, "east"),
+        ((cx + 0.12, cy - 0.05, 3.10), (cx - 0.34, cy - 1.48, 5.02), 0.19, 0.095, "south"),
+        ((cx + 0.12, cy - 0.05, 3.24), (cx + 0.42, cy + 1.48, 5.32), 0.19, 0.095, "north"),
+        ((cx + 0.08, cy - 0.03, 3.48), (cx + 0.18, cy + 0.06, 6.12), 0.17, 0.085, "leader"),
     ]
     for start, end, r0, r1, name in branches:
         _emit_cylinder(mesh, start, end, r0, r1, 10, "tree_bark_dark", f"tree.branch.{name}")
@@ -432,21 +432,22 @@ def _emit_map_tree(mesh: BuildingMesh, origin, utm: tuple[float, float]) -> None
     # Overlapping ellipsoid leaf masses make the tree read as a real mature
     # courtyard tree in orbit view, while staying light enough for the GLB.
     leaf_blobs = [
-        ((cx, cy + 0.05, 5.15), (1.55, 1.30, 1.05), "tree_canopy"),
-        ((cx - 0.90, cy + 0.42, 4.82), (1.20, 0.92, 0.82), "tree_canopy_dark"),
-        ((cx + 0.88, cy + 0.34, 4.95), (1.18, 0.88, 0.78), "tree_canopy_light"),
-        ((cx - 0.18, cy - 0.96, 4.76), (1.05, 0.88, 0.74), "tree_canopy_dark"),
-        ((cx + 0.28, cy + 1.00, 5.18), (1.10, 0.86, 0.78), "tree_canopy_light"),
-        ((cx + 0.16, cy + 0.04, 6.08), (1.08, 0.98, 0.86), "tree_canopy"),
-        ((cx - 0.50, cy - 0.18, 5.65), (0.92, 0.76, 0.62), "tree_canopy_dark"),
+        ((cx, cy + 0.05, 5.72), (2.05, 1.72, 1.38), "tree_canopy"),
+        ((cx - 1.14, cy + 0.50, 5.34), (1.55, 1.18, 1.00), "tree_canopy_dark"),
+        ((cx + 1.12, cy + 0.42, 5.48), (1.52, 1.08, 0.98), "tree_canopy_light"),
+        ((cx - 0.26, cy - 1.20, 5.22), (1.35, 1.12, 0.96), "tree_canopy_dark"),
+        ((cx + 0.36, cy + 1.28, 5.65), (1.42, 1.05, 0.96), "tree_canopy_light"),
+        ((cx + 0.16, cy + 0.08, 6.78), (1.34, 1.18, 1.05), "tree_canopy"),
+        ((cx - 0.66, cy - 0.18, 6.16), (1.15, 0.95, 0.78), "tree_canopy_dark"),
+        ((cx + 0.62, cy - 0.58, 5.96), (1.12, 0.88, 0.74), "tree_canopy_light"),
     ]
     for idx, (center, radii, material) in enumerate(leaf_blobs):
         _emit_leaf_ellipsoid(mesh, center, radii, material, f"tree.crown.{idx}")
 
     # Dappled ground shadow under the canopy gives scale and anchors the trunk.
     for idx, (rx, ry, mat, z) in enumerate((
-        (1.65, 1.18, "grass_dark", 0.046),
-        (1.18, 0.78, "garden_shrub", 0.049),
+        (2.25, 1.58, "grass_dark", 0.046),
+        (1.62, 1.05, "garden_shrub", 0.049),
     )):
         _emit_ground_ellipse(mesh, (cx, cy, z), rx, ry, mat, f"tree.shadow_grass.{idx}")
 

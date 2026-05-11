@@ -702,36 +702,71 @@ class ManualRenderer:
                                           zone_pid: str) -> None:
         if label.label != "N-50" or zone.id != "south_rear_three_storey_roofed":
             return
-        candidates = [
+        source = "map:georeference:n50-rear-lightwell-internal-window"
+
+        def expose(seg: WallSegment) -> None:
+            seg.is_party_wall = False
+            seg.is_street_facing = True
+            seg.adjacent_height_m = None
+            seg.hatch_pattern = None
+
+        def ensure_windows(seg: WallSegment, levels: tuple[int, ...],
+                           width_cap: float, source_suffix: str) -> int:
+            expose(seg)
+            width = min(width_cap, max(0.54, seg.length_m - 0.44))
+            pos = round(max(0.18, (seg.length_m - width) / 2.0), 3)
+            added = 0
+            for level in levels:
+                if any(op.kind == "window" and op.storey_level == level for op in seg.openings):
+                    continue
+                seg.openings.append(Opening(
+                    kind="window",
+                    storey_level=level,
+                    position_along_wall_m=pos,
+                    width_m=round(width, 3),
+                    height_m=1.35,
+                    sill_m=0.95,
+                    style="rectangular",
+                    pane_layout="2x2",
+                    has_shutters=False,
+                    frame_profile="moulded",
+                    color_source=f"{source}:{source_suffix}",
+                ))
+                added += 1
+            return added
+
+        lightwell_faces = [
             s for s in segments
             if not s.is_party_wall
-            and 1.05 <= s.length_m <= 1.85
+            and s.face in {"E", "S", "W"}
+            and 1.05 <= s.length_m <= 4.25
         ]
-        if not candidates:
-            return
-        seg = max(candidates, key=lambda s: s.length_m)
-        source = "map:georeference:n50-rear-roofed-wing-lightwell-window"
-        if any(op.kind == "window" and op.color_source == source for op in seg.openings):
-            return
-        width = min(0.82, max(0.54, seg.length_m - 0.44))
-        seg.openings.append(Opening(
-            kind="window",
-            storey_level=1,
-            position_along_wall_m=round((seg.length_m - width) / 2.0, 3),
-            width_m=round(width, 3),
-            height_m=1.35,
-            sill_m=0.95,
-            style="rectangular",
-            pane_layout="2x2",
-            has_shutters=False,
-            frame_profile="moulded",
-            color_source=source,
-        ))
+        added_lightwell = 0
+        for seg in lightwell_faces:
+            cap = 0.90 if seg.length_m > 2.2 else 0.78
+            added_lightwell += ensure_windows(seg, (1, 2), cap, "two-sided-lightwell")
+
+        rear_candidates = [
+            s for s in segments
+            if s.is_party_wall
+            and 2.0 <= s.length_m <= 3.1
+        ]
+        added_rear = 0
+        if rear_candidates:
+            # The rear edge of the L is the low-y/arka face, not the higher
+            # party seam to the front mass. It also looks into the same void.
+            rear_seg = min(rear_candidates, key=lambda s: (s.start[1] + s.end[1]) * 0.5)
+            rear_seg.face = "S"
+            added_rear = ensure_windows(rear_seg, (1, 2), 0.82, "rear-facing")
+
         tracker.record(
             zone_pid,
-            "wall[lightwell].rear_roofed_wing_window",
+            "wall[lightwell].n50_void_windows",
             "map+georeference:building-entrence-50",
-            "single narrow upper window facing the N-50 rear rectangular lightwell on the roofed rear wing",
+            (
+                f"windows facing the N-50 rectangular void from both lightwell "
+                f"surfaces plus rear face; added lightwell={added_lightwell}, rear={added_rear}"
+            ),
         )
 
     def _profile(self, label: ManualLabel, meshes) -> str:

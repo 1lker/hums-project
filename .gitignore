@@ -9,3 +9,7 @@ __pycache__/
 # IDE
 .idea/
 .vscode/
+
+# big source PDF — keep locally, do not push (exceeds GitHub 100MB limit)
+Annuaire_Oriental_1922_compressed.pdf
+*.crdownload
