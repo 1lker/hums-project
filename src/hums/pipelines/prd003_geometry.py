@@ -356,7 +356,13 @@ def _face_from_utm_edge(a: tuple[float, float], b: tuple[float, float]) -> str:
 
 def _edge_touches_n50_lightwell(a: tuple[float, float], b: tuple[float, float]) -> bool:
     from shapely.geometry import LineString
-    return LineString([a, b]).distance(Polygon(N50_REAR_LIGHTWELL_UTM).exterior) < 0.16
+    line = LineString([a, b])
+    void_edge = Polygon(N50_REAR_LIGHTWELL_UTM).exterior
+    if line.intersection(void_edge).length > 0.20:
+        return True
+    # If the coordinates are slightly off after polygon difference, require
+    # an actual edge overlap area, not just a shared corner point.
+    return line.buffer(0.04, cap_style=2).intersection(void_edge.buffer(0.04)).area > 0.025
 
 
 def _local_edge_touches_n50_lightwell(building: Building, seg: WallSegment) -> bool:
