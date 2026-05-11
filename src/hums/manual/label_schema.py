@@ -56,6 +56,7 @@ class EntranceHint:
 @dataclass
 class Facades:
     street_facing_faces: list[Face]
+    opaque_faces: list[Face] = field(default_factory=list)
     primary_door: DoorHint | None = None
     secondary_door: DoorHint | None = None
     entrance_hints: list[EntranceHint] = field(default_factory=list)

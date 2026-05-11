@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 import math
 
-from shapely.geometry import Polygon, box, shape
+from shapely.geometry import Point, Polygon, box, shape
 from shapely.ops import unary_union
 
 from ...common.paths import BLOCK_GEOJSON, FOOTPRINTS_GEOJSON, NON_PARCEL_FOOTPRINTS_GEOJSON
@@ -16,6 +16,11 @@ from ..mesh_graph import BuildingMesh
 # Pervititch raster. The final polygon is clipped by the actual block void, so
 # this cannot cover traced KML/SHP buildings.
 COURTYARD_147_BOUNDS_UTM = (670347.0, 4539690.0, 670359.0, 4539704.0)
+COURTYARD_147_TREE_UTM = (670355.20, 4539699.12)
+COURTYARD_147_TREE_SOURCE = (
+    "Pervititch raster dark-green vegetation cluster center; "
+    "GeoTIFF threshold bbox around 670355.20 / 4539699.12"
+)
 
 GARDEN_PALETTE = FacadePalette(
     wall_main=(126, 150, 88),
@@ -46,8 +51,14 @@ class CourtyardGardenBuilder:
                 "structure_type": "courtyard_garden",
                 "footprint_source": "map-interpreted",
                 "notes": {
-                    "map_reading": "Light green open Block 147 courtyard/garden: grass/low planting with a small tree/shrub mark.",
+                    "map_reading": (
+                        "Light green open Block 147 courtyard/garden. The big dark-green "
+                        "vegetation mark is treated as one mature tree; remaining lower area "
+                        "is grass/low planting."
+                    ),
                     "bounds_utm": COURTYARD_147_BOUNDS_UTM,
+                    "tree_center_utm": COURTYARD_147_TREE_UTM,
+                    "tree_source": COURTYARD_147_TREE_SOURCE,
                 },
             },
         )
@@ -61,13 +72,8 @@ class CourtyardGardenBuilder:
             material_key="grass_ground",
         )
 
-        # The map shows a few green brush marks rather than a formal garden
-        # plan. Add restrained tufts and one small tree/shrub, clipped visually
-        # to the known green courtyard area.
-        _emit_grass_tuft(mesh, c, (670350.2, 4539702.1), 0.85, 0.55, "upper_west")
-        _emit_grass_tuft(mesh, c, (670354.7, 4539696.2), 1.15, 0.7, "center")
-        _emit_grass_tuft(mesh, c, (670356.4, 4539692.4), 1.35, 0.9, "south_east")
-        _emit_small_tree(mesh, c, (670356.2, 4539694.3))
+        _emit_grass_texture(mesh, c, patch)
+        _emit_map_tree(mesh, c, COURTYARD_147_TREE_UTM)
         return mesh
 
 
@@ -127,47 +133,194 @@ def _emit_grass_tuft(
         )
 
 
-def _emit_small_tree(mesh: BuildingMesh, origin, utm: tuple[float, float]) -> None:
+def _emit_grass_texture(mesh: BuildingMesh, origin, patch: Polygon) -> None:
+    """Low, map-constrained grass strokes inside the open courtyard polygon."""
+    grass_marks = [
+        ((670349.1, 4539702.0), 0.62, 0.28, "grass_light", "north_west_1"),
+        ((670350.5, 4539701.3), 0.74, 0.30, "grass_dark", "north_west_2"),
+        ((670352.2, 4539699.6), 0.82, 0.34, "grass_light", "under_tree_west"),
+        ((670353.4, 4539697.8), 0.92, 0.38, "grass_dark", "center_low"),
+        ((670354.2, 4539694.6), 0.72, 0.30, "grass_light", "south_center"),
+        ((670356.2, 4539693.6), 0.74, 0.34, "grass_dark", "south_east"),
+        ((670351.8, 4539695.2), 0.64, 0.28, "grass_light", "south_west"),
+    ]
+    for utm, width, height, material, name in grass_marks:
+        if _inside_patch(patch, utm):
+            _emit_grass_blades(mesh, origin, utm, width, height, material, name)
+
+
+def _emit_grass_blades(
+    mesh: BuildingMesh,
+    origin,
+    utm: tuple[float, float],
+    width: float,
+    height: float,
+    material_key: str,
+    name: str,
+) -> None:
     cx = utm[0] - origin.x
     cy = utm[1] - origin.y
-    trunk_h = 1.35
-    trunk_r = 0.08
-    crown_z = trunk_h + 0.45
-    crown_r = 0.75
-
-    # Simple square trunk.
-    for idx, (nx, ny) in enumerate(((1, 0), (0, 1), (-1, 0), (0, -1))):
-        if nx:
-            p0 = (cx + nx * trunk_r, cy - trunk_r, 0.05)
-            p1 = (cx + nx * trunk_r, cy - trunk_r, trunk_h)
-            p2 = (cx + nx * trunk_r, cy + trunk_r, trunk_h)
-            p3 = (cx + nx * trunk_r, cy + trunk_r, 0.05)
-        else:
-            p0 = (cx - trunk_r, cy + ny * trunk_r, 0.05)
-            p1 = (cx - trunk_r, cy + ny * trunk_r, trunk_h)
-            p2 = (cx + trunk_r, cy + ny * trunk_r, trunk_h)
-            p3 = (cx + trunk_r, cy + ny * trunk_r, 0.05)
-        mesh.add_quad(
-            p0=p0,
-            p1=p1,
-            p2=p2,
-            p3=p3,
-            role="TreeTrunk",
-            surface_id=f"COURTYARD-147-GARDEN.tree.trunk.{idx}",
-            material_key="tree_trunk",
-        )
-
-    # Crossed billboard canopy reads as a small map-indicated tree/shrub.
-    for idx, ang in enumerate((0.0, 90.0, 45.0, -45.0)):
+    z0 = 0.055
+    for idx, ang in enumerate((-38.0, -16.0, 8.0, 31.0)):
         rad = math.radians(ang)
-        dx = math.cos(rad) * crown_r
-        dy = math.sin(rad) * crown_r
+        dx = math.cos(rad) * width * 0.5
+        dy = math.sin(rad) * width * 0.5
         mesh.add_quad(
-            p0=(cx - dx, cy - dy, crown_z - 0.55),
-            p1=(cx - dx * 0.35, cy - dy * 0.35, crown_z + 0.55),
-            p2=(cx + dx * 0.35, cy + dy * 0.35, crown_z + 0.55),
-            p3=(cx + dx, cy + dy, crown_z - 0.55),
+            p0=(cx - dx, cy - dy, z0),
+            p1=(cx - dx * 0.12, cy - dy * 0.12, z0 + height),
+            p2=(cx + dx * 0.12, cy + dy * 0.12, z0 + height * 0.92),
+            p3=(cx + dx, cy + dy, z0),
             role="Vegetation",
-            surface_id=f"COURTYARD-147-GARDEN.tree.canopy.{idx}",
-            material_key="tree_canopy",
+            surface_id=f"COURTYARD-147-GARDEN.grass_blades.{name}.{idx}",
+            material_key=material_key,
         )
+
+
+def _inside_patch(patch: Polygon, utm: tuple[float, float]) -> bool:
+    return patch.buffer(0.05).contains(Point(*utm))
+
+
+def _emit_map_tree(mesh: BuildingMesh, origin, utm: tuple[float, float]) -> None:
+    """Mature courtyard tree from the Pervititch green symbol."""
+    cx = utm[0] - origin.x
+    cy = utm[1] - origin.y
+    base = (cx, cy, 0.05)
+    fork = (cx + 0.10, cy - 0.04, 3.10)
+    _emit_cylinder(mesh, base, fork, 0.30, 0.18, 14, "tree_trunk", "tree.trunk.main")
+
+    branches = [
+        ((cx + 0.10, cy - 0.04, 2.30), (cx - 1.02, cy + 0.56, 4.25), 0.16, 0.08, "west"),
+        ((cx + 0.08, cy - 0.02, 2.55), (cx + 1.08, cy + 0.50, 4.38), 0.15, 0.075, "east"),
+        ((cx + 0.10, cy - 0.04, 2.85), (cx - 0.25, cy - 1.18, 4.30), 0.14, 0.07, "south"),
+        ((cx + 0.10, cy - 0.04, 2.95), (cx + 0.34, cy + 1.18, 4.55), 0.14, 0.07, "north"),
+        ((cx + 0.06, cy - 0.02, 3.05), (cx + 0.16, cy + 0.04, 5.05), 0.13, 0.065, "leader"),
+    ]
+    for start, end, r0, r1, name in branches:
+        _emit_cylinder(mesh, start, end, r0, r1, 10, "tree_bark_dark", f"tree.branch.{name}")
+
+    # Overlapping ellipsoid leaf masses make the tree read as a real mature
+    # courtyard tree in orbit view, while staying light enough for the GLB.
+    leaf_blobs = [
+        ((cx, cy + 0.05, 5.15), (1.55, 1.30, 1.05), "tree_canopy"),
+        ((cx - 0.90, cy + 0.42, 4.82), (1.20, 0.92, 0.82), "tree_canopy_dark"),
+        ((cx + 0.88, cy + 0.34, 4.95), (1.18, 0.88, 0.78), "tree_canopy_light"),
+        ((cx - 0.18, cy - 0.96, 4.76), (1.05, 0.88, 0.74), "tree_canopy_dark"),
+        ((cx + 0.28, cy + 1.00, 5.18), (1.10, 0.86, 0.78), "tree_canopy_light"),
+        ((cx + 0.16, cy + 0.04, 6.08), (1.08, 0.98, 0.86), "tree_canopy"),
+        ((cx - 0.50, cy - 0.18, 5.65), (0.92, 0.76, 0.62), "tree_canopy_dark"),
+    ]
+    for idx, (center, radii, material) in enumerate(leaf_blobs):
+        _emit_leaf_ellipsoid(mesh, center, radii, material, f"tree.crown.{idx}")
+
+    # Dappled ground shadow under the canopy gives scale and anchors the trunk.
+    for idx, (rx, ry, mat, z) in enumerate((
+        (1.65, 1.18, "grass_dark", 0.046),
+        (1.18, 0.78, "garden_shrub", 0.049),
+    )):
+        _emit_ground_ellipse(mesh, (cx, cy, z), rx, ry, mat, f"tree.shadow_grass.{idx}")
+
+
+def _emit_cylinder(
+    mesh: BuildingMesh,
+    start: tuple[float, float, float],
+    end: tuple[float, float, float],
+    r0: float,
+    r1: float,
+    segments: int,
+    material_key: str,
+    name: str,
+) -> None:
+    sx, sy, sz = start
+    ex, ey, ez = end
+    ax, ay, az = ex - sx, ey - sy, ez - sz
+    length = math.sqrt(ax * ax + ay * ay + az * az)
+    if length <= 0.01:
+        return
+    ux, uy, uz = ax / length, ay / length, az / length
+    ref = (0.0, 0.0, 1.0) if abs(uz) < 0.92 else (1.0, 0.0, 0.0)
+    vx, vy, vz = _cross((ux, uy, uz), ref)
+    v_len = math.sqrt(vx * vx + vy * vy + vz * vz)
+    vx, vy, vz = vx / v_len, vy / v_len, vz / v_len
+    wx, wy, wz = _cross((ux, uy, uz), (vx, vy, vz))
+    for i in range(segments):
+        a0 = math.tau * i / segments
+        a1 = math.tau * (i + 1) / segments
+        c0, s0 = math.cos(a0), math.sin(a0)
+        c1, s1 = math.cos(a1), math.sin(a1)
+        p0 = (sx + (vx * c0 + wx * s0) * r0, sy + (vy * c0 + wy * s0) * r0, sz + (vz * c0 + wz * s0) * r0)
+        p1 = (sx + (vx * c1 + wx * s1) * r0, sy + (vy * c1 + wy * s1) * r0, sz + (vz * c1 + wz * s1) * r0)
+        p2 = (ex + (vx * c1 + wx * s1) * r1, ey + (vy * c1 + wy * s1) * r1, ez + (vz * c1 + wz * s1) * r1)
+        p3 = (ex + (vx * c0 + wx * s0) * r1, ey + (vy * c0 + wy * s0) * r1, ez + (vz * c0 + wz * s0) * r1)
+        mesh.add_quad(p0, p1, p2, p3, role="TreeTrunk",
+                      surface_id=f"COURTYARD-147-GARDEN.{name}.{i}",
+                      material_key=material_key)
+
+
+def _emit_leaf_ellipsoid(
+    mesh: BuildingMesh,
+    center: tuple[float, float, float],
+    radii: tuple[float, float, float],
+    material_key: str,
+    name: str,
+    rings: int = 7,
+    segments: int = 12,
+) -> None:
+    cx, cy, cz = center
+    rx, ry, rz = radii
+    verts: list[list[int]] = []
+    for j in range(rings + 1):
+        phi = -math.pi / 2.0 + math.pi * j / rings
+        row = []
+        for i in range(segments):
+            theta = math.tau * i / segments
+            # Slightly uneven canopy silhouette; deterministic and subtle.
+            wobble = 1.0 + 0.07 * math.sin(theta * 3.0 + j * 0.8)
+            x = cx + math.cos(phi) * math.cos(theta) * rx * wobble
+            y = cy + math.cos(phi) * math.sin(theta) * ry * (1.0 + 0.04 * math.cos(theta * 2.0))
+            z = cz + math.sin(phi) * rz
+            row.append(mesh.add_vertex(x, y, z))
+        verts.append(row)
+    for j in range(rings):
+        for i in range(segments):
+            mesh.add_face(
+                [
+                    verts[j][i],
+                    verts[j][(i + 1) % segments],
+                    verts[j + 1][(i + 1) % segments],
+                    verts[j + 1][i],
+                ],
+                role="Vegetation",
+                surface_id=f"COURTYARD-147-GARDEN.{name}.{j}.{i}",
+                material_key=material_key,
+            )
+
+
+def _emit_ground_ellipse(
+    mesh: BuildingMesh,
+    center: tuple[float, float, float],
+    rx: float,
+    ry: float,
+    material_key: str,
+    name: str,
+    segments: int = 24,
+) -> None:
+    cx, cy, cz = center
+    idx = [
+        mesh.add_vertex(
+            cx + math.cos(math.tau * i / segments) * rx,
+            cy + math.sin(math.tau * i / segments) * ry,
+            cz,
+        )
+        for i in range(segments)
+    ]
+    mesh.add_face(idx, role="LandscapeSurface",
+                  surface_id=f"COURTYARD-147-GARDEN.{name}",
+                  material_key=material_key)
+
+
+def _cross(a, b) -> tuple[float, float, float]:
+    return (
+        a[1] * b[2] - a[2] * b[1],
+        a[2] * b[0] - a[0] * b[2],
+        a[0] * b[1] - a[1] * b[0],
+    )

@@ -3,7 +3,7 @@
   "label": "S-41-43-45-E16",
   "verified": false,
 
-  "map_notes": "The `buildingentrence41-43-45-16` trace is not four separate freestanding footprints. On the Pervititch map it reads as one connected south/east corner row: four numbered building/entrance units (41, 43, 45, 16) combined under one common roof. Treat the numbers as sub-units in one shared-roof building. The final scene uses the full traced polygon as one merged building mass with one shared roof, multiple street doors, and subtle facade division seams rather than separate triangular/cut roof volumes.",
+  "map_notes": "The `buildingentrence41-43-45-16` trace is not four separate freestanding footprints. On the Pervititch map it reads as one connected south/east corner row: four numbered building/entrance units (41, 43, 45, 16) combined under one common roof. Treat the numbers as sub-units in one shared-roof building. The final scene uses the full traced polygon as one merged building mass with one shared roof, multiple street doors, and subtle facade division seams rather than separate triangular/cut roof volumes. The west/left side of 41 is adjacent to the W-39 fountain/camli edge and must remain opaque: no awning, no shop band, no door/window glass on that side. Glass belongs only to the W-39-1 camli/vitre passage above/near the fountain.",
 
   "footprint_ref": "building-entrence-41-43-45-16.shp",
 
@@ -35,7 +35,8 @@
   ],
 
   "facades": {
-    "street_facing_faces": ["S", "E", "W"],
+    "street_facing_faces": ["S", "E"],
+    "opaque_faces": ["W"],
     "primary_door": null,
     "secondary_door": null,
     "entrance_hints": [

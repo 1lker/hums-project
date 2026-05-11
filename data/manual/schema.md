@@ -49,6 +49,7 @@ When present, this file is the **sole source of truth** for that parcel.
 | field | type | notes |
 |---|---|---|
 | `street_facing_faces` | array[N/E/S/W] | manually assigned |
+| `opaque_faces` | array[N/E/S/W] | manually closed/adjacent faces; no doors, windows, shop band, awning, or glass unless another zone explicitly says `camli`/`vitrine` |
 | `primary_door` | `{face, zone}` | door on this face, belongs to this zone |
 | `secondary_door` | `{face, zone}` or null |  |
 | `shop_windows` | bool | if true, ground floor of relevant zone gets shop glazing |

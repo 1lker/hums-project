@@ -54,6 +54,7 @@ class ManualLabelLoader:
         facades_d = d.get("facades") or {}
         facades = Facades(
             street_facing_faces=list(facades_d.get("street_facing_faces", [])),
+            opaque_faces=list(facades_d.get("opaque_faces", [])),
             primary_door=_door(facades_d.get("primary_door")),
             secondary_door=_door(facades_d.get("secondary_door")),
             entrance_hints=[

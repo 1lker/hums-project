@@ -41,7 +41,9 @@ MaterialKey = Literal[
     "fountain_water", "fountain_tile_blue", "fountain_tile_green",
     "fountain_tile_red",
     "wood_grain_dark", "wood_batten",
-    "grass_ground", "garden_shrub", "tree_canopy", "tree_trunk",
+    "grass_ground", "grass_light", "grass_dark", "garden_shrub",
+    "tree_canopy", "tree_canopy_light", "tree_canopy_dark",
+    "tree_trunk", "tree_bark_dark",
 ]
 
 

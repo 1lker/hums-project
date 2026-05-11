@@ -205,6 +205,7 @@ class ManualRenderer:
             parcel_id=zone_pid,
             building_height_m=sum(zone.storey_heights_m),
         )
+        self._apply_manual_facade_overrides(label, segments)
 
         storeys: list[Storey] = []
         if zone.has_basement:
@@ -260,6 +261,26 @@ class ManualRenderer:
             ),
             excel_snapshot={"parcel_ids": label.parcel_ids, "manual": True},
         )
+
+    @staticmethod
+    def _apply_manual_facade_overrides(label: ManualLabel, segments: list[WallSegment]) -> None:
+        """Use map-read facade hints to close faces that georeferencing left ambiguous."""
+        strict_faces = set(label.facades.street_facing_faces)
+        opaque_faces = set(getattr(label.facades, "opaque_faces", []) or [])
+        if not strict_faces and not opaque_faces:
+            return
+
+        for seg in segments:
+            if seg.face in opaque_faces:
+                seg.is_street_facing = False
+                seg.is_party_wall = True
+                seg.hatch_pattern = None
+                continue
+            if seg.face in strict_faces and not seg.is_party_wall:
+                seg.is_street_facing = True
+                seg.hatch_pattern = "_street"
+            elif seg.hatch_pattern == "_street":
+                seg.hatch_pattern = None
 
     @staticmethod
     def _opening_counts(building: Building) -> dict[str, int]:
