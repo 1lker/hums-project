@@ -16,7 +16,7 @@ import math
 from shapely.geometry import Point, Polygon, shape
 from shapely.ops import nearest_points
 
-from ...common.paths import NON_PARCEL_FOOTPRINTS_GEOJSON
+from ...common.paths import FOOTPRINTS_GEOJSON, NON_PARCEL_FOOTPRINTS_GEOJSON
 from ...common.prd import prd
 from ...modeling.building import FacadePalette
 from ..mesh_graph import BuildingMesh
@@ -29,6 +29,11 @@ BODY_WINDOW_RECT_H = 2.15
 BODY_WINDOW_W = 1.15
 BODY_WINDOW_ARCH_RISE = 0.58
 BODY_WINDOW_ARCH_SEGMENTS = 8
+W32_OVERLOOK_WINDOW_SILL = 3.28
+W32_OVERLOOK_WINDOW_RECT_H = 1.18
+W32_OVERLOOK_WINDOW_W = 0.78
+W32_OVERLOOK_WINDOW_ARCH_RISE = 0.36
+W32_OVERLOOK_WINDOW_TRIM_W = 0.075
 DRUM_BASE_Z = BODY_HEIGHT + 0.28
 DRUM_HEIGHT = 0.68
 DRUM_RADIUS = 3.55
@@ -157,6 +162,7 @@ class ChurchBuilder:
         z0 = BODY_WINDOW_SILL
         spring_z = BODY_WINDOW_SILL + BODY_WINDOW_RECT_H
         trim_w = 0.10
+        w32_centers_by_segment = _project_w32_magazine_windows(ring, mesh.placement_origin_utm)
 
         for idx in range(len(ring)):
             a = ring[idx]
@@ -164,7 +170,8 @@ class ChurchBuilder:
             dx = b[0] - a[0]
             dy = b[1] - a[1]
             length = math.hypot(dx, dy)
-            if length < 6.0:
+            custom_centers = w32_centers_by_segment.get(idx, [])
+            if length < 6.0 and not custom_centers:
                 continue
 
             ux = dx / length
@@ -176,12 +183,31 @@ class ChurchBuilder:
             if (mx - cx) * nx + (my - cy) * ny < 0:
                 nx, ny = -nx, -ny
 
-            wood_annex_side = _is_wooden_annex_side(mid=(mx, my), length=length)
-            for win_idx in range(count):
-                center_u = length * (win_idx + 1) / (count + 1)
-                u0 = max(0.35, center_u - BODY_WINDOW_W / 2)
-                u1 = min(length - 0.35, center_u + BODY_WINDOW_W / 2)
-                if u1 - u0 < BODY_WINDOW_W * 0.65:
+            wood_annex_side = _is_wooden_annex_side(mid=(mx, my), length=length) and not custom_centers
+            centers = custom_centers or [
+                length * (win_idx + 1) / (count + 1)
+                for win_idx in range(count)
+            ]
+            small_w32_window = bool(custom_centers)
+            width = W32_OVERLOOK_WINDOW_W if small_w32_window else BODY_WINDOW_W
+            win_z0 = W32_OVERLOOK_WINDOW_SILL if small_w32_window else z0
+            win_spring_z = (
+                W32_OVERLOOK_WINDOW_SILL + W32_OVERLOOK_WINDOW_RECT_H
+                if small_w32_window else spring_z
+            )
+            win_trim_w = W32_OVERLOOK_WINDOW_TRIM_W if small_w32_window else trim_w
+            arch_rise = W32_OVERLOOK_WINDOW_ARCH_RISE if small_w32_window else BODY_WINDOW_ARCH_RISE
+            for win_idx, center_u in enumerate(centers):
+                safe_margin = 0.18 if small_w32_window else 0.35
+                if small_w32_window:
+                    width = min(width, max(0.54, length - 2.0 * safe_margin))
+                    center_u = max(
+                        width / 2 + safe_margin,
+                        min(length - width / 2 - safe_margin, center_u),
+                    )
+                u0 = max(safe_margin, center_u - width / 2)
+                u1 = min(length - safe_margin, center_u + width / 2)
+                if u1 - u0 < width * 0.65:
                     continue
                 if wood_annex_side:
                     self._emit_internal_annex_door(
@@ -189,11 +215,13 @@ class ChurchBuilder:
                     )
                     continue
                 self._emit_arched_body_window(
-                    mesh, pid, idx, win_idx, a, ux, uy, nx, ny, u0, u1, z0, spring_z, trim_w
+                    mesh, pid, idx, win_idx, a, ux, uy, nx, ny, u0, u1,
+                    win_z0, win_spring_z, win_trim_w, arch_rise=arch_rise
                 )
         mesh.metadata["church_body_windows"] = (
             "arched windows on exposed nave faces; left church side corrected "
-            "to 2 far-left street panes + 3 panes above W-32 mini magazines; "
+            "to 2 far-left street panes + 3 smaller W-32/KML-projected panes above "
+            "the mini magazines; "
             "W-39/1 wooden-annex side uses interior/service doors instead of "
             "glass windows"
         )
@@ -299,6 +327,7 @@ class ChurchBuilder:
         z0: float,
         spring_z: float,
         trim_w: float,
+        arch_rise: float = BODY_WINDOW_ARCH_RISE,
     ) -> None:
         def p(u: float, z: float, out: float = 0.035) -> tuple[float, float, float]:
             return (
@@ -324,8 +353,8 @@ class ChurchBuilder:
             t1 = (s + 1) / BODY_WINDOW_ARCH_SEGMENTS
             ua = u0 + (u1 - u0) * t0
             ub = u0 + (u1 - u0) * t1
-            za = spring_z + BODY_WINDOW_ARCH_RISE * math.sin(math.pi * t0)
-            zb = spring_z + BODY_WINDOW_ARCH_RISE * math.sin(math.pi * t1)
+            za = spring_z + arch_rise * math.sin(math.pi * t0)
+            zb = spring_z + arch_rise * math.sin(math.pi * t1)
             mesh.add_quad(
                 p0=p(ua, spring_z),
                 p1=p(ua, za),
@@ -1064,6 +1093,66 @@ def _is_w32_shop_overlook_side(mid: tuple[float, float], length: float) -> bool:
 
 def _is_far_left_flat_street_side(mid: tuple[float, float], length: float) -> bool:
     return 6.0 <= length <= 8.5 and mid[0] < -6.0 and mid[1] > 6.0
+
+
+def _project_w32_magazine_windows(
+    ring: list[tuple[float, float]],
+    origin_utm: tuple[float, float],
+) -> dict[int, list[float]]:
+    """Project the three W-32 mini-magazine KML centers onto the church wall.
+
+    These are church windows above the one-storey shops, not windows on the
+    shops themselves, so the placement follows the shop footprints while the
+    scale remains smaller than the main nave windows.
+    """
+    if not FOOTPRINTS_GEOJSON.exists() or len(ring) < 2:
+        return {}
+
+    try:
+        features = json.loads(FOOTPRINTS_GEOJSON.read_text()).get("features", [])
+    except json.JSONDecodeError:
+        return {}
+
+    ox, oy = origin_utm
+    centers: list[tuple[float, float]] = []
+    for feat in features:
+        props = feat.get("properties") or {}
+        source = props.get("source_file") or ""
+        matched = props.get("parcel_ids_matched") or []
+        if not (source.startswith("near-39-open-32") or "W-32" in matched):
+            continue
+        geom = shape(feat["geometry"])
+        c = geom.centroid
+        centers.append((c.x - ox, c.y - oy))
+
+    projected: dict[int, list[float]] = {}
+    for center in centers:
+        best: tuple[float, int, float] | None = None
+        for idx, (a, b) in enumerate(zip(ring, ring[1:] + ring[:1])):
+            dx = b[0] - a[0]
+            dy = b[1] - a[1]
+            length = math.hypot(dx, dy)
+            if length <= 0.01:
+                continue
+            ux = dx / length
+            uy = dy / length
+            rel_x = center[0] - a[0]
+            rel_y = center[1] - a[1]
+            along = max(0.0, min(length, rel_x * ux + rel_y * uy))
+            perp = abs(rel_x * (-uy) + rel_y * ux)
+            if best is None or perp < best[0]:
+                best = (perp, idx, along)
+        if best is None:
+            continue
+        perp, idx, along = best
+        if perp > 1.75:
+            continue
+        projected.setdefault(idx, []).append(along)
+
+    return {
+        idx: sorted(set(round(pos, 3) for pos in positions))
+        for idx, positions in projected.items()
+    }
 
 
 def _vp(mesh: BuildingMesh, idx: int) -> tuple[float, float, float]:

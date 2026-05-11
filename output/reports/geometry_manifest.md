@@ -30,6 +30,6 @@ Block centroid (UTM 35N): (670348.7891039198, 4539704.61695908)
 | W-39-1.camli_vitre_passage | 946 | 221 | CorniceSurface, Door, GroundSurface, HeaderSurface, JambSurface, Mullion, PlinthSurface, RoofSurface, SillSurface, WallSurface, Window | period_default | traced |
 | W-39-1.wooden_church_edge_annex | 452 | 115 | CorniceSurface, GroundSurface, HeaderSurface, JambSurface, Mullion, PlinthSurface, RoofSurface, SillSurface, WallSurface, Window, WoodCladding | period_default | traced |
 | W-39-1.masonry_side_narthex | 1036 | 254 | CorniceSurface, Door, FloorSurface, GroundSurface, HeaderSurface, JambSurface, Mullion, PlinthSurface, RoofSurface, SillSurface, StringcourseSurface, WallSurface, Window | period_default | traced |
-| CHURCH | 3901 | 860 | ChurchBody, ChurchDome, Clocher, CorniceSurface, Door, GroundSurface, HeaderSurface, JambSurface, Mullion, PlinthSurface, RoofSurface, SillSurface, StringcourseSurface, Window | church_period_default | traced |
+| CHURCH | 3845 | 846 | ChurchBody, ChurchDome, Clocher, CorniceSurface, GroundSurface, HeaderSurface, JambSurface, Mullion, PlinthSurface, RoofSurface, SillSurface, StringcourseSurface, Window | church_period_default | traced |
 | COURTYARD-147-GARDEN | 1174 | 675 | LandscapeSurface, TreeTrunk, Vegetation | pervititch_courtyard_garden | map-interpreted |
 | COURTYARD-147-N50-LIGHTWELL | 18 | 4 | LandscapeSurface | pervititch_courtyard_garden | map-interpreted |

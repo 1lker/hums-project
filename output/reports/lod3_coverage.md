@@ -29,7 +29,7 @@ Required roles per building: GroundSurface, WallSurface, RoofSurface, Window, Do
 | W-39-1.camli_vitre_passage | 1 | 6 | 5 | 2 | 20 | ✅ |
 | W-39-1.wooden_church_edge_annex | 1 | 14 | 5 | 1 | 0 | ✅ |
 | W-39-1.masonry_side_narthex | 1 | 50 | 13 | 12 | 3 | ✅ |
-| CHURCH | 1 | 0 | 75 | 113 | 2 | ✅ |
+| CHURCH | 1 | 0 | 75 | 113 | 0 | ✅ |
 | COURTYARD-147-GARDEN | 0 | 0 | 0 | 0 | 0 | ✅ |
 | COURTYARD-147-N50-LIGHTWELL | 0 | 0 | 0 | 0 | 0 | ✅ |
 

@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-05-12 00:54",
+  "generated_at": "2026-05-12 01:22",
   "model_units": [
     {
       "model_id": "CHURCH",
@@ -28,7 +28,7 @@
       "upper_windows": "",
       "strict_street_edges": "",
       "palette_source": "church_period_default",
-      "roles": "ChurchBody, ChurchDome, Clocher, CorniceSurface, Door, GroundSurface, HeaderSurface, JambSurface, Mullion, PlinthSurface, RoofSurface, SillSurface, StringcourseSurface, Window",
+      "roles": "ChurchBody, ChurchDome, Clocher, CorniceSurface, GroundSurface, HeaderSurface, JambSurface, Mullion, PlinthSurface, RoofSurface, SillSurface, StringcourseSurface, Window",
       "source_notes": "special church roof: low tile body, curved lead/zinc kubbe with 3 arched glazed eyes; kubbe centered at (670342.95, 4539707.85) from Pervititch GeoTIFF kubbe mark; clocher 16.9 m from Pervititch raster clocher square within W-39/1"
     },
     {
