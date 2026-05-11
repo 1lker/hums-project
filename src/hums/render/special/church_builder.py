@@ -5,7 +5,7 @@ Orthodox cruciform basilica model:
   1. Nave body — extruded footprint with a *low* (near-flat) hip roof so the
      central dome reads as the dominant mass.
   2. Low kubbe curb — a shallow drum/collar sitting on the roof.
-  3. Kubbe — low lead/zinc cap with three small glazed marks from the map.
+  3. Kubbe — curved lead/zinc cap with three small arched glazed eyes.
   4. Plinth band — stone skirting around the body base.
   5. Clocher — tall bell tower on the map-marked lower-right church corner.
 """
@@ -33,9 +33,9 @@ DRUM_BASE_Z = BODY_HEIGHT + 0.28
 DRUM_HEIGHT = 0.68
 DRUM_RADIUS = 3.55
 DOME_RADIUS = 3.65
-DOME_RISE = 1.08
+DOME_RISE = 1.34
 DOME_SEGMENTS = 36            # bumped for a smoother silhouette
-DOME_RINGS = 10
+DOME_RINGS = 12
 LANTERN_HEIGHT = 2.2
 LANTERN_RADIUS = 0.75
 LANTERN_SEGMENTS = 8
@@ -89,7 +89,7 @@ class ChurchBuilder:
                     round(dome_center_utm[1] - c.y, 3),
                 ),
                 "dome_form": (
-                    "low shallow kubbe cap with three small glazed openings; "
+                    "low curved kubbe cap with three arched glazed eyes; "
                     "map reread does not support a high raised drum/lantern"
                 ),
             },
@@ -101,6 +101,7 @@ class ChurchBuilder:
         self._emit_low_tile_roof(mesh, ring_local, dome_center_local)
         self._emit_drum(mesh, dome_center_local)
         self._emit_kubbe(mesh, dome_center_local)
+        self._emit_kubbe_glazed_eyes(mesh, dome_center_local)
         self._emit_clocher_from_w39_1(mesh, c.x, c.y)
         return mesh
 
@@ -446,26 +447,8 @@ class ChurchBuilder:
                 surface_id=f"{pid}.drum.{k}",
                 material_key="wall_main",
             )
-        # Map reread: only three small glazed marks around the low kubbe,
-        # not a full elevated clerestory band.
-        band_bot = DRUM_BASE_Z + 0.14
-        band_top = min(top_z - 0.08, band_bot + 0.36)
-        for win_idx, center_deg in enumerate((18.0, 138.0, 258.0)):
-            span_deg = 18.0
-            ang0 = math.radians(center_deg - span_deg / 2.0)
-            ang1 = math.radians(center_deg + span_deg / 2.0)
-            rr = DRUM_RADIUS - 0.06
-            x0, y0 = cx + rr * math.cos(ang0), cy + rr * math.sin(ang0)
-            x1, y1 = cx + rr * math.cos(ang1), cy + rr * math.sin(ang1)
-            mesh.add_quad(
-                p0=(x0, y0, band_bot),
-                p1=(x0, y0, band_top),
-                p2=(x1, y1, band_top),
-                p3=(x1, y1, band_bot),
-                role="Window",
-                surface_id=f"{pid}.kubbe.low_glazed_mark.{win_idx}",
-                material_key="window_glass",
-            )
+        # Glazed kubbe marks are emitted on the curved cap itself so they read
+        # as church dome openings instead of flat clerestory slots.
 
     def _emit_kubbe(self, mesh: BuildingMesh, dome_center) -> None:
         pid = mesh.parcel_id
@@ -503,6 +486,125 @@ class ChurchBuilder:
                     material_key="dome_lead",
                 )
             prev_ring = curr
+
+    def _emit_kubbe_glazed_eyes(self, mesh: BuildingMesh, dome_center) -> None:
+        pid = mesh.parcel_id
+        cx, cy = dome_center
+        base_z = DRUM_BASE_Z + DRUM_HEIGHT
+        bottom_z = base_z + 0.18
+        spring_z = base_z + 0.64
+        arch_rise = 0.34
+        half_w = 0.34
+        frame_w = 0.075
+
+        def radius_at(z: float) -> float:
+            t = max(0.0, min(1.0, (z - base_z) / DOME_RISE))
+            return DOME_RADIUS * math.sqrt(max(0.0, 1.0 - t * t))
+
+        def p(theta: float, offset: float, z: float, out: float = 0.075):
+            nx, ny = math.cos(theta), math.sin(theta)
+            tx, ty = -math.sin(theta), math.cos(theta)
+            r = radius_at(z) + out
+            return (cx + r * nx + offset * tx, cy + r * ny + offset * ty, z)
+
+        def arch_z(offset: float, half: float, rise: float) -> float:
+            q = max(-1.0, min(1.0, offset / half))
+            return spring_z + rise * math.sqrt(max(0.0, 1.0 - q * q))
+
+        for win_idx, center_deg in enumerate((18.0, 138.0, 258.0)):
+            theta = math.radians(center_deg)
+            sid = f"{pid}.kubbe.glazed_eye.{win_idx}"
+
+            mesh.add_quad(
+                p0=p(theta, -half_w, bottom_z),
+                p1=p(theta, -half_w, spring_z),
+                p2=p(theta, half_w, spring_z),
+                p3=p(theta, half_w, bottom_z),
+                role="Window",
+                surface_id=f"{sid}.rect",
+                material_key="church_glass_blue",
+            )
+
+            arch_vertices = []
+            for step in range(7):
+                u = -half_w + 2.0 * half_w * step / 6.0
+                arch_vertices.append(mesh.add_vertex(*p(theta, u, arch_z(u, half_w, arch_rise))))
+            mesh.add_face(
+                arch_vertices,
+                role="Window",
+                surface_id=f"{sid}.arch",
+                material_key="church_glass_blue",
+            )
+
+            mesh.add_quad(
+                p0=p(theta, -half_w - frame_w, bottom_z - frame_w, 0.082),
+                p1=p(theta, -half_w - frame_w, spring_z, 0.082),
+                p2=p(theta, -half_w, spring_z, 0.082),
+                p3=p(theta, -half_w, bottom_z - frame_w, 0.082),
+                role="JambSurface",
+                surface_id=f"{sid}.frame.left",
+                material_key="dome_lead_dark",
+            )
+            mesh.add_quad(
+                p0=p(theta, half_w, bottom_z - frame_w, 0.082),
+                p1=p(theta, half_w, spring_z, 0.082),
+                p2=p(theta, half_w + frame_w, spring_z, 0.082),
+                p3=p(theta, half_w + frame_w, bottom_z - frame_w, 0.082),
+                role="JambSurface",
+                surface_id=f"{sid}.frame.right",
+                material_key="dome_lead_dark",
+            )
+            mesh.add_quad(
+                p0=p(theta, -half_w - frame_w, bottom_z - frame_w, 0.083),
+                p1=p(theta, -half_w - frame_w, bottom_z, 0.083),
+                p2=p(theta, half_w + frame_w, bottom_z, 0.083),
+                p3=p(theta, half_w + frame_w, bottom_z - frame_w, 0.083),
+                role="SillSurface",
+                surface_id=f"{sid}.frame.sill",
+                material_key="dome_lead_dark",
+            )
+
+            for step in range(6):
+                u0 = -half_w + 2.0 * half_w * step / 6.0
+                u1 = -half_w + 2.0 * half_w * (step + 1) / 6.0
+                s0 = u0 / half_w
+                s1 = u1 / half_w
+                outer0 = s0 * (half_w + frame_w)
+                outer1 = s1 * (half_w + frame_w)
+                inner0 = p(theta, u0, arch_z(u0, half_w, arch_rise), 0.084)
+                inner1 = p(theta, u1, arch_z(u1, half_w, arch_rise), 0.084)
+                outer_p0 = p(
+                    theta,
+                    outer0,
+                    arch_z(outer0, half_w + frame_w, arch_rise + frame_w),
+                    0.086,
+                )
+                outer_p1 = p(
+                    theta,
+                    outer1,
+                    arch_z(outer1, half_w + frame_w, arch_rise + frame_w),
+                    0.086,
+                )
+                mesh.add_quad(
+                    p0=inner0,
+                    p1=outer_p0,
+                    p2=outer_p1,
+                    p3=inner1,
+                    role="HeaderSurface",
+                    surface_id=f"{sid}.frame.arch.{step}",
+                    material_key="dome_lead_dark",
+                )
+
+            mullion_top = spring_z + arch_rise * 0.62
+            mesh.add_quad(
+                p0=p(theta, -0.025, bottom_z + 0.05, 0.087),
+                p1=p(theta, -0.025, mullion_top, 0.087),
+                p2=p(theta, 0.025, mullion_top, 0.087),
+                p3=p(theta, 0.025, bottom_z + 0.05, 0.087),
+                role="Mullion",
+                surface_id=f"{sid}.mullion",
+                material_key="dome_lead_dark",
+            )
 
     def _emit_lantern(self, mesh: BuildingMesh, dome_center) -> None:
         pid = mesh.parcel_id

@@ -1,0 +1,170 @@
+[
+  {
+    "kml": "at-the-green-area-wooden-at-147-block-near-the-church-middle-of-the-block",
+    "area_m2": 37.3,
+    "bbox_w_m": 10.4,
+    "bbox_h_m": 8.3,
+    "centroid_lon": 29.0252484,
+    "centroid_lat": 40.9907749
+  },
+  {
+    "kml": "blobk147layer-main",
+    "area_m2": 1372.1,
+    "bbox_w_m": 45.9,
+    "bbox_h_m": 51.8,
+    "centroid_lon": 29.0251474,
+    "centroid_lat": 40.9907244
+  },
+  {
+    "kml": "building-entrence-40-42",
+    "area_m2": 50.5,
+    "bbox_w_m": 9.3,
+    "bbox_h_m": 12.5,
+    "centroid_lon": 29.0251743,
+    "centroid_lat": 40.9909135
+  },
+  {
+    "kml": "buildingentrence-14",
+    "area_m2": 37.6,
+    "bbox_w_m": 10.1,
+    "bbox_h_m": 8.0,
+    "centroid_lon": 29.0252249,
+    "centroid_lat": 40.9906097
+  },
+  {
+    "kml": "buildingentrence04",
+    "area_m2": 26.7,
+    "bbox_w_m": 8.3,
+    "bbox_h_m": 6.6,
+    "centroid_lon": 29.0253539,
+    "centroid_lat": 40.990748
+  },
+  {
+    "kml": "buildingentrence06",
+    "area_m2": 25.1,
+    "bbox_w_m": 7.6,
+    "bbox_h_m": 6.4,
+    "centroid_lon": 29.0253339,
+    "centroid_lat": 40.9907116
+  },
+  {
+    "kml": "buildingentrence08",
+    "area_m2": 22.4,
+    "bbox_w_m": 7.2,
+    "bbox_h_m": 6.2,
+    "centroid_lon": 29.0253108,
+    "centroid_lat": 40.9906819
+  },
+  {
+    "kml": "buildingentrence10",
+    "area_m2": 26.0,
+    "bbox_w_m": 7.5,
+    "bbox_h_m": 6.6,
+    "centroid_lon": 29.0252887,
+    "centroid_lat": 40.9906505
+  },
+  {
+    "kml": "buildingentrence12",
+    "area_m2": 13.3,
+    "bbox_w_m": 6.5,
+    "bbox_h_m": 4.9,
+    "centroid_lon": 29.0252689,
+    "centroid_lat": 40.9906243
+  },
+  {
+    "kml": "buildingentrence41-43-45-16",
+    "area_m2": 90.3,
+    "bbox_w_m": 14.5,
+    "bbox_h_m": 12.1,
+    "centroid_lon": 29.0252194,
+    "centroid_lat": 40.9905512
+  },
+  {
+    "kml": "buildingentrence44",
+    "area_m2": 55.8,
+    "bbox_w_m": 10.0,
+    "bbox_h_m": 12.1,
+    "centroid_lon": 29.0251995,
+    "centroid_lat": 40.990879
+  },
+  {
+    "kml": "buildingentrence46",
+    "area_m2": 35.7,
+    "bbox_w_m": 7.8,
+    "bbox_h_m": 9.9,
+    "centroid_lon": 29.0252605,
+    "centroid_lat": 40.9908695
+  },
+  {
+    "kml": "buildingentrence48",
+    "area_m2": 50.3,
+    "bbox_w_m": 9.4,
+    "bbox_h_m": 11.8,
+    "centroid_lon": 29.0252922,
+    "centroid_lat": 40.9908414
+  },
+  {
+    "kml": "buildingentrence50",
+    "area_m2": 39.7,
+    "bbox_w_m": 8.5,
+    "bbox_h_m": 11.3,
+    "centroid_lon": 29.025334,
+    "centroid_lat": 40.9908081
+  },
+  {
+    "kml": "buildingentrence54-54-02",
+    "area_m2": 65.9,
+    "bbox_w_m": 10.5,
+    "bbox_h_m": 11.4,
+    "centroid_lon": 29.0254184,
+    "centroid_lat": 40.9908067
+  },
+  {
+    "kml": "cesme-fountain",
+    "area_m2": 7.6,
+    "bbox_w_m": 4.4,
+    "bbox_h_m": 2.9,
+    "centroid_lon": 29.0250918,
+    "centroid_lat": 40.9905777
+  },
+  {
+    "kml": "church-entrence-camli-area-(39-1*39-2)-with-clocher",
+    "area_m2": 166.3,
+    "bbox_w_m": 19.0,
+    "bbox_h_m": 14.7,
+    "centroid_lon": 29.0250568,
+    "centroid_lat": 40.9906477
+  },
+  {
+    "kml": "churche-and-its-kubbe",
+    "area_m2": 320.6,
+    "bbox_w_m": 22.1,
+    "bbox_h_m": 24.1,
+    "centroid_lon": 29.0250497,
+    "centroid_lat": 40.990724
+  },
+  {
+    "kml": "near-39-open-32-magazine",
+    "area_m2": 10.3,
+    "bbox_w_m": 3.5,
+    "bbox_h_m": 4.3,
+    "centroid_lon": 29.0249309,
+    "centroid_lat": 40.9907306
+  },
+  {
+    "kml": "near-39-open-32-the last-corner-triangular-magazine.",
+    "area_m2": 3.4,
+    "bbox_w_m": 2.4,
+    "bbox_h_m": 4.8,
+    "centroid_lon": 29.0249577,
+    "centroid_lat": 40.9907814
+  },
+  {
+    "kml": "near-39-open-32-the middle-magazine",
+    "area_m2": 3.6,
+    "bbox_w_m": 2.4,
+    "bbox_h_m": 2.5,
+    "centroid_lon": 29.0249413,
+    "centroid_lat": 40.9907531
+  }
+]
