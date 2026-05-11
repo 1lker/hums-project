@@ -9,7 +9,7 @@ from __future__ import annotations
 import math
 
 from shapely.geometry import LineString, Point
-from shapely.ops import split
+from shapely.ops import split, triangulate
 
 from ....common.prd import prd
 from ....modeling.building import Building
@@ -94,15 +94,39 @@ class GableRoof(RoofGenerator):
                 my = (a[1] + b[1]) / 2.0
                 if poly.exterior.distance(Point(mx, my)) < 0.02:
                     closure_segments.append(((a[0], a[1]), (b[0], b[1])))
-            verts = [mesh.add_vertex(x, y, z_at(x, y)) for x, y in coords]
-            mesh.add_face(
-                verts,
-                role="RoofSurface",
-                surface_id=f"{pid}.roof.kml_gable.{idx}",
-                material_key=roof_mat,
-            )
+            for tri_idx, tri_coords in enumerate(_roof_face_coords(piece)):
+                verts = [mesh.add_vertex(x, y, z_at(x, y)) for x, y in tri_coords]
+                mesh.add_face(
+                    verts,
+                    role="RoofSurface",
+                    surface_id=f"{pid}.roof.kml_gable.{idx}.{tri_idx}",
+                    material_key=roof_mat,
+                )
 
         _emit_gable_edge_closures(mesh, pid, closure_segments, eaves_z, z_at)
+
+
+def _roof_face_coords(piece) -> list[list[tuple[float, float]]]:
+    """Triangulate a possibly concave roof piece without covering notches."""
+    faces: list[list[tuple[float, float]]] = []
+    if piece.is_empty:
+        return faces
+    for tri in triangulate(piece):
+        clipped = tri.intersection(piece)
+        if clipped.is_empty:
+            continue
+        polys = [clipped] if clipped.geom_type == "Polygon" else [
+            g for g in getattr(clipped, "geoms", []) if g.geom_type == "Polygon"
+        ]
+        for poly in polys:
+            if poly.area < 0.01:
+                continue
+            coords = list(poly.exterior.coords)
+            if coords and coords[0] == coords[-1]:
+                coords = coords[:-1]
+            if len(coords) >= 3:
+                faces.append([(x, y) for x, y in coords])
+    return faces
 
 
 def _emit_gable_edge_closures(
