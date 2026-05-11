@@ -446,6 +446,9 @@ class ManualRenderer:
         moved.style = "rectangular"
         moved.frame_profile = "bakery_service"
         moved.color_source = "map:pervititch:W-34-36-FIRIN:single-firin-service-entry"
+        corner_seg.is_street_facing = True
+        corner_seg.is_party_wall = False
+        corner_seg.hatch_pattern = "_street"
         corner_seg.openings = [
             op for op in corner_seg.openings
             if not (op.kind == "door" and op.storey_level == 0)

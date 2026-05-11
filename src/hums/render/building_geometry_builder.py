@@ -1198,6 +1198,8 @@ def _prepare_openings_for_render(building: Building) -> None:
 
 
 def _is_magasin_like(building: Building) -> bool:
+    if building.parcel_id.startswith("W-34-36-FIRIN"):
+        return False
     texts: list[str] = []
     for storey in building.storeys:
         if storey.level == 0 and storey.use:
