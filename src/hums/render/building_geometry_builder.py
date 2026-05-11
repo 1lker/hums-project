@@ -386,62 +386,6 @@ class BuildingGeometryBuilder:
             _facade_line(mesh, pid, p, u0, z0, u1, z1, 0.035, "fountain_gold",
                          f"inscription.gold_stroke.{i}", out=0.49)
 
-        # User/map correction: a separate wall door sits further left of the
-        # fountain. It must not visually attach to the fountain slab.
-        left_wall_u0 = -facade_w / 2 - 3.02
-        left_wall_u1 = -facade_w / 2 - 0.86
-        left_wall_top = min(height - 0.08, 3.04)
-        left_wall_out0 = -0.14
-        left_wall_front_out = 0.12
-        trim_out = 0.24
-        door_u0 = left_wall_u0 + 0.66
-        door_u1 = min(left_wall_u1 - 0.50, door_u0 + 0.76)
-        door_z0 = 0.12
-        door_z1 = min(2.12, left_wall_top - 0.36)
-        door_back_out = left_wall_front_out + 0.006
-        door_front_out = left_wall_front_out + 0.072
-        detail_out = door_front_out + 0.010
-        knob_out = door_front_out + 0.035
-
-        # Make the host wall unmistakable: a grounded, thick plaster/stone
-        # wall panel first, then a recessed volumetric door set into it.
-        _facade_box(mesh, pid, p, left_wall_u0, left_wall_u1,
-                    left_wall_out0, left_wall_front_out, 0.00, left_wall_top,
-                    "monument_stone", "left_side_door.host_wall")
-        _facade_box(mesh, pid, p, door_u0 - 0.11, door_u1 + 0.11,
-                    left_wall_front_out - 0.055, door_back_out,
-                    door_z0, door_z1 + 0.12, "fountain_stone_dark",
-                    "left_side_door.recess_shadow")
-        _facade_box(mesh, pid, p, door_u0, door_u1,
-                    door_back_out, door_front_out, door_z0, door_z1,
-                    "door_panel", "left_side_door.door_slab")
-        _facade_box(mesh, pid, p, left_wall_u0 - 0.04, left_wall_u1 + 0.04, 0.12, 0.24,
-                    left_wall_top - 0.18, left_wall_top, "plinth_stone",
-                    "left_side_door.top_lintel")
-        _facade_role_quad(mesh, pid, p, door_u0, door_z0, door_u1, door_z1,
-                          "door_panel", "left_side_door.panel", role="Door", out=door_front_out + 0.002)
-        for name, u0, u1, z0, z1, out0, out1 in (
-            ("left_jamb", door_u0 - 0.09, door_u0, door_z0, door_z1 + 0.10,
-             left_wall_front_out + 0.010, trim_out),
-            ("right_jamb", door_u1, door_u1 + 0.09, door_z0, door_z1 + 0.10,
-             left_wall_front_out + 0.010, trim_out),
-            ("head", door_u0 - 0.09, door_u1 + 0.09, door_z1, door_z1 + 0.14,
-             left_wall_front_out + 0.010, trim_out),
-            ("threshold", door_u0 - 0.11, door_u1 + 0.11, 0.02, door_z0,
-             left_wall_front_out + 0.012, trim_out),
-        ):
-            _facade_box(mesh, pid, p, u0, u1, out0, out1, z0, z1,
-                        "plinth_stone", f"left_side_door.{name}")
-        panel_mid = (door_u0 + door_u1) / 2.0
-        _facade_quad(mesh, pid, p, door_u0 + 0.09, 0.46, door_u1 - 0.09, 1.02,
-                     "fountain_side_door_shadow", "left_side_door.lower_panel", out=detail_out)
-        _facade_quad(mesh, pid, p, door_u0 + 0.09, 1.14, door_u1 - 0.09, 1.78,
-                     "fountain_side_door_shadow", "left_side_door.upper_panel", out=detail_out)
-        _facade_line(mesh, pid, p, panel_mid, door_z0 + 0.12, panel_mid, door_z1 - 0.10,
-                     0.030, "fountain_side_door_shadow", "left_side_door.center_seam", out=detail_out + 0.018)
-        _facade_disk(mesh, pid, p, door_u1 - 0.15, 0.96, 0.035, "fountain_metal",
-                     "left_side_door.knob", out=knob_out, segments=12)
-
         # Colored ceramic accents make this read as a fountain wall, not a
         # ground marker. The pattern is abstracted from Ottoman fountain tile
         # borders without copying any modern storefront detail.
@@ -492,14 +436,11 @@ class BuildingGeometryBuilder:
             _facade_quad(mesh, pid, p, u, 0.40, u + 0.025, height - 0.42,
                          "fountain_stone_dark", f"stone_joint.vertical.{i}", out=0.405)
 
-        mesh.metadata["opening_counts"] = {"door": 1, "shop_window": 0, "window": 0}
-        mesh.metadata["opening_source_counts"] = {
-            "map+photo:cesme-left-side-adjacent-door": 1,
-        }
+        mesh.metadata["opening_counts"] = {"door": 0, "shop_window": 0, "window": 0}
+        mesh.metadata["opening_source_counts"] = {}
         mesh.metadata["photo_guided_detail"] = (
             "Ottoman fountain rebuilt as low plinth + thick carved facade: "
-            "recessed pointed niche, kitabe plaque, rosettes, protruding trough; "
-            "left-side adjacent door added from user map/photo correction"
+            "recessed pointed niche, kitabe plaque, rosettes, protruding trough"
         )
 
 

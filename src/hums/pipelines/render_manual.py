@@ -563,8 +563,10 @@ class ManualRenderer:
         ]
         if not candidates:
             return
-        with_doors = [s for s in candidates if any(op.kind == "door" for op in s.openings)]
-        seg = max(with_doors or candidates, key=lambda s: s.length_m)
+        south_faces = [s for s in candidates if s.face == "S"]
+        # The Camli/Vitre label and user correction put the church entrance on
+        # the main long passage wall, not on the short fountain-side edge.
+        seg = max(south_faces or candidates, key=lambda s: s.length_m)
 
         # Keep only the map/photo-indicated church gate for this Camli passage.
         for other in segments:
@@ -589,7 +591,7 @@ class ManualRenderer:
             if op.kind != "door":
                 continue
             if seg.length_m > 4.0:
-                width = min(2.15, max(1.72, seg.length_m * 0.17))
+                width = min(2.18, max(1.76, seg.length_m * 0.17))
             else:
                 width = min(1.72, max(1.12, seg.length_m - 0.42))
             op.position_along_wall_m = round(max(0.22, (seg.length_m - width) / 2.0), 3)
