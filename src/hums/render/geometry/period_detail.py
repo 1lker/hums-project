@@ -224,7 +224,7 @@ def _emit_magasin_door(
 ) -> None:
     """Shop/magasin entrance: shuttered double-leaf door, no invented glass."""
 
-    def p(u: float, z: float, inset: float = -0.11) -> tuple[float, float, float]:
+    def p(u: float, z: float, inset: float = -0.035) -> tuple[float, float, float]:
         return (sx + ux * u + nx * inset, sy + uy * u + ny * inset, z)
 
     pad = min(0.08, max(0.03, (u1 - u0) * 0.08))
@@ -250,15 +250,15 @@ def _emit_magasin_door(
 
     # Small painted lintel/sign board: not a textual sign, just the storefront
     # band that makes Mg entries read differently from domestic doors.
-    board_bot = z1 + 0.07
-    board_top = z1 + 0.38
-    board_u0 = max(u0, lu0 - 0.08)
-    board_u1 = min(u1, ru1 + 0.08)
+    board_bot = z1 + 0.05
+    board_top = z1 + 0.48
+    board_u0 = max(u0 - 0.08, lu0 - 0.18)
+    board_u1 = min(u1 + 0.08, ru1 + 0.18)
     mesh.add_quad(
-        p0=p(board_u0, board_bot, -0.06),
-        p1=p(board_u0, board_top, -0.06),
-        p2=p(board_u1, board_top, -0.06),
-        p3=p(board_u1, board_bot, -0.06),
+        p0=p(board_u0, board_bot, 0.065),
+        p1=p(board_u0, board_top, 0.065),
+        p2=p(board_u1, board_top, 0.065),
+        p3=p(board_u1, board_bot, 0.065),
         role="Door",
         surface_id=f"{pid}.magasin_door.{face}.{seg_idx}.{door_idx}.lintel_board",
         material_key="magasin_sign",
@@ -267,10 +267,10 @@ def _emit_magasin_door(
     # Center meeting stile.
     stile_w = min(0.045, max(0.025, (u1 - u0) * 0.04))
     mesh.add_quad(
-        p0=p(lu1 - stile_w, z_bot, -0.095),
-        p1=p(lu1 - stile_w, z_top, -0.095),
-        p2=p(lu1 + stile_w, z_top, -0.095),
-        p3=p(lu1 + stile_w, z_bot, -0.095),
+        p0=p(lu1 - stile_w, z_bot, -0.015),
+        p1=p(lu1 - stile_w, z_top, -0.015),
+        p2=p(lu1 + stile_w, z_top, -0.015),
+        p3=p(lu1 + stile_w, z_bot, -0.015),
         role="Door",
         surface_id=f"{pid}.magasin_door.{face}.{seg_idx}.{door_idx}.center_stile",
         material_key="magasin_trim",
@@ -284,10 +284,10 @@ def _emit_magasin_door(
         ("head", lu0, ru1, z_top - frame_w, z_top),
     ):
         mesh.add_quad(
-            p0=p(a, zz0, -0.08),
-            p1=p(a, zz1, -0.08),
-            p2=p(b, zz1, -0.08),
-            p3=p(b, zz0, -0.08),
+            p0=p(a, zz0, -0.005),
+            p1=p(a, zz1, -0.005),
+            p2=p(b, zz1, -0.005),
+            p3=p(b, zz0, -0.005),
             role="Door",
             surface_id=f"{pid}.magasin_door.{face}.{seg_idx}.{door_idx}.{name}",
             material_key="magasin_trim",
@@ -300,10 +300,10 @@ def _emit_magasin_door(
     n = 0
     while z + strip_h < z_top - 0.16:
         mesh.add_quad(
-            p0=p(lu0 + frame_w, z, -0.055),
-            p1=p(lu0 + frame_w, z + strip_h, -0.055),
-            p2=p(ru1 - frame_w, z + strip_h, -0.055),
-            p3=p(ru1 - frame_w, z, -0.055),
+            p0=p(lu0 + frame_w, z, 0.005),
+            p1=p(lu0 + frame_w, z + strip_h, 0.005),
+            p2=p(ru1 - frame_w, z + strip_h, 0.005),
+            p3=p(ru1 - frame_w, z, 0.005),
             role="Door",
             surface_id=f"{pid}.magasin_door.{face}.{seg_idx}.{door_idx}.shutter.{n}",
             material_key="magasin_shutter",
