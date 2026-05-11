@@ -286,10 +286,19 @@ def _prepare_openings_for_render(building: Building) -> None:
         length = seg.length_m
         if length <= 1.0:
             continue
-        for op in seg.openings:
+        doors = [
+            op for op in seg.openings
+            if op.kind == "door" and op.storey_level == 0
+        ]
+        if not doors:
+            continue
+        gap = 0.22
+        max_per_door = max(0.9, (length - 0.36 - gap * max(0, len(doors) - 1)) / len(doors))
+        desired = 1.9 if len(doors) == 1 else 1.55
+        for op in doors:
             if op.kind != "door" or op.storey_level != 0:
                 continue
-            target_w = min(max(op.width_m, 1.9), max(0.9, length - 0.36))
+            target_w = min(max(op.width_m, desired), max_per_door)
             center = op.position_along_wall_m + op.width_m / 2.0
             op.width_m = round(target_w, 3)
             op.height_m = round(max(op.height_m, 2.65), 3)
