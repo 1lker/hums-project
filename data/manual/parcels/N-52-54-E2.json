@@ -3,7 +3,7 @@
   "label": "N-52-54-E2",
   "verified": false,
 
-  "map_notes": "`building-entrence-52-54-02` is one north-east corner footprint carrying the 52, 54 and 02 labels. User clarified this is one building. The numbers are interpreted as frontage/entrance labels on the same masonry corner building, not as separate masses. Do not split the visible model into a high bay and a low bay; keep one continuous footprint and one coherent roof. User-supplied 2024 right-side street photos are used only as facade-material language for pale masonry, trim, and a restrained darker commercial base; they do not create extra windows, doors, or separate buildings.",
+  "map_notes": "`building-entrence-52-54-02` is one north-east corner footprint carrying the 52, 54 and 02 labels. User clarified this is one building. The numbers are interpreted as frontage/entrance labels on the same masonry corner building, not as separate masses. Do not split the visible model into a high bay and a low bay; keep one continuous footprint and one coherent roof. The georeferenced reread around N-50 shows a small rectangular rear open lightwell between this west/rear edge and parcel 50; add only one conservative upper window per floor looking into that void. User-supplied 2024 right-side street photos are used only as facade-material language for pale masonry, trim, and a restrained darker commercial base; they do not create extra street windows, doors, or separate buildings.",
 
   "footprint_ref": "building-entrence-52-54-02.shp",
   "footprint_mode": "traced",
