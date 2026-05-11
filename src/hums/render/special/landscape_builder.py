@@ -16,10 +16,11 @@ from ..mesh_graph import BuildingMesh
 # Pervititch raster. The final polygon is clipped by the actual block void, so
 # this cannot cover traced KML/SHP buildings.
 COURTYARD_147_BOUNDS_UTM = (670347.0, 4539690.0, 670359.0, 4539704.0)
-COURTYARD_147_TREE_UTM = (670355.20, 4539699.12)
+COURTYARD_147_TREE_UTM = (670354.70, 4539697.75)
 COURTYARD_147_TREE_SOURCE = (
     "Pervititch raster dark-green vegetation cluster center; "
-    "GeoTIFF threshold bbox around 670355.20 / 4539699.12"
+    "GeoTIFF threshold bbox nudged south toward the S-43 courtyard edge "
+    "around 670354.70 / 4539697.75"
 )
 
 N50_REAR_LIGHTWELL_UTM = (
