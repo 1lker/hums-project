@@ -1,0 +1,68 @@
+{
+  "label": "W-39-1",
+  "parcel_ids": ["W-39/1"],
+  "verified": false,
+  "map_notes": "The W-39/1 church-edge footprint must not be rendered as one all-glass block. The Pervititch crop shows a blue-hatched/labelled Camli-Vitre passage on the west/left part and a different opaque side/narthex mass at the east/right part near the Clocher square. The dashed and diagonal map lines are roof/glass-roof evidence, not a flat slab. Model the camli zone with glass material and an inclined/complex glass roof; model the side mass with opaque masonry and its own pitched sheet-metal roof.",
+  "footprint_ref": "churche-entrence-camli-area-(39-1,-39-2)-clocher.shp",
+  "structure_type": "building",
+  "primary_zone_axis": "west_to_east",
+  "zones": [
+    {
+      "id": "camli_vitre_passage",
+      "description": "West/left blue-hatched Camli-Vitre church passage. This is the glazed part only, not the whole W-39/1 footprint.",
+      "material_class": "C+glass",
+      "map_colour": "yellow_blue_hatch",
+      "storeys_above_grade": 1.0,
+      "has_mezzanine": false,
+      "has_basement": false,
+      "storey_heights_m": [3.8],
+      "ground_floor_use": "passage",
+      "roof": {
+        "shape": "complex_pitched",
+        "material": "glass_roof",
+        "pitch_deg": 12.0,
+        "has_chimney": false,
+        "has_skylight": true
+      },
+      "footprint_fraction": [0.0, 0.68],
+      "map_labels": ["Camli", "Vitre", "diagonal roof/glass hatch"]
+    },
+    {
+      "id": "masonry_side_narthex",
+      "description": "East/right opaque side mass around the Clocher square. It reads as a different masonry material from the transparent passage.",
+      "material_class": "B",
+      "map_colour": "pink_orange",
+      "storeys_above_grade": 2.0,
+      "has_mezzanine": false,
+      "has_basement": false,
+      "storey_heights_m": [3.6, 2.4],
+      "ground_floor_use": "church_narthex",
+      "roof": {
+        "shape": "hip",
+        "material": "sheet_metal_T",
+        "pitch_deg": 20.0,
+        "has_chimney": false,
+        "has_skylight": false
+      },
+      "footprint_fraction": [0.68, 1.0],
+      "map_labels": ["side mass", "2p", "Clocher edge", "T"]
+    }
+  ],
+  "facades": {
+    "street_facing_faces": ["S", "W", "E"],
+    "primary_door": {
+      "face": "W",
+      "zone": "camli_vitre_passage",
+      "description": "West/Sogutlu Cesme access into the glazed passage"
+    },
+    "secondary_door": {
+      "face": "E",
+      "zone": "masonry_side_narthex",
+      "description": "East-side/narthex access near the Clocher square"
+    },
+    "shop_windows": false,
+    "balconies": [],
+    "shutters_on_upper": false
+  },
+  "excel_notes_legacy": "Old parsed W-39/1 row collapsed this as C+glass with a flat glass_roof. User/map correction: Camli-Vitre and adjacent side mass are different materials, and dashed lines indicate roof geometry."
+}

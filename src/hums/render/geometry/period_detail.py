@@ -32,7 +32,11 @@ class PeriodDetail:
     def emit(self, mesh: BuildingMesh, building: Building, eaves_z: float) -> None:
         if building.structure_type != "building":
             return
+        if building.parcel_id.startswith("W-32#"):
+            return
         cls = (building.material_class or "").upper()
+        if "GLASS" in cls:
+            return
         self._emit_dentils(mesh, building, eaves_z)
         if cls in ("A", "B"):
             self._emit_corner_quoins(mesh, building)

@@ -104,7 +104,7 @@ def _write_opening_audit(scene: SceneGraph, path: Path) -> None:
     }
     lines = [
         "# Opening And Material Audit\n",
-        "Doors, shopfronts, and vitrines are restricted to map/manual evidence. Upper-floor typology windows are suppressed in the visible model.\n",
+        "Doors, shopfronts, and vitrines are restricted to map/manual evidence. Upper-floor windows are allowed only on geometry-detected exposed street/courtyard faces or party walls exposed by a lower neighbor.\n",
         "| parcel_id | material | footprint | strict street edges | doors | shopfronts | upper windows | source notes |",
         "|---|---|---|---:|---:|---:|---:|---|",
     ]
@@ -204,8 +204,13 @@ def _write_roof_visual_audit(scene: SceneGraph, path: Path) -> None:
         elif mesh.metadata.get("structure_type") == "church":
             clocher_top = mesh.metadata.get("clocher_top_m")
             clocher_src = mesh.metadata.get("clocher_source")
+            dome_src = mesh.metadata.get("dome_center_source")
+            dome_center = mesh.metadata.get("dome_center_utm")
             if clocher_top and clocher_src:
-                note = f"special church roof: low tile body, high drum/kubbe; clocher {clocher_top} m from {clocher_src}"
+                note = f"special church roof: low tile body, high drum/kubbe"
+                if dome_src and dome_center:
+                    note += f"; kubbe centered at {dome_center} from {dome_src}"
+                note += f"; clocher {clocher_top} m from {clocher_src}"
             else:
                 note = "special church roof: low tile body, high drum/kubbe, clocher"
         lines.append(
@@ -280,7 +285,7 @@ def _write_adjacency_opening_audit(path: Path) -> None:
                 src = op.get("color_source") or ""
                 if seg.get("is_party_wall"):
                     party += 1
-                    if src.startswith("assumption:height-difference"):
+                    if "height-difference" in src:
                         height_diff += 1
                     else:
                         if adjacent is None or adjacent >= height - 0.2:

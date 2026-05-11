@@ -235,7 +235,11 @@ def _wall_material(building: Building) -> str:
         snapshot.get("vault_code"),
     ) if v is not None).lower()
     roof_mat = ((building.roof.material if building.roof else "") or "").lower()
-    if "glass" in source or "glazed" in source or "camlı" in source or "camli" in source or roof_mat == "glass":
+    if any(token in source for token in ("not glass", "not a glass", "opaque", "not all-glass")):
+        return "wall_main"
+    if "glass" in cls or roof_mat == "glass_roof":
+        return "window_glass"
+    if "glazed" in source or "camlı" in source or "camli" in source or "vitre" in source:
         return "window_glass"
     return "wall_main"
 

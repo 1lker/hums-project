@@ -24,6 +24,11 @@ from ..mesh_graph import BuildingMesh
 
 BODY_HEIGHT = 8.0
 PLINTH_HEIGHT = 0.8
+BODY_WINDOW_SILL = 2.35
+BODY_WINDOW_RECT_H = 2.15
+BODY_WINDOW_W = 1.15
+BODY_WINDOW_ARCH_RISE = 0.58
+BODY_WINDOW_ARCH_SEGMENTS = 8
 DRUM_BASE_Z = BODY_HEIGHT + 0.4
 DRUM_HEIGHT = 4.2
 DRUM_RADIUS = 4.0
@@ -33,6 +38,7 @@ DOME_RINGS = 16
 LANTERN_HEIGHT = 2.2
 LANTERN_RADIUS = 0.75
 LANTERN_SEGMENTS = 8
+DOME_MAP_CENTER_UTM = (670342.95, 4539707.85)
 CLOCHER_BASE_STOREY = 6.2     # lower stone storey
 CLOCHER_BELFRY_H = 4.1        # octagonal belfry with arched openings
 CLOCHER_PEAK_H = 5.0          # tall pyramidal cap
@@ -61,6 +67,8 @@ class ChurchBuilder:
         c = poly.centroid
         origin_utm = (c.x, c.y)
         ring_local = [(x - c.x, y - c.y) for (x, y) in list(poly.exterior.coords)[:-1]]
+        dome_center_utm, dome_source = _dome_center_utm(poly)
+        dome_center_local = (dome_center_utm[0] - c.x, dome_center_utm[1] - c.y)
 
         mesh = BuildingMesh(
             parcel_id="CHURCH",
@@ -72,15 +80,22 @@ class ChurchBuilder:
                 "structure_type": "church",
                 "footprint_source": "traced",
                 "notes": {"role": "Rum Ortodoks Kilisesi Ayia Eftimia"},
+                "dome_center_source": dome_source,
+                "dome_center_utm": tuple(round(v, 3) for v in dome_center_utm),
+                "dome_center_shift_m": (
+                    round(dome_center_utm[0] - c.x, 3),
+                    round(dome_center_utm[1] - c.y, 3),
+                ),
             },
         )
 
         self._emit_plinth(mesh, ring_local)
         self._emit_body(mesh, ring_local)
-        self._emit_low_tile_roof(mesh, ring_local)
-        self._emit_drum(mesh, ring_local)
-        self._emit_kubbe(mesh, ring_local)
-        self._emit_lantern(mesh, ring_local)
+        self._emit_body_windows(mesh, ring_local)
+        self._emit_low_tile_roof(mesh, ring_local, dome_center_local)
+        self._emit_drum(mesh, dome_center_local)
+        self._emit_kubbe(mesh, dome_center_local)
+        self._emit_lantern(mesh, dome_center_local)
         self._emit_clocher_from_w39_1(mesh, c.x, c.y)
         return mesh
 
@@ -119,7 +134,154 @@ class ChurchBuilder:
                 material_key="wall_main",
             )
 
-    def _emit_low_tile_roof(self, mesh: BuildingMesh, ring) -> None:
+    def _emit_body_windows(self, mesh: BuildingMesh, ring) -> None:
+        """Tall arched nave windows on the exposed long church body faces.
+
+        The Pervititch footprint does not enumerate individual panes, but the
+        church body is not a blank masonry block. We keep this conservative:
+        only long exterior runs receive narrow arched church windows, including
+        the west run behind the three W-32 magazines.
+        """
+        pid = mesh.parcel_id
+        if len(ring) < 3:
+            return
+        cx = sum(p[0] for p in ring) / len(ring)
+        cy = sum(p[1] for p in ring) / len(ring)
+        z0 = BODY_WINDOW_SILL
+        spring_z = BODY_WINDOW_SILL + BODY_WINDOW_RECT_H
+        trim_w = 0.10
+
+        for idx in range(len(ring)):
+            a = ring[idx]
+            b = ring[(idx + 1) % len(ring)]
+            dx = b[0] - a[0]
+            dy = b[1] - a[1]
+            length = math.hypot(dx, dy)
+            if length < 6.0:
+                continue
+
+            count = max(1, min(3, int(length // 5.5)))
+            ux = dx / length
+            uy = dy / length
+            mx = (a[0] + b[0]) / 2
+            my = (a[1] + b[1]) / 2
+            nx, ny = -uy, ux
+            if (mx - cx) * nx + (my - cy) * ny < 0:
+                nx, ny = -nx, -ny
+
+            for win_idx in range(count):
+                center_u = length * (win_idx + 1) / (count + 1)
+                u0 = max(0.35, center_u - BODY_WINDOW_W / 2)
+                u1 = min(length - 0.35, center_u + BODY_WINDOW_W / 2)
+                if u1 - u0 < BODY_WINDOW_W * 0.65:
+                    continue
+                self._emit_arched_body_window(
+                    mesh, pid, idx, win_idx, a, ux, uy, nx, ny, u0, u1, z0, spring_z, trim_w
+                )
+        mesh.metadata["church_body_windows"] = "arched windows on long exposed nave faces"
+
+    def _emit_arched_body_window(
+        self,
+        mesh: BuildingMesh,
+        pid: str,
+        seg_idx: int,
+        win_idx: int,
+        start: tuple[float, float],
+        ux: float,
+        uy: float,
+        nx: float,
+        ny: float,
+        u0: float,
+        u1: float,
+        z0: float,
+        spring_z: float,
+        trim_w: float,
+    ) -> None:
+        def p(u: float, z: float, out: float = 0.035) -> tuple[float, float, float]:
+            return (
+                start[0] + ux * u + nx * out,
+                start[1] + uy * u + ny * out,
+                z,
+            )
+
+        sid = f"{pid}.body_window.{seg_idx}.{win_idx}"
+        trim_out = 0.065
+        mesh.add_quad(
+            p0=p(u0, z0),
+            p1=p(u0, spring_z),
+            p2=p(u1, spring_z),
+            p3=p(u1, z0),
+            role="Window",
+            surface_id=f"{sid}.glass.rect",
+            material_key="window_glass",
+        )
+        # Semicircular arched glass above the spring line.
+        for s in range(BODY_WINDOW_ARCH_SEGMENTS):
+            t0 = s / BODY_WINDOW_ARCH_SEGMENTS
+            t1 = (s + 1) / BODY_WINDOW_ARCH_SEGMENTS
+            ua = u0 + (u1 - u0) * t0
+            ub = u0 + (u1 - u0) * t1
+            za = spring_z + BODY_WINDOW_ARCH_RISE * math.sin(math.pi * t0)
+            zb = spring_z + BODY_WINDOW_ARCH_RISE * math.sin(math.pi * t1)
+            mesh.add_quad(
+                p0=p(ua, spring_z),
+                p1=p(ua, za),
+                p2=p(ub, zb),
+                p3=p(ub, spring_z),
+                role="Window",
+                surface_id=f"{sid}.glass.arch.{s}",
+                material_key="window_glass",
+            )
+
+        # Stone surround: sill, side jambs, and a simple spring-course header.
+        mesh.add_quad(
+            p0=p(u0 - trim_w, z0 - 0.12, trim_out),
+            p1=p(u0 - trim_w, z0, trim_out),
+            p2=p(u1 + trim_w, z0, trim_out),
+            p3=p(u1 + trim_w, z0 - 0.12, trim_out),
+            role="SillSurface",
+            surface_id=f"{sid}.sill",
+            material_key="trim",
+        )
+        mesh.add_quad(
+            p0=p(u0 - trim_w, z0, trim_out),
+            p1=p(u0 - trim_w, spring_z, trim_out),
+            p2=p(u0, spring_z, trim_out),
+            p3=p(u0, z0, trim_out),
+            role="JambSurface",
+            surface_id=f"{sid}.jamb.L",
+            material_key="trim",
+        )
+        mesh.add_quad(
+            p0=p(u1, z0, trim_out),
+            p1=p(u1, spring_z, trim_out),
+            p2=p(u1 + trim_w, spring_z, trim_out),
+            p3=p(u1 + trim_w, z0, trim_out),
+            role="JambSurface",
+            surface_id=f"{sid}.jamb.R",
+            material_key="trim",
+        )
+        mesh.add_quad(
+            p0=p(u0 - trim_w, spring_z, trim_out),
+            p1=p(u0 - trim_w, spring_z + 0.12, trim_out),
+            p2=p(u1 + trim_w, spring_z + 0.12, trim_out),
+            p3=p(u1 + trim_w, spring_z, trim_out),
+            role="HeaderSurface",
+            surface_id=f"{sid}.spring_course",
+            material_key="trim",
+        )
+        mid = (u0 + u1) / 2
+        mesh.add_quad(
+            p0=p(mid - 0.025, z0 + 0.15, trim_out + 0.002),
+            p1=p(mid - 0.025, spring_z - 0.05, trim_out + 0.002),
+            p2=p(mid + 0.025, spring_z - 0.05, trim_out + 0.002),
+            p3=p(mid + 0.025, z0 + 0.15, trim_out + 0.002),
+            role="Mullion",
+            surface_id=f"{sid}.mullion",
+            material_key="trim",
+        )
+
+    def _emit_low_tile_roof(self, mesh: BuildingMesh, ring, dome_center) -> None:
         """Continuous low kiremit roof with a lead flashing collar.
 
         The Pervititch sheet and historical descriptions both read as a tiled
@@ -128,8 +290,7 @@ class ChurchBuilder:
         the drum in glTF viewers.
         """
         pid = mesh.parcel_id
-        cx = sum(p[0] for p in ring) / len(ring)
-        cy = sum(p[1] for p in ring) / len(ring)
+        cx, cy = dome_center
         roof_peak_z = BODY_HEIGHT + 0.32
         center = mesh.add_vertex(cx, cy, roof_peak_z)
         for i in range(len(ring)):
@@ -160,10 +321,9 @@ class ChurchBuilder:
                           surface_id=f"{pid}.roof.flashing.{k}",
                           material_key="dome_lead")
 
-    def _emit_drum(self, mesh: BuildingMesh, ring) -> None:
+    def _emit_drum(self, mesh: BuildingMesh, dome_center) -> None:
         pid = mesh.parcel_id
-        cx = sum(p[0] for p in ring) / len(ring)
-        cy = sum(p[1] for p in ring) / len(ring)
+        cx, cy = dome_center
         top_z = DRUM_BASE_Z + DRUM_HEIGHT
         verts_lower: list[int] = []
         verts_upper: list[int] = []
@@ -205,10 +365,9 @@ class ChurchBuilder:
                 material_key="window_glass",
             )
 
-    def _emit_kubbe(self, mesh: BuildingMesh, ring) -> None:
+    def _emit_kubbe(self, mesh: BuildingMesh, dome_center) -> None:
         pid = mesh.parcel_id
-        cx = sum(p[0] for p in ring) / len(ring)
-        cy = sum(p[1] for p in ring) / len(ring)
+        cx, cy = dome_center
         base_z = DRUM_BASE_Z + DRUM_HEIGHT
 
         prev_ring: list[int] = []
@@ -243,10 +402,9 @@ class ChurchBuilder:
                 )
             prev_ring = curr
 
-    def _emit_lantern(self, mesh: BuildingMesh, ring) -> None:
+    def _emit_lantern(self, mesh: BuildingMesh, dome_center) -> None:
         pid = mesh.parcel_id
-        cx = sum(p[0] for p in ring) / len(ring)
-        cy = sum(p[1] for p in ring) / len(ring)
+        cx, cy = dome_center
         base_z = DRUM_BASE_Z + DRUM_HEIGHT + DOME_RADIUS
         top_z = base_z + LANTERN_HEIGHT
         # Octagonal lantern drum
@@ -499,6 +657,15 @@ def _load_w39_1_polygon() -> Polygon | None:
 def _vp(mesh: BuildingMesh, idx: int) -> tuple[float, float, float]:
     v = mesh.vertices[idx]
     return (v.x, v.y, v.z)
+
+
+def _dome_center_utm(church_poly: Polygon) -> tuple[tuple[float, float], str]:
+    """Use the georeferenced Pervititch kubbe mark, with a geometry fallback."""
+    p = Point(*DOME_MAP_CENTER_UTM)
+    if church_poly.contains(p):
+        return DOME_MAP_CENTER_UTM, "Pervititch GeoTIFF kubbe mark"
+    c = church_poly.centroid
+    return (c.x, c.y), "fallback church footprint centroid"
 
 
 def _load_church_polygon() -> Polygon | None:

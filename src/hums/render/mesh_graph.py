@@ -24,6 +24,9 @@ SemanticRole = Literal[
     "Chimney",
     "Skylight",
     "MonumentBody",
+    "LandscapeSurface",
+    "Vegetation",
+    "TreeTrunk",
 ]
 
 MaterialKey = Literal[
@@ -33,6 +36,8 @@ MaterialKey = Literal[
     "tile_terracotta", "tile_marseille", "sheet_metal_grey",
     "vault_roof_masonry", "roof_unknown_muted", "dome_lead",
     "plinth_stone", "cornice_paint", "balcony_iron",
+    "wood_grain_dark", "wood_batten",
+    "grass_ground", "garden_shrub", "tree_canopy", "tree_trunk",
 ]
 
 

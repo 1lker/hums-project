@@ -1,0 +1,91 @@
+{
+  "parcel_ids": ["N-52", "N-54", "E-2"],
+  "label": "N-52-54-E2",
+  "verified": false,
+
+  "map_notes": "`building-entrence-52-54-02` is one traced north-east corner footprint carrying the 52, 54 and 02 labels. The map/parsed labels indicate a height break: 52 is the taller 3E bay, while 54 and 02 read as lower shop/corner portions. The previous equal split created a triangular N-54 wedge even though the map does not show a freestanding triangular building. Render this as connected rectangular/zoned masses inside one footprint: a taller west/north 52 bay and a lower east corner 54/02 bay, with shared party wall and no invented triangular building.",
+
+  "footprint_ref": "building-entrence-52-54-02.shp",
+
+  "structure_type": "building",
+
+  "primary_zone_axis": "west_to_east",
+
+  "zones": [
+    {
+      "id": "n52_high_bay",
+      "description": "Taller west/north bay for label 52. Keeps the 3E height note without creating a triangular N-54 wedge.",
+      "material_class": "B",
+      "map_colour": "pink",
+      "storeys_above_grade": 3,
+      "has_mezzanine": false,
+      "has_basement": false,
+      "storey_heights_m": [3.8, 3.2, 3.2],
+      "ground_floor_use": "shop",
+      "roof": {
+        "shape": "hip",
+        "material": "unknown",
+        "pitch_deg": 16.0,
+        "has_chimney": false,
+        "has_skylight": false
+      },
+      "footprint_fraction": [0.0, 0.48],
+      "map_labels": ["52", "3E", "VF"]
+    },
+    {
+      "id": "n54_e2_low_corner",
+      "description": "Lower connected east/corner bay for labels 54 and 02. Uses one shared footprint zone instead of a freestanding triangular corner building.",
+      "material_class": "B",
+      "map_colour": "pink",
+      "storeys_above_grade": 1,
+      "has_mezzanine": false,
+      "has_basement": false,
+      "storey_heights_m": [3.8],
+      "ground_floor_use": "shop",
+      "roof": {
+        "shape": "hip",
+        "material": "unknown",
+        "pitch_deg": 14.0,
+        "has_chimney": false,
+        "has_skylight": false
+      },
+      "footprint_fraction": [0.48, 1.0],
+      "map_labels": ["54", "02", "Mg.", "1-2", "VF"]
+    }
+  ],
+
+  "facades": {
+    "street_facing_faces": ["N", "E"],
+    "primary_door": null,
+    "secondary_door": null,
+    "entrance_hints": [
+      {
+        "face": "N",
+        "zone": "n52_high_bay",
+        "count": 1,
+        "description": "North street entrance for 52 label."
+      },
+      {
+        "face": "N",
+        "zone": "n54_e2_low_corner",
+        "count": 1,
+        "description": "North street entrance for 54 label."
+      },
+      {
+        "face": "E",
+        "zone": "n54_e2_low_corner",
+        "count": 1,
+        "description": "East street entrance for 02 label."
+      }
+    ],
+    "shop_windows": false,
+    "balconies": [],
+    "shutters_on_upper": false
+  },
+
+  "palette_override": null,
+
+  "open_questions": [
+    "Exact internal 52/54/02 division line is still approximate; current split follows the map labels and avoids the old false triangular N-54 footprint."
+  ]
+}

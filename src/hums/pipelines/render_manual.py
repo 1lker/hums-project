@@ -34,7 +34,7 @@ from ..modeling.party_wall_index import PartyWallIndex
 from ..modeling.facade_palette import FacadePaletteBuilder
 from ..modeling.assumption_tracker import AssumptionTracker
 from ..modeling.local_frame import LocalFrameBuilder
-from ..modeling.opening_placer import DoorPlacer
+from ..modeling.opening_placer import DoorPlacer, UpperWindowPlacer
 from ..modeling.wall_segmenter import WallSegmenter
 from ..render.backends.gltf_backend import GltfBackend
 from ..render.building_geometry_builder import BuildingGeometryBuilder
@@ -293,6 +293,7 @@ class ManualRenderer:
             DoorPlacer().place(segments, storeys_proxy, ctx, zone_pid, tracker)
         self._place_manual_entrances(label, zone, segments, tracker, zone_pid)
         self._place_explicit_vitrine(label, zone, segments, tracker, zone_pid)
+        UpperWindowPlacer().place(segments, storeys_proxy, ctx, zone_pid, tracker)
 
     def _place_manual_entrances(self, label: ManualLabel, zone: Zone,
                                 segments: list[WallSegment], tracker,

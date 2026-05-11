@@ -4,6 +4,7 @@ Composes: ground, walls, openings, roof, plus structure-specific extras
 (chimneys, skylights, monument body). Pure-Python — no backend imports.
 """
 from __future__ import annotations
+import math
 
 from ..common.prd import prd
 from ..modeling.building import Building
@@ -15,6 +16,7 @@ from .geometry.roof.overhang import RoofOverhang
 from .geometry.shutters_balconies import ShuttersAndBalconies
 from .geometry.wall_extruder import WallExtruder
 from .geometry.wall_subdivider import WallSubdivider
+from .geometry.wood_cladding import WoodCladding
 from .mesh_graph import BuildingMesh
 
 
@@ -23,6 +25,7 @@ class BuildingGeometryBuilder:
     def __init__(self) -> None:
         self._wall_extruder = WallExtruder()
         self._wall_subdivider = WallSubdivider()
+        self._wood_cladding = WoodCladding()
         self._roof_overhang = RoofOverhang()
         self._facade_banding = FacadeBanding()
         self._shutters_balconies = ShuttersAndBalconies()
@@ -61,6 +64,7 @@ class BuildingGeometryBuilder:
         # Walls with real punched openings.
         storey_heights = [s.height_m for s in building.storeys if not s.is_basement]
         self._wall_subdivider.emit(mesh, building, storey_heights)
+        self._wood_cladding.emit(mesh, building)
 
         self._facade_banding.emit(mesh, building)
         self._shutters_balconies.emit(mesh, building)
@@ -145,19 +149,58 @@ class BuildingGeometryBuilder:
 
     def _add_skylight(self, mesh: BuildingMesh, building: Building, eaves_z: float) -> None:
         ring = building.footprint_local
-        cx = sum(p[0] for p in ring) / len(ring)
-        cy = sum(p[1] for p in ring) / len(ring)
-        half_w, half_d = 0.6, 0.4
-        z = eaves_z + 0.3
+        if len(ring) < 3:
+            return
+        axis = _longest_edge_axis(ring)
+        perp = (-axis[1], axis[0])
+        u_values = [x * axis[0] + y * axis[1] for x, y in ring]
+        v_values = [x * perp[0] + y * perp[1] for x, y in ring]
+        u_mid = (min(u_values) + max(u_values)) / 2.0
+        v_mid = (min(v_values) + max(v_values)) / 2.0
+        length = max(u_values) - min(u_values)
+        width = max(v_values) - min(v_values)
+        if length <= 0.8 or width <= 0.8:
+            return
+        half_w = min(0.65, max(0.38, length * 0.12))
+        half_d = min(0.42, max(0.26, width * 0.12))
+        frame_w = min(0.09, half_w * 0.22, half_d * 0.28)
+        z = _skylight_top_z(building, eaves_z, width)
+
+        def p(du: float, dv: float, dz: float = 0.0) -> tuple[float, float, float]:
+            u = u_mid + du
+            v = v_mid + dv
+            return (
+                axis[0] * u + perp[0] * v,
+                axis[1] * u + perp[1] * v,
+                z + dz,
+            )
+
         mesh.add_quad(
-            p0=(cx - half_w, cy - half_d, z),
-            p1=(cx + half_w, cy - half_d, z),
-            p2=(cx + half_w, cy + half_d, z),
-            p3=(cx - half_w, cy + half_d, z),
+            p0=p(-half_w + frame_w, -half_d + frame_w),
+            p1=p(half_w - frame_w, -half_d + frame_w),
+            p2=p(half_w - frame_w, half_d - frame_w),
+            p3=p(-half_w + frame_w, half_d - frame_w),
             role="Skylight",
-            surface_id=f"{building.parcel_id}.skylight",
+            surface_id=f"{building.parcel_id}.skylight.glass",
             material_key="window_glass",
         )
+        frame_z = 0.025
+        strips = (
+            ("front", -half_w, -half_d, half_w, -half_d + frame_w),
+            ("back", -half_w, half_d - frame_w, half_w, half_d),
+            ("left", -half_w, -half_d + frame_w, -half_w + frame_w, half_d - frame_w),
+            ("right", half_w - frame_w, -half_d + frame_w, half_w, half_d - frame_w),
+        )
+        for name, u0, v0, u1, v1 in strips:
+            mesh.add_quad(
+                p0=p(u0, v0, frame_z),
+                p1=p(u1, v0, frame_z),
+                p2=p(u1, v1, frame_z),
+                p3=p(u0, v1, frame_z),
+                role="Skylight",
+                surface_id=f"{building.parcel_id}.skylight.frame.{name}",
+                material_key="trim",
+            )
 
     def _build_monument(self, mesh: BuildingMesh, building: Building) -> None:
         """Çeşme / fountain: single solid body extruded to the body storey height."""
@@ -185,3 +228,29 @@ class BuildingGeometryBuilder:
         mesh.add_face(top_idx, role="RoofSurface",
                       surface_id=f"{building.parcel_id}.monument.cap",
                       material_key="monument_stone")
+
+
+def _longest_edge_axis(ring: list[tuple[float, float]]) -> tuple[float, float]:
+    best_len = 0.0
+    axis = (1.0, 0.0)
+    for i, (ax, ay) in enumerate(ring):
+        bx, by = ring[(i + 1) % len(ring)]
+        d = math.hypot(bx - ax, by - ay)
+        if d > best_len:
+            best_len = d
+            axis = ((bx - ax) / d, (by - ay) / d)
+    return axis
+
+
+def _skylight_top_z(building: Building, eaves_z: float, roof_span_m: float) -> float:
+    if not building.roof:
+        return eaves_z + 0.35
+    shape = building.roof.shape
+    pitch_rad = math.radians(building.roof.pitch_deg)
+    if shape in {"flat"}:
+        return eaves_z + 0.18
+    if shape == "vault_flat":
+        return eaves_z + max(0.35, min(roof_span_m * 0.16, 1.15)) + 0.06
+    if shape in {"gable", "hip", "complex_pitched", "mansard"}:
+        return eaves_z + max(0.35, min((roof_span_m / 2.0) * math.tan(pitch_rad), 3.0)) + 0.06
+    return eaves_z + 0.35

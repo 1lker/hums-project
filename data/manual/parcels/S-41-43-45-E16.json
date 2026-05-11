@@ -52,7 +52,7 @@
         "description": "Entrance 16 / corner entry on the east side."
       }
     ],
-    "shop_windows": true,
+    "shop_windows": false,
     "balconies": [],
     "shutters_on_upper": false
   },

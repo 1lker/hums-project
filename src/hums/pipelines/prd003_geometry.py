@@ -18,6 +18,7 @@ from ..render.reports.geometry_manifest import write_reports
 from ..render.scene_assembler import SceneAssembler
 from ..render.scene.street_mesh import load_block_ring_local
 from ..render.special.church_builder import ChurchBuilder
+from ..render.special.landscape_builder import CourtyardGardenBuilder
 from .render_manual import ManualRenderer
 
 BUILDINGS_JSON = PARSED / "buildings.json"
@@ -28,7 +29,10 @@ REPORT_DIR = OUTPUT / "reports"
 
 MANUAL_SCENE_REPLACEMENTS = {
     "N-40-42": {"N-40", "N-42"},
+    "N-52-54-E2": {"N-52", "N-54", "E-2"},
     "S-41-43-45-E16": {"S-41", "S-43", "S-45", "E-16"},
+    "W-34-36-FIRIN": {"W-34", "W-36"},
+    "W-39-1": {"W-39/1"},
 }
 
 
@@ -51,6 +55,9 @@ class Prd003Pipeline:
         church_mesh = ChurchBuilder().build(block_centroid)
         if church_mesh is not None:
             meshes.append(church_mesh)
+        garden_mesh = CourtyardGardenBuilder().build()
+        if garden_mesh is not None:
+            meshes.append(garden_mesh)
         scene = SceneAssembler().assemble(meshes, block_centroid)
         block_ring = load_block_ring_local(block_centroid)
         if block_ring:

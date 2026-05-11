@@ -138,7 +138,7 @@
     "street_facing_faces": ["N"],
     "primary_door": {"face": "N", "zone": "street_magasin", "description": "Shop entrance onto T…L Sokak"},
     "secondary_door": {"face": "S", "zone": "vitrine", "description": "Vitrine/service entrance onto church courtyard"},
-    "shop_windows": true,
+    "shop_windows": false,
     "balconies": [],
     "shutters_on_upper": true
   },

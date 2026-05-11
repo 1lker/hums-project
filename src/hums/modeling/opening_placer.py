@@ -183,13 +183,13 @@ class UpperWindowPlacer(OpeningPlacer):
                 ]
                 if not eligible_levels:
                     continue
-                src = "assumption:height-difference-exposed-party-wall"
+                src = "map:geometry-detected:height-difference-exposed-party-wall"
             elif seg.is_street_facing:
                 eligible_levels = upper_levels
                 src = (
-                    "assumption:facade_typology:street"
+                    "map:geometry-detected:street-exposed-facade"
                     if _is_strict_street(seg)
-                    else "assumption:facade_typology:courtyard"
+                    else "map:geometry-detected:courtyard-exposed-facade"
                 )
             else:
                 continue

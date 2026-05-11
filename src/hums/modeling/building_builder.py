@@ -11,10 +11,10 @@ from shapely.geometry import Polygon
 from ..common.prd import prd
 from ..common.heritage_profile import PROFILE
 from .assumption_tracker import AssumptionTracker
-from .building import Building, Opening, Storey, Provenance
+from .building import Building, Opening, RoofDescriptor, Storey, Provenance
 from .facade_palette import FacadePaletteBuilder
 from .local_frame import LocalFrameBuilder
-from .opening_placer import DoorPlacer, _is_shop_use
+from .opening_placer import DoorPlacer, UpperWindowPlacer, _is_shop_use
 from .party_wall_index import PartyWallIndex
 from .roof_descriptor import RoofDescriptorBuilder
 from .structure_classifier import StructureClassifier
@@ -30,7 +30,7 @@ class BuildingBuilder:
         self._roof_builder = RoofDescriptorBuilder()
         self._palette_builder = FacadePaletteBuilder()
         self._structure_classifier = StructureClassifier()
-        self._openers = [DoorPlacer()]
+        self._openers = [DoorPlacer(), UpperWindowPlacer()]
 
     def build(
         self,
@@ -50,6 +50,29 @@ class BuildingBuilder:
 
         storeys = self._storeys(parcel, tracker, structure_type)
         roof = self._roof_builder.build(parcel.get("roof") or {}, pid, tracker)
+        if pid.startswith("W-32#"):
+            roof = RoofDescriptor(
+                shape="flat",
+                material="unknown",
+                pitch_deg=PROFILE.roofs.vault_flat_deg,
+                slope_direction=None,
+                has_chimney=False,
+                has_skylight=False,
+            )
+            tracker.record(
+                pid,
+                "roof.W-32",
+                "map:user-corrected",
+                "tiny one-storey magazines use low flat/near-flat roof; no speculative gable",
+            )
+        elif pid in {"N-44", "N-48"}:
+            roof.has_skylight = True
+            tracker.record(
+                pid,
+                "roof.tabatiere",
+                "map:pervititch",
+                "interior x mark read as roof tabatiere/skylight, not as a facade door/window",
+            )
         palette = self._palette_builder.build(material_class, gf_shop, pid, tracker)
 
         if footprint_utm is None:
@@ -148,6 +171,18 @@ class BuildingBuilder:
             tracker.assume(parcel["parcel_id"], "storeys[0].height_m", h_body,
                            note="bell tower (clocher)")
             return [Storey(level=0, height_m=h_body, use="bell_tower")]
+
+        if parcel["parcel_id"].startswith("W-32#"):
+            h_body = 3.0
+            tracker.record(
+                parcel["parcel_id"],
+                "storeys.W-32",
+                "map:user-corrected",
+                "three tiny corner magazines are one-storey, not the Excel row's 2-storey interpretation",
+            )
+            tracker.assume(parcel["parcel_id"], "storeys[0].height_m", h_body,
+                           note="low one-storey corner magazine")
+            return [Storey(level=0, height_m=h_body, use="tiny_magazine")]
 
         s_info = parcel.get("storeys") or {}
         count = s_info.get("count") or 1
