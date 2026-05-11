@@ -276,9 +276,9 @@ class BuildingBuilder:
     def _storeys(self, parcel: dict, tracker: AssumptionTracker, structure_type: str = "building") -> list[Storey]:
         # Monuments (çeşme etc.) get one facade-storey; no upper floors/basement.
         if structure_type == "fountain":
-            h_body = 4.25
+            h_body = 3.65
             tracker.assume(parcel["parcel_id"], "storeys[0].height_m", h_body,
-                           note="fountain: Ottoman street-fountain facade height, no upper floors")
+                           note="fountain: photo-guided Ottoman street-fountain facade height, no upper floors")
             return [Storey(level=0, height_m=h_body, use="fountain_body")]
 
         if structure_type == "bell_tower":
