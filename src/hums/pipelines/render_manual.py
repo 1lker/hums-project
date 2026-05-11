@@ -86,19 +86,9 @@ class ManualRenderer:
         block_centroid = self._block_centroid()
         block_poly = self._block_polygon()
 
-        # Pre-compute all zone sub-polygons.
-        zone_polys: dict[str, "object"] = {}
-        for z in label.zones:
-            if z.clip_ranges:
-                sp = footprint
-                for axis, frac in z.clip_ranges:
-                    sp = split_zone(sp, axis, frac)
-                    if sp.is_empty:
-                        break
-            else:
-                sp = split_zone(footprint, label.primary_zone_axis, z.footprint_fraction)
-            if not sp.is_empty and sp.geom_type == "Polygon" and sp.area > 1.0:
-                zone_polys[z.id] = sp
+        # Pre-compute all zone sub-polygons. Most manual labels use fractional
+        # splits; N-50 is map-read as an L plan, so it has a dedicated cutter.
+        zone_polys = _zone_polys_for_label(label, footprint)
 
         # Party wall index seeded with (a) every zone (so inter-zone edges
         # are party walls) and (b) every OTHER parcel's traced polygon so
@@ -812,6 +802,94 @@ class ManualRenderer:
 def _zone_wants_vitrine(zone: Zone) -> bool:
     text = " ".join([zone.id, zone.description, *zone.map_labels]).lower()
     return "vitr" in text or "cam" in text or "glaz" in text
+
+
+N50_REAR_LEFT_UTM = (670358.181, 4539708.674)
+N50_FRONT_LEFT_UTM = (670363.529, 4539718.195)
+N50_FRONT_SPLIT_LOCAL_Y = 5.46
+
+
+def _zone_polys_for_label(label: ManualLabel, footprint: Polygon) -> dict[str, Polygon]:
+    if label.label == "N-50":
+        special = _n50_l_plan_zone_polys(label, footprint)
+        if special:
+            return special
+
+    zone_polys: dict[str, Polygon] = {}
+    for z in label.zones:
+        if z.clip_ranges:
+            sp = footprint
+            for axis, frac in z.clip_ranges:
+                sp = split_zone(sp, axis, frac)
+                if sp.is_empty:
+                    break
+        else:
+            sp = split_zone(footprint, label.primary_zone_axis, z.footprint_fraction)
+        poly = _largest_polygon(sp)
+        if poly is not None and poly.area > 1.0:
+            zone_polys[z.id] = poly
+    return zone_polys
+
+
+def _n50_l_plan_zone_polys(label: ManualLabel, footprint: Polygon) -> dict[str, Polygon]:
+    """Map-specific N-50 L plan.
+
+    The KML outline is a long masonry parcel, but the Pervititch crop shows a
+    small right/rear void beside E-4 and N-52/54. The front/north piece is the
+    lower flat-roofed mass; the rear/dashed piece is the taller roofed wing.
+    """
+    l_plan = footprint.difference(Polygon(N50_REAR_LIGHTWELL_UTM).buffer(0)).buffer(0)
+    l_plan = _largest_polygon(l_plan) or footprint
+    front_cut = _n50_local_band(N50_FRONT_SPLIT_LOCAL_Y, 11.40, -0.25, 4.45)
+    front = _largest_polygon(l_plan.intersection(front_cut).buffer(0))
+    if front is None or front.area < 1.0:
+        return {}
+
+    rear = _largest_polygon(l_plan.difference(front).buffer(0))
+    if rear is None or rear.area < 1.0:
+        return {}
+
+    out: dict[str, Polygon] = {}
+    for z in label.zones:
+        if z.id == "north_front_two_storey_flat":
+            out[z.id] = front
+        elif z.id == "south_rear_three_storey_roofed":
+            out[z.id] = rear
+    return out
+
+
+def _n50_local_band(y0: float, y1: float, x0: float, x1: float) -> Polygon:
+    return Polygon([
+        _n50_local_to_utm(x0, y0),
+        _n50_local_to_utm(x1, y0),
+        _n50_local_to_utm(x1, y1),
+        _n50_local_to_utm(x0, y1),
+    ])
+
+
+def _n50_local_to_utm(x: float, y: float) -> tuple[float, float]:
+    fx, fy = N50_REAR_LEFT_UTM
+    ax, ay = N50_FRONT_LEFT_UTM
+    vx = ax - fx
+    vy = ay - fy
+    length = math.hypot(vx, vy)
+    ux = vy / length
+    uy = -vx / length
+    vx /= length
+    vy /= length
+    return (fx + ux * x + vx * y, fy + uy * x + vy * y)
+
+
+def _largest_polygon(geom) -> Polygon | None:
+    if geom.is_empty:
+        return None
+    if geom.geom_type == "Polygon":
+        return geom
+    if hasattr(geom, "geoms"):
+        polys = [g for g in geom.geoms if g.geom_type == "Polygon" and g.area > 0.5]
+        if polys:
+            return max(polys, key=lambda g: g.area)
+    return None
 
 
 def _manual_footprint(poly, label: ManualLabel):
