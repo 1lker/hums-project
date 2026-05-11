@@ -322,6 +322,7 @@ class ManualRenderer:
         if primary_face or secondary_face:
             DoorPlacer().place(segments, storeys_proxy, ctx, zone_pid, tracker)
         self._place_manual_entrances(label, zone, segments, tracker, zone_pid)
+        self._adjust_firin_corner_entrance(label, zone, segments, tracker, zone_pid)
         self._adjust_church_camli_entrance(label, zone, segments, tracker, zone_pid)
         self._place_church_wooden_annex_window(label, zone, segments, tracker, zone_pid)
         self._place_explicit_vitrine(label, zone, segments, tracker, zone_pid)
@@ -394,6 +395,67 @@ class ManualRenderer:
                 "map:pervititch",
                 {"count": count, "description": hint.description},
             )
+
+    def _adjust_firin_corner_entrance(self, label: ManualLabel, zone: Zone,
+                                      segments: list[WallSegment], tracker,
+                                      zone_pid: str) -> None:
+        if label.label != "W-34-36-FIRIN" or zone.id != "bakery_mass":
+            return
+        long_w_segments = [
+            s for s in segments
+            if s.face == "W" and not s.is_party_wall and s.length_m > 3.0
+        ]
+        if not long_w_segments:
+            return
+        main_seg = max(long_w_segments, key=lambda s: s.length_m)
+        main_doors = [
+            op for op in main_seg.openings
+            if op.kind == "door" and op.storey_level == 0
+        ]
+        if not main_doors:
+            return
+
+        sx, sy = main_seg.start
+        corner_candidates = []
+        for seg in segments:
+            if seg is main_seg or seg.is_party_wall or seg.length_m < 0.72:
+                continue
+            touches_main_start = (
+                _pt_dist(seg.start, main_seg.start) < 0.08
+                or _pt_dist(seg.end, main_seg.start) < 0.08
+            )
+            if not touches_main_start:
+                continue
+            # This is the short diagonal/kink before the long west bakery
+            # facade. It is where the leftmost Firin entrance sits on the map.
+            dx = seg.end[0] - seg.start[0]
+            dy = seg.end[1] - seg.start[1]
+            diagonal_score = abs(dx) + abs(dy) - max(abs(dx), abs(dy))
+            corner_candidates.append((diagonal_score, seg))
+        if not corner_candidates:
+            return
+
+        corner_seg = max(corner_candidates, key=lambda item: item[0])[1]
+        moved = min(main_doors, key=lambda op: op.position_along_wall_m)
+        main_seg.openings.remove(moved)
+        width = min(0.82, max(0.62, corner_seg.length_m - 0.24))
+        moved.position_along_wall_m = round(max(0.12, (corner_seg.length_m - width) / 2.0), 3)
+        moved.width_m = round(width, 3)
+        moved.height_m = max(moved.height_m, 2.35)
+        moved.style = "rectangular"
+        moved.frame_profile = "moulded"
+        moved.color_source = "map:pervititch:W-34-36-FIRIN:leftmost-corner-bakery-entry"
+        corner_seg.openings = [
+            op for op in corner_seg.openings
+            if not (op.kind == "door" and op.storey_level == 0)
+        ]
+        corner_seg.openings.append(moved)
+        tracker.record(
+            zone_pid,
+            f"wall[{corner_seg.face}].leftmost_corner_bakery_entry",
+            "map+user-correction:pervititch",
+            "leftmost Firin entrance belongs on the short diagonal/kinked corner segment, while the other shutters remain on the west frontage",
+        )
 
     def _place_explicit_vitrine(self, label: ManualLabel, zone: Zone,
                                 segments: list[WallSegment], tracker,
@@ -689,6 +751,10 @@ def _move_one_door_to_edge(seg: WallSegment) -> None:
         opening.width_m = round(new_width, 3)
         opening.position_along_wall_m = 0.15
         return
+
+
+def _pt_dist(a: tuple[float, float], b: tuple[float, float]) -> float:
+    return math.hypot(a[0] - b[0], a[1] - b[1])
 
 
 def _emit_vertical_facade_seam(
