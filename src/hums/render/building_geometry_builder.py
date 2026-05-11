@@ -240,10 +240,13 @@ class BuildingGeometryBuilder:
     def _build_ottoman_fountain(self, mesh: BuildingMesh, building: Building) -> None:
         """Photo-guided Ottoman fountain: niche, inscription, rosettes, trough."""
         ring = building.footprint_local
-        height = max(building.storeys[0].height_m if building.storeys else 1.8, 4.25)
+        height = min(max(building.storeys[0].height_m if building.storeys else 3.65, 3.35), 3.75)
         pid = building.parcel_id
+        plinth_h = 0.38
 
-        # Keep the georeferenced KML footprint as the ground/base body.
+        # Keep the georeferenced KML footprint, but do not extrude it into a
+        # tall solid block. The real asset reads as a low street plinth plus a
+        # carved facade slab embedded in the adjacent wall.
         base_idx = [mesh.add_vertex(x, y, 0.0) for (x, y) in ring]
         mesh.add_face(base_idx, role="GroundSurface",
                       surface_id=f"{pid}.ground",
@@ -252,121 +255,146 @@ class BuildingGeometryBuilder:
             nx, ny = ring[(i + 1) % len(ring)]
             mesh.add_quad(
                 p0=(x, y, 0.0), p1=(nx, ny, 0.0),
-                p2=(nx, ny, height), p3=(x, y, height),
+                p2=(nx, ny, plinth_h), p3=(x, y, plinth_h),
                 role="MonumentBody",
-                surface_id=f"{pid}.stone_body.{i}",
-                material_key="monument_stone",
+                surface_id=f"{pid}.low_plinth.side.{i}",
+                material_key="fountain_basin_stone",
             )
-        top_idx = [mesh.add_vertex(x, y, height) for (x, y) in ring]
+        top_idx = [mesh.add_vertex(x, y, plinth_h) for (x, y) in ring]
         mesh.add_face(top_idx, role="RoofSurface",
-                      surface_id=f"{pid}.stone_cap",
-                      material_key="plinth_stone")
+                      surface_id=f"{pid}.low_plinth.top",
+                      material_key="fountain_basin_stone")
 
-        frame = _fountain_front_frame(ring)
+        frame = _fountain_front_frame(building)
         if frame is None:
             return
         cx, cy, ux, uy, nx, ny, edge_len = frame
-        facade_w = min(4.45, max(3.35, edge_len * 0.96))
+        facade_w = min(3.55, max(2.75, edge_len * 0.82))
 
         def p(u: float, z: float, out: float = 0.06) -> tuple[float, float, float]:
             return (cx + ux * u + nx * out, cy + uy * u + ny * out, z)
 
-        # Main dressed-stone facade plate and plinth/cornice bands.
-        _facade_quad(mesh, pid, p, -facade_w / 2, 0.0, facade_w / 2, height, "monument_stone",
-                     "facade.ashlar", out=0.045)
-        for z0, z1, key, name, out in (
-            (0.00, 0.18, "fountain_stone_dark", "threshold", 0.095),
-            (0.55, 0.66, "fountain_stone_dark", "lower_stringcourse", 0.100),
-            (3.72, 3.88, "fountain_stone_dark", "upper_stringcourse", 0.105),
-            (3.88, 4.18, "plinth_stone", "heavy_cornice", 0.135),
-        ):
-            _facade_quad(mesh, pid, p, -facade_w / 2 - 0.10, z0, facade_w / 2 + 0.10, z1, key,
-                         f"facade.{name}", out=out)
+        # Main dressed-stone wall slab with actual thickness. This replaces the
+        # previous full-height footprint extrusion that made the fountain look
+        # like a stretched block.
+        _facade_box(mesh, pid, p, -facade_w / 2, facade_w / 2, -0.08, 0.16, 0.0, height,
+                    "monument_stone", "facade.wall_slab")
 
-        # Side pilasters and narrow vertical profiles, visible in both photos.
-        side_w = 0.22
+        # Layered Ottoman stone profiles: lower plinth, string courses, and
+        # the heavy top coping seen in the street photos.
+        for z0, z1, key, name, out0, out1 in (
+            (0.00, 0.17, "fountain_stone_dark", "threshold", 0.04, 0.24),
+            (0.42, 0.56, "plinth_stone", "lower_belt", 0.02, 0.30),
+            (0.58, 0.66, "fountain_stone_dark", "lower_shadow_line", 0.18, 0.34),
+            (height - 0.54, height - 0.46, "fountain_stone_dark", "cornice_shadow", 0.10, 0.32),
+            (height - 0.42, height - 0.20, "plinth_stone", "heavy_cornice", 0.02, 0.45),
+            (height - 0.18, height, "fountain_basin_stone", "top_coping", -0.03, 0.52),
+        ):
+            _facade_box(mesh, pid, p, -facade_w / 2 - 0.10, facade_w / 2 + 0.10,
+                        out0, out1, z0, z1, key, f"facade.{name}")
+
+        # Side pilasters and narrow reeded profiles, now modeled as small
+        # raised blocks rather than flat colored strips.
+        side_w = 0.24
         for side, u0, u1 in (
             ("left", -facade_w / 2 + 0.12, -facade_w / 2 + 0.12 + side_w),
             ("right", facade_w / 2 - 0.12 - side_w, facade_w / 2 - 0.12),
         ):
-            _facade_quad(mesh, pid, p, u0, 0.18, u1, 3.95, "plinth_stone",
-                         f"facade.pilaster.{side}", out=0.12)
-            _facade_quad(mesh, pid, p, u1 + (0.06 if side == "left" else -0.08), 0.34,
-                         u1 + (0.10 if side == "left" else -0.04), 3.80,
-                         "fountain_stone_dark", f"facade.reeded_profile.{side}", out=0.145)
+            _facade_box(mesh, pid, p, u0, u1, 0.12, 0.34, 0.20, height - 0.28,
+                        "plinth_stone", f"facade.pilaster.{side}")
+            groove_u0 = u1 + (0.06 if side == "left" else -0.10)
+            groove_u1 = u1 + (0.10 if side == "left" else -0.06)
+            _facade_box(mesh, pid, p, min(groove_u0, groove_u1), max(groove_u0, groove_u1),
+                        0.28, 0.39, 0.36, height - 0.48,
+                        "fountain_stone_dark", f"facade.reeded_profile.{side}")
 
         # Pointed arched recessed niche.
-        arch_w = min(2.34, facade_w * 0.58)
+        arch_w = min(1.95, facade_w * 0.58)
+        spring_z = 1.76
+        apex_z = 2.56
         arch = [
-            (-arch_w / 2, 0.72), (-arch_w / 2, 1.78), (-1.00, 2.08),
-            (-0.54, 2.47), (0.0, 2.92), (0.54, 2.47),
-            (1.00, 2.08), (arch_w / 2, 1.78), (arch_w / 2, 0.72),
+            (-arch_w / 2, 0.68), (-arch_w / 2, spring_z),
+            (-0.78, 1.98), (-0.42, 2.30), (0.0, apex_z),
+            (0.42, 2.30), (0.78, 1.98), (arch_w / 2, spring_z),
+            (arch_w / 2, 0.68),
         ]
-        _facade_poly(mesh, pid, p, arch, "fountain_shadow", "niche.shadow", out=0.025)
-        _facade_profile_strip(mesh, pid, p, arch[1:-1], 0.18, "plinth_stone", "niche.pointed_arch",
-                              center=(0.0, 1.86), out=0.155)
-        _facade_quad(mesh, pid, p, -arch_w / 2 - 0.13, 0.72, -arch_w / 2 + 0.04, 1.86,
-                     "plinth_stone", "niche.left_jamb", out=0.145)
-        _facade_quad(mesh, pid, p, arch_w / 2 - 0.04, 0.72, arch_w / 2 + 0.13, 1.86,
-                     "plinth_stone", "niche.right_jamb", out=0.145)
-        _facade_quad(mesh, pid, p, -arch_w / 2 + 0.18, 1.03, arch_w / 2 - 0.18, 1.12,
-                     "fountain_stone_dark", "niche.back_shelf", out=0.045)
+        _facade_poly(mesh, pid, p, arch, "fountain_shadow", "niche.recess_back", out=0.015)
+        _facade_quad(mesh, pid, p, -arch_w / 2 + 0.10, 0.74, arch_w / 2 - 0.10, 1.07,
+                     "fountain_shadow", "niche.deep_lower_back", out=0.005)
+        _facade_profile_strip(mesh, pid, p, arch[1:-1], 0.22, "plinth_stone",
+                              "niche.pointed_arch_voussoir", center=(0.0, 1.78), out=0.38)
+        _facade_box(mesh, pid, p, -arch_w / 2 - 0.15, -arch_w / 2 + 0.04,
+                    0.18, 0.40, 0.68, spring_z + 0.08, "plinth_stone", "niche.left_jamb")
+        _facade_box(mesh, pid, p, arch_w / 2 - 0.04, arch_w / 2 + 0.15,
+                    0.18, 0.40, 0.68, spring_z + 0.08, "plinth_stone", "niche.right_jamb")
+        _facade_box(mesh, pid, p, -0.11, 0.11, 0.34, 0.50, apex_z - 0.05, apex_z + 0.13,
+                    "fountain_basin_stone", "niche.keystone")
+        _facade_box(mesh, pid, p, -arch_w / 2 + 0.16, arch_w / 2 - 0.16,
+                    0.10, 0.32, 1.00, 1.10, "fountain_stone_dark", "niche.back_shelf")
 
         # Central spout panel, metal tap, and water line.
-        _facade_quad(mesh, pid, p, -0.34, 0.62, 0.34, 1.04, "fountain_basin_stone",
-                     "spout.carved_panel", out=0.115)
-        _facade_quad(mesh, pid, p, -0.21, 0.78, 0.21, 0.96, "plinth_stone",
-                     "spout.panel_relief", out=0.145)
-        _facade_box(mesh, pid, p, -0.045, 0.045, 0.13, 0.32, 0.88, 0.95,
+        _facade_box(mesh, pid, p, -0.36, 0.36, 0.12, 0.30, 0.58, 1.02,
+                    "fountain_basin_stone", "spout.carved_panel")
+        _facade_quad(mesh, pid, p, -0.22, 0.77, 0.22, 0.95, "plinth_stone",
+                     "spout.panel_relief", out=0.34)
+        _facade_box(mesh, pid, p, -0.045, 0.045, 0.31, 0.48, 0.84, 0.91,
                     "fountain_metal", "spout.tap")
-        _facade_box(mesh, pid, p, -0.018, 0.018, 0.27, 0.31, 0.48, 0.88,
+        _facade_box(mesh, pid, p, -0.018, 0.018, 0.44, 0.48, 0.46, 0.84,
                     "fountain_water", "spout.water_thread")
 
         # Front trough / yalak.
-        _facade_box(mesh, pid, p, -1.20, 1.20, 0.18, 0.86, 0.00, 0.42,
+        _facade_box(mesh, pid, p, -1.16, 1.16, 0.30, 1.04, 0.00, 0.44,
                     "fountain_basin_stone", "trough.outer")
-        _facade_quad_horizontal(mesh, pid, p, -0.96, 0.96, 0.35, 0.75, 0.44,
+        _facade_quad_horizontal(mesh, pid, p, -0.92, 0.92, 0.43, 0.88, 0.46,
                                 "fountain_water", "trough.water")
-        _facade_quad(mesh, pid, p, -1.10, 0.36, 1.10, 0.49, "plinth_stone",
-                     "trough.front_lip", out=0.92)
+        _facade_box(mesh, pid, p, -1.08, 1.08, 0.92, 1.12, 0.18, 0.52,
+                    "plinth_stone", "trough.front_lip")
 
         # Kitabe plaque and abstract gold calligraphic strokes.
-        plaque_u0, plaque_u1 = -0.72, 0.72
-        plaque_z0, plaque_z1 = 3.18, 3.58
+        plaque_u0, plaque_u1 = -0.68, 0.68
+        plaque_z0, plaque_z1 = height - 0.88, height - 0.48
         _facade_quad(mesh, pid, p, plaque_u0, plaque_z0, plaque_u1, plaque_z1,
-                     "fountain_plaque_green", "inscription.green_plaque", out=0.16)
+                     "fountain_plaque_green", "inscription.green_plaque", out=0.46)
         strokes = [
-            (-0.58, 3.47, -0.18, 3.49), (-0.12, 3.48, 0.45, 3.50),
-            (-0.54, 3.36, 0.20, 3.39), (0.28, 3.36, 0.58, 3.40),
-            (-0.40, 3.25, 0.03, 3.30), (0.10, 3.27, 0.52, 3.31),
-            (-0.62, 3.31, -0.50, 3.48), (0.60, 3.23, 0.66, 3.42),
+            (-0.56, plaque_z1 - 0.11, -0.18, plaque_z1 - 0.08),
+            (-0.10, plaque_z1 - 0.09, 0.44, plaque_z1 - 0.07),
+            (-0.52, plaque_z0 + 0.21, 0.18, plaque_z0 + 0.24),
+            (0.26, plaque_z0 + 0.20, 0.56, plaque_z0 + 0.24),
+            (-0.40, plaque_z0 + 0.10, 0.03, plaque_z0 + 0.15),
+            (0.10, plaque_z0 + 0.12, 0.50, plaque_z0 + 0.16),
+            (-0.60, plaque_z0 + 0.15, -0.50, plaque_z1 - 0.12),
+            (0.58, plaque_z0 + 0.08, 0.64, plaque_z1 - 0.16),
         ]
         for i, (u0, z0, u1, z1) in enumerate(strokes):
             _facade_line(mesh, pid, p, u0, z0, u1, z1, 0.035, "fountain_gold",
-                         f"inscription.gold_stroke.{i}", out=0.175)
+                         f"inscription.gold_stroke.{i}", out=0.49)
 
         # Rosette medallions flanking the plaque.
-        _facade_disk(mesh, pid, p, -1.07, 3.36, 0.27, "plinth_stone", "rosette.left", out=0.165)
-        _facade_disk(mesh, pid, p, 1.07, 3.36, 0.27, "plinth_stone", "rosette.right", out=0.165)
-        for side, c_u in (("left", -1.07), ("right", 1.07)):
+        rosette_z = (plaque_z0 + plaque_z1) / 2.0
+        _facade_disk(mesh, pid, p, -1.03, rosette_z, 0.24, "plinth_stone", "rosette.left", out=0.45)
+        _facade_disk(mesh, pid, p, 1.03, rosette_z, 0.24, "plinth_stone", "rosette.right", out=0.45)
+        for side, c_u in (("left", -1.03), ("right", 1.03)):
             for petal in range(8):
                 ang = (math.tau * petal) / 8.0
                 u0 = c_u + math.cos(ang) * 0.07
-                z0 = 3.36 + math.sin(ang) * 0.07
+                z0 = rosette_z + math.sin(ang) * 0.07
                 u1 = c_u + math.cos(ang) * 0.21
-                z1 = 3.36 + math.sin(ang) * 0.21
+                z1 = rosette_z + math.sin(ang) * 0.21
                 _facade_line(mesh, pid, p, u0, z0, u1, z1, 0.045, "fountain_stone_dark",
-                             f"rosette.{side}.petal.{petal}", out=0.185)
+                             f"rosette.{side}.petal.{petal}", out=0.50)
 
         # Fine stone joints and side weathering strips for carved-stone scale.
-        for i, z in enumerate((0.86, 1.36, 2.02, 2.66, 3.04)):
+        for i, z in enumerate((0.86, 1.32, 1.94, 2.48, height - 1.08)):
             _facade_quad(mesh, pid, p, -facade_w / 2 + 0.32, z, facade_w / 2 - 0.32, z + 0.018,
-                         "fountain_stone_dark", f"stone_joint.horizontal.{i}", out=0.118)
+                         "fountain_stone_dark", f"stone_joint.horizontal.{i}", out=0.405)
         for i, u in enumerate((-facade_w / 2 + 0.56, facade_w / 2 - 0.56)):
-            _facade_quad(mesh, pid, p, u, 0.40, u + 0.025, 3.72,
-                         "fountain_stone_dark", f"stone_joint.vertical.{i}", out=0.118)
+            _facade_quad(mesh, pid, p, u, 0.40, u + 0.025, height - 0.42,
+                         "fountain_stone_dark", f"stone_joint.vertical.{i}", out=0.405)
 
-        mesh.metadata["photo_guided_detail"] = "Ottoman fountain: pointed niche, kitabe plaque, rosettes, trough"
+        mesh.metadata["photo_guided_detail"] = (
+            "Ottoman fountain rebuilt as low plinth + thick carved facade: "
+            "recessed pointed niche, kitabe plaque, rosettes, protruding trough"
+        )
 
 
 def _longest_edge_axis(ring: list[tuple[float, float]]) -> tuple[float, float]:
@@ -382,16 +410,25 @@ def _longest_edge_axis(ring: list[tuple[float, float]]) -> tuple[float, float]:
 
 
 def _fountain_front_frame(
-    ring: list[tuple[float, float]],
+    building: Building,
 ) -> tuple[float, float, float, float, float, float, float] | None:
+    ring = building.footprint_local
     if len(ring) < 2:
         return None
     cx_poly = sum(x for x, _ in ring) / len(ring)
     cy_poly = sum(y for _, y in ring) / len(ring)
     best = None
     best_len = 0.0
-    for i, (ax, ay) in enumerate(ring):
-        bx, by = ring[(i + 1) % len(ring)]
+    segment_edges = [
+        (s.start[0], s.start[1], s.end[0], s.end[1])
+        for s in building.wall_segments
+        if s.is_street_facing and not s.is_party_wall
+    ]
+    ring_edges = [
+        (ax, ay, ring[(i + 1) % len(ring)][0], ring[(i + 1) % len(ring)][1])
+        for i, (ax, ay) in enumerate(ring)
+    ]
+    for ax, ay, bx, by in (segment_edges or ring_edges):
         dx = bx - ax
         dy = by - ay
         length = math.hypot(dx, dy)
