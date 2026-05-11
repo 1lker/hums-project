@@ -129,12 +129,12 @@ class CourtyardGardenBuilder:
         )
 
         local_ring = [(x - c.x, y - c.y) for x, y in list(patch.exterior.coords)[:-1]]
-        ground = [mesh.add_vertex(x, y, 0.055) for x, y in reversed(local_ring)]
+        ground = [mesh.add_vertex(x, y, 0.18) for x, y in reversed(local_ring)]
         mesh.add_face(
             ground,
             role="LandscapeSurface",
             surface_id="COURTYARD-147-N50-LIGHTWELL.paving",
-            material_key="plinth_stone",
+            material_key="lightwell_paving",
         )
         _emit_lightwell_curb(mesh, c, patch)
         _emit_lightwell_paving_joints(mesh, c, patch)
@@ -175,11 +175,6 @@ def _n50_rear_lightwell_patch() -> Polygon | None:
     patch = Polygon(N50_REAR_LIGHTWELL_UTM).buffer(0)
     if patch.is_empty:
         return None
-    # Pull the paving a few centimetres off the traced building walls so it
-    # reads as open negative space and avoids z-fighting with adjacent slabs.
-    shrunk = patch.buffer(-0.035)
-    if not shrunk.is_empty and shrunk.area > 0.65:
-        patch = shrunk
     if BLOCK_GEOJSON.exists():
         block_feats = json.loads(BLOCK_GEOJSON.read_text()).get("features", [])
         if block_feats:
@@ -204,10 +199,20 @@ def _emit_lightwell_curb(mesh: BuildingMesh, origin, patch: Polygon) -> None:
             origin,
             a,
             b,
-            width=0.08,
-            z=0.072,
-            material_key="fountain_stone_dark",
-            surface_id=f"COURTYARD-147-N50-LIGHTWELL.curb.{idx}",
+            width=0.16,
+            z=0.205,
+            material_key="lightwell_curb",
+            surface_id=f"COURTYARD-147-N50-LIGHTWELL.curb.top.{idx}",
+        )
+        _emit_curb_face(
+            mesh,
+            origin,
+            a,
+            b,
+            z0=0.03,
+            z1=0.28,
+            material_key="lightwell_curb",
+            surface_id=f"COURTYARD-147-N50-LIGHTWELL.curb.face.{idx}",
         )
 
 
@@ -230,10 +235,33 @@ def _emit_lightwell_paving_joints(mesh: BuildingMesh, origin, patch: Polygon) ->
             a,
             b,
             width=0.025,
-            z=0.078,
-            material_key="fountain_stone_dark",
+            z=0.225,
+            material_key="lightwell_curb",
             surface_id=f"COURTYARD-147-N50-LIGHTWELL.paving.{name}",
         )
+
+
+def _emit_curb_face(
+    mesh: BuildingMesh,
+    origin,
+    a: tuple[float, float],
+    b: tuple[float, float],
+    z0: float,
+    z1: float,
+    material_key: str,
+    surface_id: str,
+) -> None:
+    ax, ay = a[0] - origin.x, a[1] - origin.y
+    bx, by = b[0] - origin.x, b[1] - origin.y
+    mesh.add_quad(
+        p0=(ax, ay, z0),
+        p1=(bx, by, z0),
+        p2=(bx, by, z1),
+        p3=(ax, ay, z1),
+        role="LandscapeSurface",
+        surface_id=surface_id,
+        material_key=material_key,
+    )
 
 
 def _emit_ground_strip(
