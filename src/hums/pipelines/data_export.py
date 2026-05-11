@@ -1183,46 +1183,71 @@ def _html_page(data: dict[str, Any]) -> str:
       border-radius: 9px;
     }
     .records { padding: 8px; }
-    .record {
-      width: 100%;
-      display: grid;
-      grid-template-columns: minmax(150px, 0.8fr) minmax(180px, 1fr) minmax(190px, 1fr) minmax(180px, 1fr) minmax(150px, 0.8fr);
-      gap: 10px;
-      align-items: start;
-      margin: 0 0 8px;
-      padding: 11px 12px;
-      border: 1px solid #e1d8cc;
-      border-radius: 8px;
-      background: #fffbf4;
-      text-align: left;
-      color: inherit;
-      cursor: pointer;
-    }
-    .record:hover { border-color: #bca891; background: #fbf7ef; }
-    .record.selected { border-color: var(--green); box-shadow: inset 4px 0 0 var(--green); }
-    .record-title { font-weight: 760; font-size: 14px; overflow-wrap: anywhere; }
-    .field-label {
-      display: block;
-      margin-bottom: 3px;
+	    .record {
+	      width: 100%;
+	      display: block;
+	      margin: 0 0 8px;
+	      padding: 12px 14px;
+	      border: 1px solid #e1d8cc;
+	      border-radius: 8px;
+	      background: #fffbf4;
+	      text-align: left;
+	      color: inherit;
+	      cursor: pointer;
+	      overflow: hidden;
+	    }
+	    .record:hover { border-color: #bca891; background: #fbf7ef; }
+	    .record.selected { border-color: var(--green); box-shadow: inset 4px 0 0 var(--green); }
+	    .record-main {
+	      display: grid;
+	      grid-template-columns: minmax(0, 1fr) auto;
+	      gap: 12px;
+	      align-items: start;
+	    }
+	    .record-title { display: block; font-weight: 760; font-size: 15px; overflow-wrap: anywhere; }
+	    .record-subtitle {
+	      display: block;
+	      margin-top: 3px;
+	      color: var(--muted);
+	      font-size: 12px;
+	      line-height: 1.3;
+	      overflow-wrap: anywhere;
+	    }
+	    .record-fields {
+	      display: grid;
+	      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+	      gap: 11px 14px;
+	      margin-top: 12px;
+	    }
+	    .field { min-width: 0; }
+	    .field-label {
+	      display: block;
+	      margin-bottom: 3px;
       color: var(--muted);
       font-size: 10px;
       font-weight: 700;
       letter-spacing: .02em;
       text-transform: uppercase;
     }
-    .field-value {
-      display: block;
-      min-width: 0;
-      font-size: 13px;
-      line-height: 1.32;
-      overflow-wrap: anywhere;
-    }
-    .summary-note {
-      display: -webkit-box;
-      -webkit-line-clamp: 3;
-      -webkit-box-orient: vertical;
-      overflow: hidden;
-    }
+	    .field-value {
+	      display: block;
+	      min-width: 0;
+	      font-size: 13px;
+	      line-height: 1.32;
+	      overflow-wrap: anywhere;
+	    }
+	    .record-notes {
+	      min-width: 0;
+	      margin-top: 12px;
+	      padding-top: 10px;
+	      border-top: 1px solid #eadfd2;
+	    }
+	    .summary-note {
+	      display: -webkit-box;
+	      -webkit-line-clamp: 2;
+	      -webkit-box-orient: vertical;
+	      overflow: hidden;
+	    }
     .pill {
       display: inline-flex;
       align-items: center;
@@ -1230,11 +1255,13 @@ def _html_page(data: dict[str, Any]) -> str:
       border: 1px solid #c6b7a5;
       border-radius: 999px;
       padding: 2px 8px;
-      background: #fff;
-      color: #332b24;
-      font-size: 12px;
-      white-space: nowrap;
-    }
+	      background: #fff;
+	      color: #332b24;
+	      font-size: 12px;
+	      white-space: normal;
+	      overflow-wrap: anywhere;
+	      max-width: 100%;
+	    }
     .pill.yes { background: #e7f2ee; border-color: #91b5a8; color: #21483f; }
     .pill.no { background: #f7efe5; border-color: #d0b99f; color: #684731; }
     .pill.a { background: #eee8dc; }
@@ -1292,22 +1319,21 @@ def _html_page(data: dict[str, Any]) -> str:
       color: var(--muted);
       font-size: 13px;
     }
-    @media (max-width: 1200px) {
-      body { overflow: auto; }
-      .shell { min-height: 100vh; height: auto; }
-      .workspace { grid-template-columns: 1fr; }
-      .detail { min-height: 520px; }
-      .record { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-      .record .note-field { grid-column: 1 / -1; }
-    }
-    @media (max-width: 760px) {
-      header { grid-template-columns: 1fr; padding: 14px; }
-      nav { justify-content: start; }
-      main { padding: 12px 14px 16px; }
-      .stats, .toolbar, .record, .kv { grid-template-columns: 1fr; }
-      .count { justify-self: start; }
-      .detail { min-height: 620px; }
-    }
+	    @media (max-width: 1200px) {
+	      body { overflow: auto; }
+	      .shell { min-height: 100vh; height: auto; }
+	      .workspace { grid-template-columns: 1fr; }
+	      .detail { min-height: 520px; }
+	      .record-fields { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+	    }
+	    @media (max-width: 760px) {
+	      header { grid-template-columns: 1fr; padding: 14px; }
+	      nav { justify-content: start; }
+	      main { padding: 12px 14px 16px; }
+	      .stats, .toolbar, .record-main, .record-fields, .kv { grid-template-columns: 1fr; }
+	      .count { justify-self: start; }
+	      .detail { min-height: 620px; }
+	    }
   </style>
 </head>
 <body>
