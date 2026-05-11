@@ -224,16 +224,23 @@ def _emit_magasin_door(
 ) -> None:
     """Shop/magasin entrance: shuttered double-leaf door, no invented glass."""
 
+    variant = _magasin_variant(pid, seg_idx, door_idx)
+    door_key = ("magasin_door_dark", "magasin_door_weathered", "magasin_door_ochre")[variant % 3]
+    trim_key = ("magasin_trim_dark", "magasin_trim_brown", "magasin_trim_aged")[variant % 3]
+    shutter_key = ("magasin_shutter_warm", "magasin_shutter_dark", "magasin_shutter_faded")[variant % 3]
+    sign_key = ("magasin_sign_umber", "magasin_sign_green", "magasin_sign_slate", "magasin_sign_ochre")[variant % 4]
+    canvas_key = ("magasin_canvas_tan", "magasin_canvas_grey", "magasin_canvas_olive")[variant % 3]
+
     def p(u: float, z: float, inset: float = -0.035) -> tuple[float, float, float]:
         return (sx + ux * u + nx * inset, sy + uy * u + ny * inset, z)
 
-    pad = min(0.08, max(0.03, (u1 - u0) * 0.08))
+    pad = min(0.12, max(0.035, (u1 - u0) * (0.055 + 0.01 * (variant % 4))))
     lu0 = u0 + pad
     lu1 = (u0 + u1) / 2.0
     ru0 = lu1
     ru1 = u1 - pad
     z_bot = z0 + 0.06
-    z_top = z1 - 0.08
+    z_top = z1 - (0.06 + 0.035 * (variant % 2))
     if ru1 - lu0 <= 0.35 or z_top - z_bot <= 0.6:
         return
 
@@ -245,16 +252,17 @@ def _emit_magasin_door(
             p3=p(b, z_bot),
             role="Door",
             surface_id=f"{pid}.magasin_door.{face}.{seg_idx}.{door_idx}.{name}",
-            material_key="magasin_door_panel",
+            material_key=door_key,
         )
 
     # Small painted lintel/sign board: not a textual sign, just the storefront
     # band that makes Mg entries read differently from domestic doors.
-    board_bot = z1 + 0.05
-    board_top = z1 + 0.48
-    board_u0 = max(u0 - 0.08, lu0 - 0.18)
-    board_u1 = min(u1 + 0.08, ru1 + 0.18)
-    _emit_magasin_stall_riser(mesh, pid, face, seg_idx, door_idx, p, board_u0, board_u1, z0)
+    board_h = (0.30, 0.38, 0.46, 0.34)[variant % 4]
+    board_bot = z1 + (0.04 if variant % 2 else 0.09)
+    board_top = board_bot + board_h
+    board_u0 = max(u0 - 0.10, lu0 - (0.14 + 0.04 * (variant % 2)))
+    board_u1 = min(u1 + 0.10, ru1 + (0.14 + 0.03 * ((variant + 1) % 2)))
+    _emit_magasin_stall_riser(mesh, pid, face, seg_idx, door_idx, p, board_u0, board_u1, z0, variant)
     mesh.add_quad(
         p0=p(board_u0, board_bot, 0.065),
         p1=p(board_u0, board_top, 0.065),
@@ -262,9 +270,17 @@ def _emit_magasin_door(
         p3=p(board_u1, board_bot, 0.065),
         role="Door",
         surface_id=f"{pid}.magasin_door.{face}.{seg_idx}.{door_idx}.lintel_board",
-        material_key="magasin_sign",
+        material_key=sign_key,
     )
-    _emit_magasin_canopy(mesh, pid, face, seg_idx, door_idx, sx, sy, ux, uy, nx, ny, board_u0, board_u1, board_top)
+    if variant % 5 != 1:
+        _emit_magasin_canopy(
+            mesh, pid, face, seg_idx, door_idx, sx, sy, ux, uy, nx, ny,
+            board_u0, board_u1, board_top,
+            depth=0.30 + 0.07 * (variant % 4),
+            drop=0.08 + 0.035 * ((variant + 1) % 3),
+            material_key=canvas_key,
+            valance_key=sign_key,
+        )
 
     # Center meeting stile.
     stile_w = min(0.045, max(0.025, (u1 - u0) * 0.04))
@@ -275,7 +291,7 @@ def _emit_magasin_door(
         p3=p(lu1 + stile_w, z_bot, -0.015),
         role="Door",
         surface_id=f"{pid}.magasin_door.{face}.{seg_idx}.{door_idx}.center_stile",
-        material_key="magasin_trim",
+        material_key=trim_key,
     )
 
     # Strong side/header frame, so the storefront reads at model scale.
@@ -292,29 +308,17 @@ def _emit_magasin_door(
             p3=p(b, zz0, -0.005),
             role="Door",
             surface_id=f"{pid}.magasin_door.{face}.{seg_idx}.{door_idx}.{name}",
-            material_key="magasin_trim",
+            material_key=trim_key,
         )
 
-    # Horizontal shutter/plank lines: reads as store/workshop entrance, not a
-    # domestic glazed transom.
-    strip_h = 0.055
-    z = z_bot + 0.30
-    n = 0
-    while z + strip_h < z_top - 0.16:
-        mesh.add_quad(
-            p0=p(lu0 + frame_w, z, 0.005),
-            p1=p(lu0 + frame_w, z + strip_h, 0.005),
-            p2=p(ru1 - frame_w, z + strip_h, 0.005),
-            p3=p(ru1 - frame_w, z, 0.005),
-            role="Door",
-            surface_id=f"{pid}.magasin_door.{face}.{seg_idx}.{door_idx}.shutter.{n}",
-            material_key="magasin_shutter",
-        )
-        z += 0.24
-        n += 1
+    _emit_magasin_slats(
+        mesh, pid, face, seg_idx, door_idx, p,
+        lu0 + frame_w, ru1 - frame_w, z_bot + 0.18, z_top - 0.16,
+        variant, shutter_key,
+    )
 
 
-def _emit_magasin_stall_riser(mesh, pid, face, seg_idx, door_idx, p, u0, u1, z0) -> None:
+def _emit_magasin_stall_riser(mesh, pid, face, seg_idx, door_idx, p, u0, u1, z0, variant: int) -> None:
     """Low masonry/wood threshold strip common to old small-shop fronts."""
     top = z0 + 0.34
     mesh.add_quad(
@@ -324,7 +328,7 @@ def _emit_magasin_stall_riser(mesh, pid, face, seg_idx, door_idx, p, u0, u1, z0)
         p3=p(u1, z0, 0.055),
         role="PlinthSurface",
         surface_id=f"{pid}.magasin_storefront.{face}.{seg_idx}.{door_idx}.stall_riser",
-        material_key="plinth_stone",
+        material_key="plinth_stone" if variant % 3 else "magasin_trim_aged",
     )
 
 
