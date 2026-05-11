@@ -24,18 +24,18 @@ COURTYARD_147_TREE_SOURCE = (
 )
 
 N50_REAR_LIGHTWELL_UTM = (
-    (670361.54, 4539706.88),
-    (670358.18, 4539708.67),
-    (670359.46, 4539711.06),
-    (670362.81, 4539709.27),
+    (670362.922, 4539709.486),
+    (670364.232, 4539712.054),
+    (670362.941, 4539712.713),
+    (670361.631, 4539710.145),
 )
-N50_LIGHTWELL_RIM_Z = 10.34
+N50_LIGHTWELL_RIM_Z = 0.28
 N50_LIGHTWELL_RIM_WIDTH = 0.26
 N50_REAR_LIGHTWELL_SOURCE = (
     "Georeferenced rectangular negative space at parcel 50, bounded by the "
     "N-50 and N-52/54 traced KML/SHP footprints and confirmed in the "
-    "building-entrence-50 Pervititch crop. The traced N-50 footprint overlaps "
-    "this map void, so the viewer renders a visible open shaft/rim."
+    "building-entrence-50 Pervititch crop. This is a side/rear notch in the "
+    "N-50 mass, not a separate grey block."
 )
 
 GARDEN_PALETTE = FacadePalette(
@@ -120,10 +120,9 @@ class CourtyardGardenBuilder:
                 "source_footprint_file": "N-50 / N-52-54 georeferenced KML negative space",
                 "notes": {
                     "map_reading": (
-                        "Small rectangular open rear area at parcel 50. The "
-                        "KML/SHP footprint overlaps this map void, so it is "
-                        "modeled as a visible open lightwell shaft/rim rather "
-                        "than a hidden paving patch or an extra building."
+                    "Small rectangular open rear area at parcel 50. The "
+                        "N-50 mass is cut to an L plan around this void; this "
+                        "mesh only marks the open paving at ground level."
                     ),
                     "ring_utm": N50_REAR_LIGHTWELL_UTM,
                     "source": N50_REAR_LIGHTWELL_SOURCE,
@@ -132,17 +131,15 @@ class CourtyardGardenBuilder:
         )
 
         local_ring = [(x - c.x, y - c.y) for x, y in list(patch.exterior.coords)[:-1]]
-        ground = [mesh.add_vertex(x, y, 0.12) for x, y in reversed(local_ring)]
+        ground = [mesh.add_vertex(x, y, 0.045) for x, y in reversed(local_ring)]
         mesh.add_face(
             ground,
             role="LandscapeSurface",
             surface_id="COURTYARD-147-N50-LIGHTWELL.paving",
-            material_key="lightwell_shadow",
+            material_key="lightwell_paving",
         )
-        _emit_lightwell_shaft(mesh, c, patch)
         _emit_lightwell_curb(mesh, c, patch)
         _emit_lightwell_paving_joints(mesh, c, patch)
-        _emit_lightwell_roof_opening(mesh, c, patch)
         return mesh
 
 

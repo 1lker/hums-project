@@ -30,6 +30,7 @@ REPORT_DIR = OUTPUT / "reports"
 
 MANUAL_SCENE_REPLACEMENTS = {
     "N-40-42": {"N-40", "N-42"},
+    "N-50": {"N-50"},
     "N-52-54-E2": {"N-52", "N-54", "E-2"},
     "S-41-43-45-E16": {"S-41", "S-43", "S-45", "E-16"},
     "W-34-36-FIRIN": {"W-34", "W-36"},
