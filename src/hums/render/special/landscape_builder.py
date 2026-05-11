@@ -122,9 +122,10 @@ class CourtyardGardenBuilder:
                 "source_footprint_file": "N-50 / N-52-54 georeferenced KML negative space",
                 "notes": {
                     "map_reading": (
-                    "Small rectangular open rear area at parcel 50. The "
+                        "Small rectangular open rear area at parcel 50. The "
                         "N-50 mass is cut to an L plan around this void; this "
-                        "mesh only marks the open paving at ground level."
+                        "mesh only marks flush ground paving, with no curb or "
+                        "wall around the cut."
                     ),
                     "ring_utm": N50_REAR_LIGHTWELL_UTM,
                     "source": N50_REAR_LIGHTWELL_SOURCE,
@@ -133,14 +134,13 @@ class CourtyardGardenBuilder:
         )
 
         local_ring = [(x - c.x, y - c.y) for x, y in list(patch.exterior.coords)[:-1]]
-        ground = [mesh.add_vertex(x, y, 0.045) for x, y in reversed(local_ring)]
+        ground = [mesh.add_vertex(x, y, 0.012) for x, y in reversed(local_ring)]
         mesh.add_face(
             ground,
             role="LandscapeSurface",
             surface_id="COURTYARD-147-N50-LIGHTWELL.paving",
             material_key="lightwell_paving",
         )
-        _emit_lightwell_curb(mesh, c, patch)
         _emit_lightwell_paving_joints(mesh, c, patch)
         return mesh
 
@@ -281,8 +281,8 @@ def _emit_lightwell_paving_joints(mesh: BuildingMesh, origin, patch: Polygon) ->
             a,
             b,
             width=0.025,
-            z=0.225,
-            material_key="lightwell_curb",
+            z=0.018,
+            material_key="lightwell_paving",
             surface_id=f"COURTYARD-147-N50-LIGHTWELL.paving.{name}",
         )
 
