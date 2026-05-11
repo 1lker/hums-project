@@ -108,6 +108,7 @@ class BuildingBuilder:
         if pid.startswith("W-32#"):
             self._place_w32_magazine_openings(pid, segments, storeys, tracker)
         self._place_numbered_entrance_fallback(pid, parcel, source_file, segments, tracker)
+        self._place_east_row_rear_map_window(pid, segments, storeys, tracker)
 
         return Building(
             parcel_id=pid,
@@ -222,6 +223,56 @@ class BuildingBuilder:
             {"parcel_number": parcel.get("parcel_number"), "source_file": source_file},
         )
 
+    def _place_east_row_rear_map_window(self, pid: str, segments, storeys, tracker) -> None:
+        """User/map-confirmed rear-center window for east-row magazines 4/6/8/10.
+
+        This is deliberately not a generic shop-window rule. These small
+        shops otherwise have no upper-window logic because they are one-storey,
+        and E-4/E-6 rear edges can be over-classified as party walls by the
+        georeferenced footprint overlap. The Pervititch reread marks one
+        centered rear opening for each of 4, 6, 8 and 10.
+        """
+        if pid not in {"E-4", "E-6", "E-8", "E-10"}:
+            return
+        if any(
+            op.kind == "window" and op.color_source == "map:pervititch:east-row-rear-center-window"
+            for seg in segments
+            for op in seg.openings
+        ):
+            return
+
+        seg = _rear_segment_for_east_row_shop(segments)
+        if seg is None or seg.length_m < 1.05:
+            tracker.record(pid, "wall.rear_center_window", "map:pervititch", "no eligible rear segment")
+            return
+
+        # The map evidence is a modest rear window, not a street shopfront.
+        seg.is_party_wall = False
+        seg.is_street_facing = True
+        seg.adjacent_height_m = None
+        width = min(0.90, max(0.62, seg.length_m - 0.80))
+        pos = max(0.18, (seg.length_m - width) / 2.0)
+        seg.openings.append(Opening(
+            kind="window",
+            storey_level=0,
+            position_along_wall_m=round(pos, 3),
+            width_m=round(width, 3),
+            height_m=1.05,
+            sill_m=1.35,
+            style="rectangular",
+            pane_layout="2x2",
+            has_shutters=False,
+            has_balcony=False,
+            frame_profile="moulded",
+            color_source="map:pervititch:east-row-rear-center-window",
+        ))
+        tracker.record(
+            pid,
+            f"wall[{seg.face}].rear_center_window",
+            "map:pervititch",
+            "one centered rear-facing window visible for east-row magazine",
+        )
+
     def _storeys(self, parcel: dict, tracker: AssumptionTracker, structure_type: str = "building") -> list[Storey]:
         # Monuments (çeşme etc.) get one facade-storey; no upper floors/basement.
         if structure_type == "fountain":
@@ -300,6 +351,29 @@ def _gf_use_label(gf: dict, parcel: dict) -> str:
 
 def _above_grade_height(storeys: list[Storey]) -> float:
     return sum(s.height_m for s in storeys if not s.is_basement)
+
+
+def _rear_segment_for_east_row_shop(segments) -> object | None:
+    west = [s for s in segments if s.face == "W" and s.length_m > 1.0]
+    if west:
+        return max(west, key=lambda s: s.length_m)
+
+    door_idx = None
+    for idx, seg in enumerate(segments):
+        if any(op.kind == "door" for op in seg.openings):
+            door_idx = idx
+            break
+    if door_idx is not None and segments:
+        opposite = segments[(door_idx + len(segments) // 2) % len(segments)]
+        if opposite.length_m > 1.0:
+            return opposite
+
+    candidates = [
+        s for s in segments
+        if s.length_m > 1.0
+        and not any(op.kind == "door" for op in s.openings)
+    ]
+    return max(candidates, key=lambda s: s.length_m) if candidates else None
 
 
 def _snapshot(parcel: dict) -> dict:
