@@ -217,9 +217,9 @@ def _material_for(root: gl.GLTF2, palette, material_key: str, meta: dict) -> int
     roughness = 0.85
     if material_key in {"window_glass", "church_glass_blue"}:
         roughness = 0.25
-    elif material_key in {"sheet_metal_grey", "dome_lead"}:
+    elif material_key in {"sheet_metal_grey", "dome_lead", "dome_lead_dark", "church_bell_bronze"}:
         metallic = 0.18
-        roughness = 0.42
+        roughness = 0.46 if material_key == "dome_lead_dark" else 0.42
     elif material_key in {"tile_terracotta", "tile_marseille", "vault_roof_masonry"}:
         roughness = 0.92
     elif material_key == "roof_unknown_muted":
@@ -313,7 +313,8 @@ def _color_for(palette, material_key: str) -> tuple[int, int, int]:
         "fountain_tile_red": (148, 70, 54),
         "fountain_side_door": (202, 198, 184),
         "fountain_side_door_shadow": (82, 75, 66),
-        "dome_lead": (112, 120, 122),
+        "dome_lead": (84, 88, 88),
+        "dome_lead_dark": (56, 58, 58),
         "balcony_iron": (45, 40, 38),
         "wood_grain_dark": (96, 61, 34),
         "wood_batten": (118, 76, 42),
@@ -335,6 +336,7 @@ def _color_for(palette, material_key: str) -> tuple[int, int, int]:
         "church_glass_blue": (154, 183, 186),
         "church_plaque_blue": (63, 109, 137),
         "church_lamp_gold": (202, 154, 62),
+        "church_bell_bronze": (82, 58, 35),
     }
     v = mapping.get(material_key, fallback)
     return (int(v[0]), int(v[1]), int(v[2]))

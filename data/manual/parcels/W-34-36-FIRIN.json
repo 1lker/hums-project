@@ -3,7 +3,7 @@
   "label": "W-34-36-FIRIN",
   "verified": false,
 
-  "map_notes": "`building-entrence-34-36-38` traces the Firin block on the north-west corner, but the source override notes that 38 belongs to the separate W-32/open-magazine trace, not to this bakery mass. The map text on this footprint reads Firin with VF/MB, 2 1/2, TR.4 and 3+ construction notes, so do not render it as a row of Mg./magazine storefronts. Model one connected masonry bakery mass with one coherent TR/tile roof. Keep one Firin street/service entrance for W-34 on the short diagonal/kinked west corner where the map/user correction places the bakery entry; W-36 is treated as internal connection only. User-supplied 2024 street photos are used only as facade-material language here: pale plaster masonry and restrained bakery/service base, not copied modern signage or changed footprint geometry.",
+  "map_notes": "`building-entrence-34-36-38` traces the Firin block on the north-west corner. The map text on this footprint reads Firin with VF/MB, 2 1/2, TR.4 and 3+ construction notes, so do not render it as a row of Mg./magazine storefronts. Model one connected masonry bakery mass with one coherent TR/tile roof, but keep the visible numbered entries 34, 36 and 38 as three distinct bakery/service entrances on the street frontage. The 34/Firin entry sits on the short diagonal/kinked west corner; 36 and 38 remain on the long west frontage. User-supplied 2024 street photos are used only as facade-material language here: pale plaster masonry and restrained bakery/service base, not copied modern signage or changed footprint geometry.",
 
   "footprint_ref": "building-entrence-34-36-38.shp",
   "footprint_mode": "traced",
@@ -30,7 +30,7 @@
         "has_skylight": false
       },
       "footprint_fraction": [0.0, 1.0],
-      "map_labels": ["Firin", "VF", "MB", "2 1/2", "TR.4", "3+", "34", "36"]
+      "map_labels": ["Firin", "VF", "MB", "2 1/2", "TR.4", "3+", "34", "36", "38"]
     }
   ],
 
@@ -42,8 +42,8 @@
       {
         "face": "W",
         "zone": "bakery_mass",
-        "count": 1,
-        "description": "Single Firin street/service entrance for 34 on the west frontage; 36 has no clear street arrow and is treated as internal only. Do not render magazine/Mg. shutters here."
+        "count": 3,
+        "description": "Three numbered Firin/bakery service entrances for 34, 36 and 38. The 34 entry belongs on the short diagonal/kinked west corner; 36 and 38 stay on the long west frontage. Do not render magazine/Mg. shutters here."
       }
     ],
     "shop_windows": false,

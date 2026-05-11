@@ -449,7 +449,7 @@ class ManualRenderer:
         moved.height_m = max(moved.height_m, 2.55)
         moved.style = "rectangular"
         moved.frame_profile = "bakery_service"
-        moved.color_source = "map:pervititch:W-34-36-FIRIN:single-firin-service-entry"
+        moved.color_source = "map:pervititch:W-34-36-FIRIN:numbered-firin-entry-34"
         corner_seg.is_street_facing = True
         corner_seg.is_party_wall = False
         corner_seg.hatch_pattern = "_street"
@@ -462,7 +462,7 @@ class ManualRenderer:
             zone_pid,
             f"wall[{corner_seg.face}].leftmost_corner_bakery_entry",
             "map+user-correction:pervititch",
-            "single Firin street/service entrance belongs on the short diagonal/kinked corner segment; W-36 is internal-only and this is not an Mg./magazine storefront row",
+            "Firin entry 34 belongs on the short diagonal/kinked corner segment; numbered entries 36 and 38 remain on the long west frontage; this is not an Mg./magazine storefront row",
         )
 
     def _place_explicit_vitrine(self, label: ManualLabel, zone: Zone,
