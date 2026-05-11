@@ -18,7 +18,7 @@ import json
 import math
 from pathlib import Path
 
-from shapely.geometry import shape
+from shapely.geometry import Polygon, shape
 
 from ..common.heritage_profile import PROFILE
 from ..common.paths import BLOCK_GEOJSON, FOOTPRINTS_GEOJSON, PROJECT_ROOT
@@ -39,6 +39,7 @@ from ..modeling.wall_segmenter import WallSegmenter
 from ..render.backends.gltf_backend import GltfBackend
 from ..render.building_geometry_builder import BuildingGeometryBuilder
 from ..render.scene_assembler import SceneAssembler
+from ..render.special.landscape_builder import N50_REAR_LIGHTWELL_UTM
 
 
 OUT_ROOT = PROJECT_ROOT / "output" / "buildings"
@@ -776,6 +777,17 @@ def _zone_wants_vitrine(zone: Zone) -> bool:
 
 
 def _manual_footprint(poly, label: ManualLabel):
+    if label.footprint_mode == "n50_lightwell_cut":
+        cut = poly.difference(Polygon(N50_REAR_LIGHTWELL_UTM).buffer(0)).buffer(0)
+        if cut.is_empty:
+            return poly
+        if cut.geom_type == "Polygon":
+            return cut
+        if hasattr(cut, "geoms"):
+            polys = [g for g in cut.geoms if g.geom_type == "Polygon" and g.area > 0.5]
+            if polys:
+                return max(polys, key=lambda g: g.area)
+        return poly
     if label.footprint_mode == "minimum_rotated_rectangle":
         return poly.minimum_rotated_rectangle
     return poly
