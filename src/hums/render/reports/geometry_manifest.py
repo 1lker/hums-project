@@ -279,9 +279,15 @@ def _write_scene_source_audit(scene: SceneGraph, path: Path) -> None:
         source = mesh.metadata.get("source_footprint_file") or ""
         manual = mesh.metadata.get("manual_scene_replacement") or ""
         footprint_source = mesh.metadata.get("footprint_source") or ""
+        structure_type = mesh.metadata.get("structure_type") or ""
         warning = ""
         if footprint_source not in {"traced"}:
             warning = "not traced"
+        if footprint_source == "map-interpreted" and structure_type in {
+            "courtyard_garden",
+            "courtyard_lightwell",
+        }:
+            warning = ""
         if mesh.parcel_id.startswith("INT-"):
             warning = "independent INT mesh should not be visible"
         if not source and not manual and mesh.parcel_id != "CHURCH":
