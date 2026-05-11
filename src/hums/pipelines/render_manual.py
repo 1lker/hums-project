@@ -841,11 +841,12 @@ def _n50_l_plan_zone_polys(label: ManualLabel, footprint: Polygon) -> dict[str, 
     l_plan = footprint.difference(Polygon(N50_REAR_LIGHTWELL_UTM).buffer(0)).buffer(0)
     l_plan = _largest_polygon(l_plan) or footprint
     front_cut = _n50_local_band(N50_FRONT_SPLIT_LOCAL_Y, 11.40, -0.25, 4.45)
+    rear_cut = _n50_local_band(-0.25, N50_FRONT_SPLIT_LOCAL_Y, -0.25, 4.45)
     front = _largest_polygon(l_plan.intersection(front_cut).buffer(0))
     if front is None or front.area < 1.0:
         return {}
 
-    rear = _largest_polygon(l_plan.difference(front).buffer(0))
+    rear = _largest_polygon(l_plan.intersection(rear_cut).buffer(0))
     if rear is None or rear.area < 1.0:
         return {}
 
