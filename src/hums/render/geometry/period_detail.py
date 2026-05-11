@@ -131,52 +131,54 @@ class PeriodDetail:
             def p(u: float, z: float, out: float = 0.055) -> tuple[float, float, float]:
                 return (sx + ux * u + nx * out, sy + uy * u + ny * out, z)
 
-            u0 = 0.08
-            u1 = length - 0.08
-            if u1 - u0 <= 0.5:
+            full_u0 = 0.08
+            full_u1 = length - 0.08
+            if full_u1 - full_u0 <= 0.5:
                 continue
 
             # Continuous low stall/plinth band, common to old street shops.
             mesh.add_quad(
-                p0=p(u0, 0.0),
-                p1=p(u0, base_h),
-                p2=p(u1, base_h),
-                p3=p(u1, 0.0),
+                p0=p(full_u0, 0.0),
+                p1=p(full_u0, base_h),
+                p2=p(full_u1, base_h),
+                p3=p(full_u1, 0.0),
                 role="PlinthSurface",
                 surface_id=f"{pid}.magasin_frontage.{seg.face}.{idx}.base",
                 material_key=plinth_key,
             )
 
-            # Narrow fascia/sign board above the shopfront zone. This is a
-            # material cue only, not text signage or an invented opening.
-            mesh.add_quad(
-                p0=p(u0, fascia_bot, 0.06),
-                p1=p(u0, fascia_top, 0.06),
-                p2=p(u1, fascia_top, 0.06),
-                p3=p(u1, fascia_bot, 0.06),
-                role="CorniceSurface",
-                surface_id=f"{pid}.magasin_frontage.{seg.face}.{idx}.fascia",
-                material_key=sign_key,
-            )
-
-            # Thin end pilasters/frame strips make each shopfront read as a
-            # built facade instead of a repeated domestic door pasted on.
-            strip_w = min(0.12, max(0.07, length * 0.025))
-            for name, a, b in (
-                ("left_frame", u0, min(u0 + strip_w, u1)),
-                ("right_frame", max(u1 - strip_w, u0), u1),
-            ):
-                if b - a <= 0.03:
-                    continue
+            for bay_idx, (u0, u1, source) in enumerate(_magasin_frontage_bays(seg, length)):
+                # Narrow fascia/sign board above the shopfront zone. This is a
+                # material cue only, not text signage or an invented opening.
                 mesh.add_quad(
-                    p0=p(a, base_h),
-                    p1=p(a, fascia_top),
-                    p2=p(b, fascia_top),
-                    p3=p(b, base_h),
-                    role="JambSurface",
-                    surface_id=f"{pid}.magasin_frontage.{seg.face}.{idx}.{name}",
-                    material_key=trim_key,
+                    p0=p(u0, fascia_bot, 0.06),
+                    p1=p(u0, fascia_top, 0.06),
+                    p2=p(u1, fascia_top, 0.06),
+                    p3=p(u1, fascia_bot, 0.06),
+                    role="CorniceSurface",
+                    surface_id=f"{pid}.magasin_frontage.{seg.face}.{idx}.fascia.{bay_idx}.{source}",
+                    material_key=sign_key,
                 )
+
+                # Thin end pilasters/frame strips belong to the actual shop
+                # bay around the mapped door, not the whole parcel segment.
+                bay_w = u1 - u0
+                strip_w = min(0.11, max(0.055, bay_w * 0.045))
+                for name, a, b in (
+                    ("left_frame", u0, min(u0 + strip_w, u1)),
+                    ("right_frame", max(u1 - strip_w, u0), u1),
+                ):
+                    if b - a <= 0.03:
+                        continue
+                    mesh.add_quad(
+                        p0=p(a, base_h),
+                        p1=p(a, fascia_top),
+                        p2=p(b, fascia_top),
+                        p3=p(b, base_h),
+                        role="JambSurface",
+                        surface_id=f"{pid}.magasin_frontage.{seg.face}.{idx}.{bay_idx}.{name}.{source}",
+                        material_key=trim_key,
+                    )
 
     # ---- dentil band under cornice -----------------------------------------
     def _emit_dentils(self, mesh: BuildingMesh, building: Building, eaves_z: float) -> None:
