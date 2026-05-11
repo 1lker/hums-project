@@ -1569,17 +1569,31 @@ def _html_page(data: dict[str, Any]) -> str:
       `).join('')}</div>`;
     }
 
-    function bindControls() {
-      document.getElementById('q').addEventListener('input', e => { query = e.target.value; selectedIndex = 0; render(); });
-      document.getElementById('mat').addEventListener('change', e => { material = e.target.value; selectedIndex = 0; render(); });
-      document.getElementById('manual').addEventListener('change', e => { manual = e.target.value; selectedIndex = 0; render(); });
-      document.getElementById('roof').addEventListener('change', e => { roof = e.target.value; selectedIndex = 0; render(); });
-      document.querySelectorAll('[data-row]').forEach(btn => {
-        btn.addEventListener('click', () => { selectedIndex = Number(btn.dataset.row || 0); render(); });
-      });
-    }
+	    function bindControls() {
+	      document.getElementById('q').addEventListener('input', e => { query = e.target.value; selectedIndex = 0; render(); });
+	      document.getElementById('mat').addEventListener('change', e => { material = e.target.value; selectedIndex = 0; render(); });
+	      document.getElementById('manual').addEventListener('change', e => { manual = e.target.value; selectedIndex = 0; render(); });
+	      document.getElementById('roof').addEventListener('change', e => { roof = e.target.value; selectedIndex = 0; render(); });
+	      document.querySelectorAll('[data-row]').forEach(btn => {
+	        btn.addEventListener('click', () => {
+	          selectedIndex = Number(btn.dataset.row || 0);
+	          updateSelectionOnly();
+	        });
+	      });
+	    }
 
-    function value(row, key) {
+	    function updateSelectionOnly() {
+	      const rows = filteredRows();
+	      document.querySelectorAll('[data-row]').forEach(btn => {
+	        btn.classList.toggle('selected', Number(btn.dataset.row || 0) === selectedIndex);
+	      });
+	      const detailEl = document.querySelector('.detail');
+	      if (detailEl) {
+	        detailEl.outerHTML = detail(rows[selectedIndex] || null);
+	      }
+	    }
+
+	    function value(row, key) {
       const v = row[key];
       return v == null || v === '' ? '—' : String(v);
     }
