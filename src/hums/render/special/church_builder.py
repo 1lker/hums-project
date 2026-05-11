@@ -7,7 +7,7 @@ Orthodox cruciform basilica model:
   2. Drum — a tall cylinder sitting on the centre of the body.
   3. Kubbe — UV hemisphere above the drum + a tiny lantern on top.
   4. Plinth band — stone skirting around the body base.
-  5. Clocher — tall bell tower at the south-west corner with pyramidal cap.
+  5. Clocher — tall bell tower on the map-marked lower-right church corner.
 """
 from __future__ import annotations
 import json
@@ -43,7 +43,8 @@ CLOCHER_BASE_STOREY = 6.2     # lower stone storey
 CLOCHER_BELFRY_H = 4.1        # octagonal belfry with arched openings
 CLOCHER_PEAK_H = 5.0          # tall pyramidal cap
 CLOCHER_FINIAL_H = 1.2
-CLOCHER_MAP_CENTER_UTM = (670344.05, 4539694.10)
+CLOCHER_MAP_CENTER_UTM = (670344.747, 4539694.161)
+CLOCHER_MAP_ROTATION_DEG = -18.4
 
 
 STONE_PALETTE = FacadePalette(
@@ -479,6 +480,7 @@ class ChurchBuilder:
         mesh.metadata["clocher_source"] = source
         mesh.metadata["clocher_anchor_utm"] = tuple(round(v, 3) for v in anchor_utm)
         mesh.metadata["clocher_center_utm"] = (round(cx, 3), round(cy, 3))
+        mesh.metadata["clocher_rotation_deg"] = CLOCHER_MAP_ROTATION_DEG
         mesh.metadata["clocher_top_m"] = round(
             CLOCHER_BASE_STOREY + 0.6 + CLOCHER_BELFRY_H + CLOCHER_PEAK_H + CLOCHER_FINIAL_H,
             2,
@@ -493,14 +495,19 @@ class ChurchBuilder:
         pid = mesh.parcel_id
         base_side = 3.0
         belfry_radius = 1.7
+        rotation = math.radians(CLOCHER_MAP_ROTATION_DEG)
+        ux = math.cos(rotation)
+        uy = math.sin(rotation)
+        vx = -math.sin(rotation)
+        vy = math.cos(rotation)
 
-        # -- Stage 1: square stone base
+        # -- Stage 1: square stone base, rotated to match the Pervititch clocher square.
         half = base_side / 2
         corners = [
-            (cx - half, cy - half),
-            (cx + half, cy - half),
-            (cx + half, cy + half),
-            (cx - half, cy + half),
+            (cx - ux * half - vx * half, cy - uy * half - vy * half),
+            (cx + ux * half - vx * half, cy + uy * half - vy * half),
+            (cx + ux * half + vx * half, cy + uy * half + vy * half),
+            (cx - ux * half + vx * half, cy - uy * half + vy * half),
         ]
         top_base_z = CLOCHER_BASE_STOREY + 0.6  # extra height before belfry
         for i in range(4):
@@ -544,7 +551,7 @@ class ChurchBuilder:
         belfry_bot = top_base_z
         belfry_top = top_base_z + CLOCHER_BELFRY_H
         for k in range(seg):
-            ang = (math.pi / seg) + 2 * math.pi * k / seg  # rotated 22.5° so flats face cardinals
+            ang = rotation + (math.pi / seg) + 2 * math.pi * k / seg
             x = cx + belfry_radius * math.cos(ang)
             y = cy + belfry_radius * math.sin(ang)
             lower_ring.append(mesh.add_vertex(x, y, belfry_bot))
