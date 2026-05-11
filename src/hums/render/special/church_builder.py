@@ -592,17 +592,16 @@ class ChurchBuilder:
         self._emit_tall_clocher(mesh, cx, cy)
 
     def _emit_tall_clocher(self, mesh: BuildingMesh, cx: float, cy: float) -> None:
-        """Three-stage clocher: stone base → octagonal belfry → spire + finial."""
+        """Photo-informed clocher: stone shaft -> arched belfry -> dark lead cap."""
         pid = mesh.parcel_id
-        base_side = 3.0
-        belfry_radius = 1.7
+        base_side = 3.15
+        belfry_radius = 1.72
         rotation = math.radians(CLOCHER_MAP_ROTATION_DEG)
         ux = math.cos(rotation)
         uy = math.sin(rotation)
         vx = -math.sin(rotation)
         vy = math.cos(rotation)
 
-        # -- Stage 1: square stone base, rotated to match the Pervititch clocher square.
         half = base_side / 2
         corners = [
             (cx - ux * half - vx * half, cy - uy * half - vy * half),
@@ -610,10 +609,14 @@ class ChurchBuilder:
             (cx + ux * half + vx * half, cy + uy * half + vy * half),
             (cx - ux * half + vx * half, cy - uy * half + vy * half),
         ]
-        top_base_z = CLOCHER_BASE_STOREY + 0.6  # extra height before belfry
+        top_base_z = CLOCHER_BASE_STOREY + 0.6
         for i in range(4):
             a = corners[i]
             b = corners[(i + 1) % 4]
+            length = math.hypot(b[0] - a[0], b[1] - a[1])
+            ex = (b[0] - a[0]) / length
+            ey = (b[1] - a[1]) / length
+            nx_, ny_ = -ey, ex
             mesh.add_quad(
                 p0=(a[0], a[1], 0.0),
                 p1=(a[0], a[1], top_base_z),
@@ -623,18 +626,39 @@ class ChurchBuilder:
                 surface_id=f"{pid}.clocher.base.{i}",
                 material_key="wall_main",
             )
-        # cornice around the base (protruding band)
-        band_proj = 0.12
-        band_h = 0.35
+            for edge_name, t0, t1 in (("left", 0.06, 0.18), ("right", 0.82, 0.94)):
+                p0 = (a[0] + ex * length * t0 + nx_ * 0.035, a[1] + ey * length * t0 + ny_ * 0.035)
+                p1 = (a[0] + ex * length * t1 + nx_ * 0.035, a[1] + ey * length * t1 + ny_ * 0.035)
+                mesh.add_quad(
+                    p0=(p0[0], p0[1], 1.0),
+                    p1=(p0[0], p0[1], top_base_z - 0.55),
+                    p2=(p1[0], p1[1], top_base_z - 0.55),
+                    p3=(p1[0], p1[1], 1.0),
+                    role="JambSurface",
+                    surface_id=f"{pid}.clocher.base.pilaster.{i}.{edge_name}",
+                    material_key="church_stone_light",
+                )
+            mesh.add_quad(
+                p0=(a[0] + nx_ * 0.025, a[1] + ny_ * 0.025, 1.15),
+                p1=(a[0] + nx_ * 0.025, a[1] + ny_ * 0.025, 1.35),
+                p2=(b[0] + nx_ * 0.025, b[1] + ny_ * 0.025, 1.35),
+                p3=(b[0] + nx_ * 0.025, b[1] + ny_ * 0.025, 1.15),
+                role="StringcourseSurface",
+                surface_id=f"{pid}.clocher.base.lower_band.{i}",
+                material_key="church_stone_shadow",
+            )
+
+        band_proj = 0.18
+        band_h = 0.42
         band_top = top_base_z
         band_bot = top_base_z - band_h
         for i in range(4):
             a = corners[i]
             b = corners[(i + 1) % 4]
             length = math.hypot(b[0] - a[0], b[1] - a[1])
-            ux = (b[0] - a[0]) / length
-            uy = (b[1] - a[1]) / length
-            nx_, ny_ = -uy, ux  # outward for CCW square
+            ex = (b[0] - a[0]) / length
+            ey = (b[1] - a[1]) / length
+            nx_, ny_ = -ey, ex
             mesh.add_quad(
                 p0=(a[0] + nx_ * band_proj, a[1] + ny_ * band_proj, band_bot),
                 p1=(a[0] + nx_ * band_proj, a[1] + ny_ * band_proj, band_top),
@@ -644,8 +668,16 @@ class ChurchBuilder:
                 surface_id=f"{pid}.clocher.cornice.{i}",
                 material_key="cornice_paint",
             )
+            mesh.add_quad(
+                p0=(a[0] + nx_ * (band_proj + 0.02), a[1] + ny_ * (band_proj + 0.02), band_bot - 0.12),
+                p1=(a[0] + nx_ * (band_proj + 0.02), a[1] + ny_ * (band_proj + 0.02), band_bot),
+                p2=(b[0] + nx_ * (band_proj + 0.02), b[1] + ny_ * (band_proj + 0.02), band_bot),
+                p3=(b[0] + nx_ * (band_proj + 0.02), b[1] + ny_ * (band_proj + 0.02), band_bot - 0.12),
+                role="CorniceSurface",
+                surface_id=f"{pid}.clocher.cornice.dark_underside.{i}",
+                material_key="church_iron_dark",
+            )
 
-        # -- Stage 2: octagonal belfry with arched openings
         seg = 8
         lower_ring: list[int] = []
         upper_ring: list[int] = []
@@ -653,10 +685,16 @@ class ChurchBuilder:
         belfry_top = top_base_z + CLOCHER_BELFRY_H
         for k in range(seg):
             ang = rotation + (math.pi / seg) + 2 * math.pi * k / seg
-            x = cx + belfry_radius * math.cos(ang)
-            y = cy + belfry_radius * math.sin(ang)
-            lower_ring.append(mesh.add_vertex(x, y, belfry_bot))
-            upper_ring.append(mesh.add_vertex(x, y, belfry_top))
+            lower_ring.append(mesh.add_vertex(
+                cx + belfry_radius * math.cos(ang),
+                cy + belfry_radius * math.sin(ang),
+                belfry_bot,
+            ))
+            upper_ring.append(mesh.add_vertex(
+                cx + belfry_radius * math.cos(ang),
+                cy + belfry_radius * math.sin(ang),
+                belfry_top,
+            ))
         for k in range(seg):
             kp = (k + 1) % seg
             mesh.add_quad(
@@ -664,81 +702,176 @@ class ChurchBuilder:
                 p2=_vp(mesh, upper_ring[kp]), p3=_vp(mesh, lower_ring[kp]),
                 role="Clocher",
                 surface_id=f"{pid}.clocher.belfry.side.{k}",
-                material_key="wall_main",
+                material_key="church_stone_light" if k % 2 else "wall_main",
             )
-        # Arched glass openings inset on 4 alternating faces
+
         for k in range(0, seg, 2):
             kp = (k + 1) % seg
             a = _vp(mesh, lower_ring[k])
             b = _vp(mesh, lower_ring[kp])
             length = math.hypot(b[0] - a[0], b[1] - a[1])
-            ux = (b[0] - a[0]) / length
-            uy = (b[1] - a[1]) / length
-            # inset 0.15 and narrow 20% on each side
-            margin = length * 0.2
-            ax = a[0] + ux * margin
-            ay = a[1] + uy * margin
-            bx = a[0] + ux * (length - margin)
-            by = a[1] + uy * (length - margin)
-            # outward normal (rotate (ux,uy) -90° → (uy,-ux)) for CCW outside
-            nx_ = uy
-            ny_ = -ux
-            ax += nx_ * 0.02; ay += ny_ * 0.02
-            bx += nx_ * 0.02; by += ny_ * 0.02
-            opening_bot = belfry_bot + 0.3
-            opening_top = belfry_top - 0.6
-            arch_apex_z = opening_top + 0.5
+            ex = (b[0] - a[0]) / length
+            ey = (b[1] - a[1]) / length
+            margin = length * 0.23
+            ax = a[0] + ex * margin
+            ay = a[1] + ey * margin
+            bx = a[0] + ex * (length - margin)
+            by = a[1] + ey * (length - margin)
+            nx_, ny_ = ey, -ex
+            ax += nx_ * 0.03
+            ay += ny_ * 0.03
+            bx += nx_ * 0.03
+            by += ny_ * 0.03
+            opening_bot = belfry_bot + 0.75
+            opening_top = belfry_top - 1.18
+            arch_apex_z = opening_top + 0.72
             mid_x = (ax + bx) / 2
             mid_y = (ay + by) / 2
-            # Rectangle part
             mesh.add_quad(
-                p0=(ax, ay, opening_bot), p1=(ax, ay, opening_top),
-                p2=(bx, by, opening_top), p3=(bx, by, opening_bot),
+                p0=(ax, ay, opening_bot),
+                p1=(ax, ay, opening_top),
+                p2=(bx, by, opening_top),
+                p3=(bx, by, opening_bot),
                 role="Window",
                 surface_id=f"{pid}.clocher.arch.{k}.rect",
-                material_key="window_glass",
+                material_key="church_iron_dark",
             )
-            # Arch triangle
             top_l = mesh.add_vertex(ax, ay, opening_top)
             top_r = mesh.add_vertex(bx, by, opening_top)
             apex = mesh.add_vertex(mid_x, mid_y, arch_apex_z)
-            mesh.add_face([top_l, apex, top_r], role="Window",
-                          surface_id=f"{pid}.clocher.arch.{k}.tri",
-                          material_key="window_glass")
+            mesh.add_face(
+                [top_l, apex, top_r],
+                role="Window",
+                surface_id=f"{pid}.clocher.arch.{k}.tri",
+                material_key="church_iron_dark",
+            )
+            trim_w = min(0.16, length * 0.08)
+            for name, q0, q1 in (("left", -trim_w, 0.0), ("right", length - margin * 2, length - margin * 2 + trim_w)):
+                x0 = ax + ex * q0
+                y0 = ay + ey * q0
+                x1 = ax + ex * q1
+                y1 = ay + ey * q1
+                mesh.add_quad(
+                    p0=(x0, y0, opening_bot - 0.18),
+                    p1=(x0, y0, opening_top + 0.12),
+                    p2=(x1, y1, opening_top + 0.12),
+                    p3=(x1, y1, opening_bot - 0.18),
+                    role="JambSurface",
+                    surface_id=f"{pid}.clocher.arch.{k}.jamb.{name}",
+                    material_key="church_stone_shadow",
+                )
+            mesh.add_quad(
+                p0=(ax - ex * trim_w, ay - ey * trim_w, opening_bot - 0.18),
+                p1=(ax - ex * trim_w, ay - ey * trim_w, opening_bot + 0.02),
+                p2=(bx + ex * trim_w, by + ey * trim_w, opening_bot + 0.02),
+                p3=(bx + ex * trim_w, by + ey * trim_w, opening_bot - 0.18),
+                role="SillSurface",
+                surface_id=f"{pid}.clocher.arch.{k}.sill",
+                material_key="church_stone_shadow",
+            )
+            self._emit_clocher_bell(mesh, pid, k, mid_x, mid_y, ex, ey, nx_, ny_, opening_bot + 0.82)
 
-        # -- Stage 3: spire + finial
-        spire_base_z = belfry_top
-        spire_apex_z = spire_base_z + CLOCHER_PEAK_H
-        apex = mesh.add_vertex(cx, cy, spire_apex_z)
+        rail_bot = belfry_top - 0.22
+        rail_top = belfry_top + 0.28
         for k in range(seg):
             kp = (k + 1) % seg
-            mesh.add_face(
-                [upper_ring[k], apex, upper_ring[kp]],
+            a = _vp(mesh, upper_ring[k])
+            b = _vp(mesh, upper_ring[kp])
+            length = math.hypot(b[0] - a[0], b[1] - a[1])
+            ex = (b[0] - a[0]) / length
+            ey = (b[1] - a[1]) / length
+            nx_, ny_ = ey, -ex
+            mesh.add_quad(
+                p0=(a[0] + nx_ * 0.20, a[1] + ny_ * 0.20, rail_bot),
+                p1=(a[0] + nx_ * 0.20, a[1] + ny_ * 0.20, rail_top),
+                p2=(b[0] + nx_ * 0.20, b[1] + ny_ * 0.20, rail_top),
+                p3=(b[0] + nx_ * 0.20, b[1] + ny_ * 0.20, rail_bot),
+                role="CorniceSurface",
+                surface_id=f"{pid}.clocher.belfry.eave.{k}",
+                material_key="church_iron_dark",
+            )
+            for n in (0.24, 0.50, 0.76):
+                px = a[0] + (b[0] - a[0]) * n + nx_ * 0.30
+                py = a[1] + (b[1] - a[1]) * n + ny_ * 0.30
+                mesh.add_quad(
+                    p0=(px - ex * 0.025, py - ey * 0.025, rail_bot),
+                    p1=(px - ex * 0.025, py - ey * 0.025, rail_top + 0.16),
+                    p2=(px + ex * 0.025, py + ey * 0.025, rail_top + 0.16),
+                    p3=(px + ex * 0.025, py + ey * 0.025, rail_bot),
+                    role="Mullion",
+                    surface_id=f"{pid}.clocher.belfry.rail.{k}.{n}",
+                    material_key="church_stone_light",
+                )
+
+        cap_base_z = belfry_top + 0.18
+        cap_mid_z = cap_base_z + CLOCHER_PEAK_H * 0.58
+        cap_apex_z = cap_base_z + CLOCHER_PEAK_H
+        cap_base_ring = []
+        cap_mid_ring = []
+        for k in range(seg):
+            ang = rotation + (math.pi / seg) + 2 * math.pi * k / seg
+            cap_base_ring.append(mesh.add_vertex(
+                cx + (belfry_radius + 0.22) * math.cos(ang),
+                cy + (belfry_radius + 0.22) * math.sin(ang),
+                cap_base_z,
+            ))
+            cap_mid_ring.append(mesh.add_vertex(
+                cx + (belfry_radius * 0.72) * math.cos(ang),
+                cy + (belfry_radius * 0.72) * math.sin(ang),
+                cap_mid_z,
+            ))
+        cap_apex = mesh.add_vertex(cx, cy, cap_apex_z)
+        for k in range(seg):
+            kp = (k + 1) % seg
+            mesh.add_quad(
+                p0=_vp(mesh, cap_base_ring[k]),
+                p1=_vp(mesh, cap_mid_ring[k]),
+                p2=_vp(mesh, cap_mid_ring[kp]),
+                p3=_vp(mesh, cap_base_ring[kp]),
                 role="RoofSurface",
-                surface_id=f"{pid}.clocher.spire.{k}",
+                surface_id=f"{pid}.clocher.lead_cap.lower.{k}",
                 material_key="dome_lead",
             )
-        # Finial (cross-shaped): simplified as a small vertical rod + horizontal bar
-        fin_base_z = spire_apex_z
+            mesh.add_face(
+                [cap_mid_ring[k], cap_apex, cap_mid_ring[kp]],
+                role="RoofSurface",
+                surface_id=f"{pid}.clocher.lead_cap.upper.{k}",
+                material_key="dome_lead_dark",
+            )
+            a = _vp(mesh, cap_base_ring[k])
+            m = _vp(mesh, cap_mid_ring[k])
+            mesh.add_quad(
+                p0=(a[0], a[1], a[2] + 0.01),
+                p1=(m[0], m[1], m[2] + 0.02),
+                p2=(m[0] * 0.985 + cx * 0.015, m[1] * 0.985 + cy * 0.015, m[2] + 0.04),
+                p3=(a[0] * 0.985 + cx * 0.015, a[1] * 0.985 + cy * 0.015, a[2] + 0.03),
+                role="RoofSurface",
+                surface_id=f"{pid}.clocher.lead_cap.rib.{k}",
+                material_key="dome_lead_dark",
+            )
+
+        fin_base_z = cap_apex_z
         fin_top_z = fin_base_z + CLOCHER_FINIAL_H
         rod_r = 0.06
-        # Vertical shaft
         for k in range(4):
             ang0 = 2 * math.pi * k / 4
             ang1 = 2 * math.pi * (k + 1) / 4
-            x0 = cx + rod_r * math.cos(ang0); y0 = cy + rod_r * math.sin(ang0)
-            x1 = cx + rod_r * math.cos(ang1); y1 = cy + rod_r * math.sin(ang1)
+            x0 = cx + rod_r * math.cos(ang0)
+            y0 = cy + rod_r * math.sin(ang0)
+            x1 = cx + rod_r * math.cos(ang1)
+            y1 = cy + rod_r * math.sin(ang1)
             mesh.add_quad(
-                p0=(x0, y0, fin_base_z), p1=(x0, y0, fin_top_z),
-                p2=(x1, y1, fin_top_z), p3=(x1, y1, fin_base_z),
+                p0=(x0, y0, fin_base_z),
+                p1=(x0, y0, fin_top_z),
+                p2=(x1, y1, fin_top_z),
+                p3=(x1, y1, fin_base_z),
                 role="RoofSurface",
                 surface_id=f"{pid}.clocher.finial.shaft.{k}",
-                material_key="dome_lead",
+                material_key="dome_lead_dark",
             )
-        # Crossbar
         cb_z = fin_base_z + CLOCHER_FINIAL_H * 0.55
         cb_h = 0.08
-        cb_w = 0.35
+        cb_w = 0.42
         mesh.add_quad(
             p0=(cx - cb_w, cy - rod_r, cb_z),
             p1=(cx - cb_w, cy - rod_r, cb_z + cb_h),
@@ -746,7 +879,44 @@ class ChurchBuilder:
             p3=(cx + cb_w, cy - rod_r, cb_z),
             role="RoofSurface",
             surface_id=f"{pid}.clocher.finial.cross",
-            material_key="dome_lead",
+            material_key="dome_lead_dark",
+        )
+
+    def _emit_clocher_bell(
+        self,
+        mesh: BuildingMesh,
+        pid: str,
+        opening_idx: int,
+        mid_x: float,
+        mid_y: float,
+        ux: float,
+        uy: float,
+        nx: float,
+        ny: float,
+        z: float,
+    ) -> None:
+        w_bot = 0.48
+        w_top = 0.28
+        h = 0.72
+        cx = mid_x + nx * 0.035
+        cy = mid_y + ny * 0.035
+        mesh.add_quad(
+            p0=(cx - ux * w_bot / 2, cy - uy * w_bot / 2, z),
+            p1=(cx - ux * w_top / 2, cy - uy * w_top / 2, z + h),
+            p2=(cx + ux * w_top / 2, cy + uy * w_top / 2, z + h),
+            p3=(cx + ux * w_bot / 2, cy + uy * w_bot / 2, z),
+            role="Clocher",
+            surface_id=f"{pid}.clocher.bell.{opening_idx}.body",
+            material_key="church_bell_bronze",
+        )
+        mesh.add_quad(
+            p0=(cx - ux * 0.10, cy - uy * 0.10, z + h),
+            p1=(cx - ux * 0.07, cy - uy * 0.07, z + h + 0.28),
+            p2=(cx + ux * 0.07, cy + uy * 0.07, z + h + 0.28),
+            p3=(cx + ux * 0.10, cy + uy * 0.10, z + h),
+            role="Clocher",
+            surface_id=f"{pid}.clocher.bell.{opening_idx}.crown",
+            material_key="church_bell_bronze",
         )
 
 
