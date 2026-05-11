@@ -154,11 +154,12 @@ class PeriodDetail:
                 z += QUOIN_H + QUOIN_GAP
                 k += 1
 
-    # ---- panelled doors ----------------------------------------------------
+    # ---- doors -------------------------------------------------------------
     def _upgrade_doors(self, mesh: BuildingMesh, building: Building) -> None:
-        """Add a transom glazing strip + 2 recessed panels over each door."""
+        """Add period door detail without turning Mg shops into houses."""
         storey_zs = _floor_zs(building)
         pid = building.parcel_id
+        is_magasin = _is_magasin_building(building)
         for idx, seg in enumerate(building.wall_segments):
             for k, op in enumerate(seg.openings):
                 if op.kind != "door":
@@ -170,6 +171,9 @@ class PeriodDetail:
                 u0 = op.position_along_wall_m
                 u1 = u0 + op.width_m
                 sx, sy = seg.start
+                if is_magasin:
+                    _emit_magasin_door(mesh, pid, seg.face, idx, k, sx, sy, ux, uy, nx, ny, u0, u1, z0, z1)
+                    continue
                 # Transom window strip above the door (within the same reveal depth)
                 transom_bot = z1 - 0.3
                 transom_top = z1
@@ -199,6 +203,99 @@ class PeriodDetail:
                         surface_id=f"{pid}.door_panel.{seg.face}.{idx}.{k}.{p_idx}",
                         material_key="door_panel",
                     )
+
+
+def _emit_magasin_door(
+    mesh: BuildingMesh,
+    pid: str,
+    face: str,
+    seg_idx: int,
+    door_idx: int,
+    sx: float,
+    sy: float,
+    ux: float,
+    uy: float,
+    nx: float,
+    ny: float,
+    u0: float,
+    u1: float,
+    z0: float,
+    z1: float,
+) -> None:
+    """Shop/magasin entrance: shuttered double-leaf door, no invented glass."""
+
+    def p(u: float, z: float, inset: float = -0.11) -> tuple[float, float, float]:
+        return (sx + ux * u + nx * inset, sy + uy * u + ny * inset, z)
+
+    pad = min(0.08, max(0.03, (u1 - u0) * 0.08))
+    lu0 = u0 + pad
+    lu1 = (u0 + u1) / 2.0
+    ru0 = lu1
+    ru1 = u1 - pad
+    z_bot = z0 + 0.06
+    z_top = z1 - 0.08
+    if ru1 - lu0 <= 0.35 or z_top - z_bot <= 0.6:
+        return
+
+    for name, a, b in (("left", lu0, lu1), ("right", ru0, ru1)):
+        mesh.add_quad(
+            p0=p(a, z_bot),
+            p1=p(a, z_top),
+            p2=p(b, z_top),
+            p3=p(b, z_bot),
+            role="Door",
+            surface_id=f"{pid}.magasin_door.{face}.{seg_idx}.{door_idx}.{name}",
+            material_key="door_panel",
+        )
+
+    # Center meeting stile.
+    stile_w = min(0.045, max(0.025, (u1 - u0) * 0.04))
+    mesh.add_quad(
+        p0=p(lu1 - stile_w, z_bot, -0.095),
+        p1=p(lu1 - stile_w, z_top, -0.095),
+        p2=p(lu1 + stile_w, z_top, -0.095),
+        p3=p(lu1 + stile_w, z_bot, -0.095),
+        role="Door",
+        surface_id=f"{pid}.magasin_door.{face}.{seg_idx}.{door_idx}.center_stile",
+        material_key="trim",
+    )
+
+    # Horizontal shutter/plank lines: reads as store/workshop entrance, not a
+    # domestic glazed transom.
+    strip_h = 0.035
+    z = z_bot + 0.38
+    n = 0
+    while z + strip_h < z_top - 0.2:
+        mesh.add_quad(
+            p0=p(lu0, z, -0.09),
+            p1=p(lu0, z + strip_h, -0.09),
+            p2=p(ru1, z + strip_h, -0.09),
+            p3=p(ru1, z, -0.09),
+            role="Door",
+            surface_id=f"{pid}.magasin_door.{face}.{seg_idx}.{door_idx}.shutter.{n}",
+            material_key="trim",
+        )
+        z += 0.28
+        n += 1
+
+
+def _is_magasin_building(building: Building) -> bool:
+    texts: list[str] = []
+    for storey in building.storeys:
+        if storey.level == 0 and storey.use:
+            texts.append(storey.use)
+    snap = building.excel_snapshot or {}
+    texts.extend([
+        str(snap.get("wall_code") or ""),
+        str(snap.get("bim_notes") or ""),
+    ])
+    gf = snap.get("ground_floor") or {}
+    if isinstance(gf, dict):
+        texts.extend(str(v) for v in gf.values() if v)
+    notes = building.notes or {}
+    texts.append(str(notes))
+    text = " ".join(texts).lower()
+    return any(token in text for token in ("mg", "magasin", "magazine", "shop", "bakery", "fırın", "firin"))
 
 
 def _seg_length(seg: WallSegment) -> float:
