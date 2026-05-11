@@ -347,10 +347,12 @@ def _emit_magasin_canopy(
     u0: float,
     u1: float,
     z: float,
+    depth: float,
+    drop: float,
+    material_key: str,
+    valance_key: str,
 ) -> None:
     """Short sloped timber/canvas hood, visually separates shops from houses."""
-    depth = 0.42
-    drop = 0.12
     side = 0.08
     a = u0 - side
     b = u1 + side
@@ -365,7 +367,7 @@ def _emit_magasin_canopy(
         p3=p(a, depth, -drop),
         role="CorniceSurface",
         surface_id=f"{pid}.magasin_storefront.{face}.{seg_idx}.{door_idx}.canopy",
-        material_key="magasin_canvas",
+        material_key=material_key,
     )
     # Front valance strip.
     val_h = 0.12
@@ -376,8 +378,71 @@ def _emit_magasin_canopy(
         p3=p(b, depth, -drop),
         role="CorniceSurface",
         surface_id=f"{pid}.magasin_storefront.{face}.{seg_idx}.{door_idx}.valance",
-        material_key="magasin_sign",
+        material_key=valance_key,
     )
+
+
+def _emit_magasin_slats(mesh, pid, face, seg_idx, door_idx, p, u0, u1, z0, z1, variant: int, material_key: str) -> None:
+    if u1 - u0 <= 0.25 or z1 - z0 <= 0.35:
+        return
+    if variant % 3 == 0:
+        step = 0.22 + 0.03 * (variant % 2)
+        strip_w = 0.045
+        u = u0 + step
+        n = 0
+        while u + strip_w < u1 - 0.05:
+            mesh.add_quad(
+                p0=p(u, z0, 0.006),
+                p1=p(u, z1, 0.006),
+                p2=p(u + strip_w, z1, 0.006),
+                p3=p(u + strip_w, z0, 0.006),
+                role="Door",
+                surface_id=f"{pid}.magasin_door.{face}.{seg_idx}.{door_idx}.vertical_slat.{n}",
+                material_key=material_key,
+            )
+            u += step
+            n += 1
+    else:
+        strip_h = 0.045 + 0.01 * (variant % 2)
+        step = 0.22 + 0.035 * (variant % 3)
+        z = z0
+        n = 0
+        while z + strip_h < z1:
+            mesh.add_quad(
+                p0=p(u0, z, 0.006),
+                p1=p(u0, z + strip_h, 0.006),
+                p2=p(u1, z + strip_h, 0.006),
+                p3=p(u1, z, 0.006),
+                role="Door",
+                surface_id=f"{pid}.magasin_door.{face}.{seg_idx}.{door_idx}.horizontal_slat.{n}",
+                material_key=material_key,
+            )
+            z += step
+            n += 1
+    if variant % 4 == 2:
+        _emit_magasin_diagonal(mesh, pid, face, seg_idx, door_idx, p, u0, u1, z0, z1, material_key)
+
+
+def _emit_magasin_diagonal(mesh, pid, face, seg_idx, door_idx, p, u0, u1, z0, z1, material_key: str) -> None:
+    du = u1 - u0
+    dz = z1 - z0
+    if du <= 0.35 or dz <= 0.6:
+        return
+    w = min(0.07, max(0.035, du * 0.05))
+    # A readable diagonal brace in wall-local coordinates.
+    mesh.add_quad(
+        p0=p(u0 + 0.08, z0 + 0.10, 0.008),
+        p1=p(u0 + 0.08 + w, z0 + 0.10, 0.008),
+        p2=p(u1 - 0.08, z1 - 0.12, 0.008),
+        p3=p(u1 - 0.08 - w, z1 - 0.12, 0.008),
+        role="Door",
+        surface_id=f"{pid}.magasin_door.{face}.{seg_idx}.{door_idx}.diagonal_brace",
+        material_key=material_key,
+    )
+
+
+def _magasin_variant(pid: str, seg_idx: int, door_idx: int) -> int:
+    return (sum(ord(ch) for ch in pid) + seg_idx * 7 + door_idx * 13) % 11
 
 
 def _is_magasin_building(building: Building) -> bool:
