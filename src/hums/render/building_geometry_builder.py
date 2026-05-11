@@ -74,12 +74,17 @@ class BuildingGeometryBuilder:
         self._facade_banding.emit(mesh, building)
         self._shutters_balconies.emit(mesh, building)
         self._period_detail.emit(mesh, building, RoofGenerator.total_wall_height(building))
+        self._add_special_building_details(mesh, building)
 
         eaves_z = RoofGenerator.total_wall_height(building)
 
         self._add_roof(mesh, building)
         self._add_roof_extras(mesh, building)
         return mesh
+
+    def _add_special_building_details(self, mesh: BuildingMesh, building: Building) -> None:
+        if building.parcel_id == "W-39-1.camli_vitre_passage":
+            _emit_camli_church_entrance(mesh, building)
 
     def _emit_eaves_cap(self, mesh: BuildingMesh, building, eaves_z: float) -> None:
         ring = building.footprint_local
@@ -447,6 +452,189 @@ def _longest_edge_axis(ring: list[tuple[float, float]]) -> tuple[float, float]:
             best_len = d
             axis = ((bx - ax) / d, (by - ay) / d)
     return axis
+
+
+def _emit_camli_church_entrance(mesh: BuildingMesh, building: Building) -> None:
+    """Photo-guided Ayia Efimia entrance: opaque walls, white door, arched glass top."""
+    candidates = []
+    for idx, seg in enumerate(building.wall_segments):
+        for door_idx, op in enumerate(seg.openings):
+            if op.kind == "door":
+                candidates.append((seg.length_m, idx, door_idx, seg, op))
+    if not candidates:
+        return
+    _, seg_idx, door_idx, seg, op = max(candidates, key=lambda item: item[0])
+    length = seg.length_m
+    if length <= 0.8:
+        return
+    sx, sy = seg.start
+    ex, ey = seg.end
+    ux = (ex - sx) / length
+    uy = (ey - sy) / length
+    nx = -uy
+    ny = ux
+
+    def p(u: float, z: float, out: float = 0.055) -> tuple[float, float, float]:
+        return (sx + ux * u + nx * out, sy + uy * u + ny * out, z)
+
+    pid = building.parcel_id
+    u0 = max(0.18, op.position_along_wall_m)
+    u1 = min(length - 0.18, op.position_along_wall_m + op.width_m)
+    if u1 - u0 < 0.75:
+        mid = length / 2.0
+        half = min(0.62, max(0.40, length * 0.25))
+        u0, u1 = mid - half, mid + half
+    z0 = 0.05
+    door_top = min(2.35, max(2.05, op.height_m))
+    leaf_mid = (u0 + u1) / 2.0
+
+    # Cover the generic dark door with the photographed white double-leaf church door.
+    for name, a, b in (("left_leaf", u0, leaf_mid), ("right_leaf", leaf_mid, u1)):
+        _wall_quad(mesh, pid, p, a, z0, b, door_top, "Door",
+                   "church_door_white", f"camli_entry.door.{seg_idx}.{door_idx}.{name}", out=0.075)
+    _wall_line(mesh, pid, p, leaf_mid, z0 + 0.08, leaf_mid, door_top - 0.08,
+               0.035, "church_iron_dark", f"camli_entry.door.{seg_idx}.{door_idx}.center_gap", out=0.095)
+
+    # Simple raised panels on the white leaves.
+    panel_margin = 0.10
+    for leaf_name, a, b in (("left", u0, leaf_mid), ("right", leaf_mid, u1)):
+        inner_a = a + panel_margin
+        inner_b = b - panel_margin
+        if inner_b <= inner_a:
+            continue
+        for n, (pa, pb) in enumerate(((0.35, 0.95), (1.15, 1.75))):
+            _wall_quad(mesh, pid, p, inner_a, pa, inner_b, pb, "Door",
+                       "trim", f"camli_entry.door.{leaf_name}.panel.{n}", out=0.088)
+            _wall_quad(mesh, pid, p, inner_a + 0.035, pa + 0.035,
+                       inner_b - 0.035, pb - 0.035, "Door",
+                       "church_door_white", f"camli_entry.door.{leaf_name}.panel_inner.{n}", out=0.094)
+
+    # Ochre trim/jambs matching the photographed entrance surround.
+    trim_w = 0.11
+    _wall_quad(mesh, pid, p, u0 - trim_w, z0, u0, door_top + 0.08, "JambSurface",
+               "church_trim_ochre", f"camli_entry.trim.left.{seg_idx}", out=0.09)
+    _wall_quad(mesh, pid, p, u1, z0, u1 + trim_w, door_top + 0.08, "JambSurface",
+               "church_trim_ochre", f"camli_entry.trim.right.{seg_idx}", out=0.09)
+    _wall_quad(mesh, pid, p, u0 - trim_w, door_top - 0.05, u1 + trim_w, door_top + 0.10,
+               "HeaderSurface", "church_trim_ochre", f"camli_entry.trim.lintel.{seg_idx}", out=0.09)
+
+    # Arched glazed fanlight over the door: this is the front evidence for "camli".
+    fan_u0 = max(0.08, u0 - 0.24)
+    fan_u1 = min(length - 0.08, u1 + 0.24)
+    fan_bottom = door_top + 0.02
+    spring = fan_bottom + 0.42
+    arch_rise = min(0.58, max(0.34, (fan_u1 - fan_u0) * 0.32))
+    arc = []
+    steps = 12
+    for i in range(steps + 1):
+        t = i / steps
+        u = fan_u0 + (fan_u1 - fan_u0) * t
+        z = spring + arch_rise * math.sin(math.pi * t)
+        arc.append((u, z))
+    fan_points = [(fan_u0, fan_bottom), (fan_u0, spring), *arc[1:-1], (fan_u1, spring), (fan_u1, fan_bottom)]
+    _wall_poly(mesh, pid, p, fan_points, "Window", "window_glass",
+               f"camli_entry.fanlight.glass.{seg_idx}.{door_idx}", out=0.082)
+    _wall_line(mesh, pid, p, fan_u0, fan_bottom, fan_u1, fan_bottom, 0.045,
+               "church_iron_dark", f"camli_entry.fanlight.base_bar.{seg_idx}", out=0.105)
+    for i, ((a_u, a_z), (b_u, b_z)) in enumerate(zip(arc, arc[1:])):
+        _wall_line(mesh, pid, p, a_u, a_z, b_u, b_z, 0.045,
+                   "church_trim_ochre", f"camli_entry.fanlight.arch_trim.{seg_idx}.{i}", out=0.106)
+
+    center_u = (fan_u0 + fan_u1) / 2.0
+    center_z = fan_bottom + 0.08
+    for n, t in enumerate((0.18, 0.34, 0.50, 0.66, 0.82)):
+        u = fan_u0 + (fan_u1 - fan_u0) * t
+        z = spring + arch_rise * math.sin(math.pi * t)
+        _wall_line(mesh, pid, p, center_u, center_z, u, z, 0.030,
+                   "church_iron_dark", f"camli_entry.fanlight.radial_iron.{seg_idx}.{n}", out=0.112)
+    _wall_line(mesh, pid, p, center_u, fan_bottom + 0.10, center_u, spring + arch_rise * 0.82,
+               0.036, "church_iron_dark", f"camli_entry.fanlight.center_iron.{seg_idx}", out=0.116)
+    _wall_line(mesh, pid, p, center_u - 0.17, spring + 0.10, center_u + 0.17, spring + 0.10,
+               0.035, "church_iron_dark", f"camli_entry.fanlight.crossbar.{seg_idx}", out=0.116)
+
+    # Small lamp/cross cue above the arch, kept shallow so it reads as facade detail.
+    lamp_u = center_u
+    lamp_z = spring + arch_rise + 0.18
+    _wall_line(mesh, pid, p, lamp_u, lamp_z - 0.16, lamp_u, lamp_z + 0.16,
+               0.035, "church_iron_dark", f"camli_entry.cross.vertical.{seg_idx}", out=0.105)
+    _wall_line(mesh, pid, p, lamp_u - 0.12, lamp_z + 0.03, lamp_u + 0.12, lamp_z + 0.03,
+               0.035, "church_iron_dark", f"camli_entry.cross.horizontal.{seg_idx}", out=0.105)
+    mesh.metadata["photo_guided_camli_entry"] = (
+        "User photo: normal plaster walls; glass at top/roof and arched fanlight over white church door"
+    )
+
+
+def _wall_quad(
+    mesh: BuildingMesh,
+    pid: str,
+    p,
+    u0: float,
+    z0: float,
+    u1: float,
+    z1: float,
+    role: str,
+    material_key: str,
+    name: str,
+    out: float,
+) -> None:
+    if u1 <= u0 or z1 <= z0:
+        return
+    mesh.add_quad(
+        p0=p(u0, z0, out),
+        p1=p(u0, z1, out),
+        p2=p(u1, z1, out),
+        p3=p(u1, z0, out),
+        role=role,
+        surface_id=f"{pid}.{name}",
+        material_key=material_key,
+    )
+
+
+def _wall_poly(
+    mesh: BuildingMesh,
+    pid: str,
+    p,
+    points: list[tuple[float, float]],
+    role: str,
+    material_key: str,
+    name: str,
+    out: float,
+) -> None:
+    if len(points) < 3:
+        return
+    verts = [mesh.add_vertex(*p(u, z, out)) for u, z in points]
+    mesh.add_face(verts, role=role, surface_id=f"{pid}.{name}", material_key=material_key)
+
+
+def _wall_line(
+    mesh: BuildingMesh,
+    pid: str,
+    p,
+    u0: float,
+    z0: float,
+    u1: float,
+    z1: float,
+    width: float,
+    material_key: str,
+    name: str,
+    out: float,
+) -> None:
+    du = u1 - u0
+    dz = z1 - z0
+    length = math.hypot(du, dz)
+    if length <= 0.01:
+        return
+    pu = -dz / length * width / 2.0
+    pz = du / length * width / 2.0
+    mesh.add_quad(
+        p0=p(u0 - pu, z0 - pz, out),
+        p1=p(u0 + pu, z0 + pz, out),
+        p2=p(u1 + pu, z1 + pz, out),
+        p3=p(u1 - pu, z1 - pz, out),
+        role="Mullion",
+        surface_id=f"{pid}.{name}",
+        material_key=material_key,
+    )
 
 
 def _fountain_front_frame(

@@ -2,14 +2,14 @@
   "label": "W-39-1",
   "parcel_ids": ["W-39/1"],
   "verified": false,
-  "map_notes": "The W-39/1 church-edge footprint must not be rendered as one all-glass block. The Pervititch crop shows Camli/Vitre only on the lower hatched passage; the user-supplied front photo confirms this is the Ayia Efimia church entrance: plastered low narthex wall, white double door, and a glazed/iron arched fanlight above the door. The adjacent yellow/wooden church-edge area labelled T. 1 bs. is not glass; it is a wooden one-storey-plus-basement annex with sheet-metal T roof. The east/right area near the Clocher square remains an opaque side/narthex mass.",
+  "map_notes": "The W-39/1 church-edge footprint must not be rendered as one all-glass block. The Pervititch crop shows Camli/Vitre only on the lower hatched passage; the user-supplied front photo confirms this is the Ayia Efimia church entrance: normal plastered low narthex walls, white double door, a glazed/iron arched fanlight above the door, and glass only at the top/roof zone. The adjacent yellow/wooden church-edge area labelled T. 1 bs. is not glass; it is a wooden one-storey-plus-basement annex with sheet-metal T roof. The east/right area near the Clocher square remains an opaque side/narthex mass.",
   "footprint_ref": "churche-entrence-camli-area-(39-1,-39-2)-clocher.shp",
   "structure_type": "building",
   "primary_zone_axis": "west_to_east",
   "zones": [
     {
       "id": "camli_vitre_passage",
-      "description": "Lower blue-hatched Camli-Vitre church entrance passage. Photo correction: this is not a glass wall or all-glass roof; the main facade is plastered masonry/woodwork, with glass only in the arched fanlight/transom over the white church door.",
+      "description": "Lower blue-hatched Camli-Vitre church entrance passage. Photo correction: walls are normal plaster/masonry, not glass; the camli/vitre reading belongs to the top glass roof/light and to the arched fanlight/transom over the white church door.",
       "material_class": "B",
       "map_colour": "yellow_blue_hatch",
       "storeys_above_grade": 1.0,
@@ -18,9 +18,9 @@
       "storey_heights_m": [3.8],
       "ground_floor_use": "passage",
       "roof": {
-        "shape": "gable",
-        "material": "tile_TR",
-        "pitch_deg": 18.0,
+        "shape": "complex_pitched",
+        "material": "glass_roof",
+        "pitch_deg": 12.0,
         "has_chimney": false,
         "has_skylight": false
       },

@@ -315,6 +315,9 @@ def _color_for(palette, material_key: str) -> tuple[int, int, int]:
         "tree_canopy_dark": (38, 82, 39),
         "tree_trunk": (88, 55, 34),
         "tree_bark_dark": (58, 38, 27),
+        "church_door_white": (228, 224, 214),
+        "church_trim_ochre": (188, 153, 70),
+        "church_iron_dark": (26, 26, 24),
     }
     v = mapping.get(material_key, fallback)
     return (int(v[0]), int(v[1]), int(v[2]))

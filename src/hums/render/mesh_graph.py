@@ -44,6 +44,7 @@ MaterialKey = Literal[
     "grass_ground", "grass_light", "grass_dark", "garden_shrub",
     "tree_canopy", "tree_canopy_light", "tree_canopy_dark",
     "tree_trunk", "tree_bark_dark",
+    "church_door_white", "church_trim_ochre", "church_iron_dark",
 ]
 
 

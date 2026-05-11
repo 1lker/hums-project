@@ -322,6 +322,7 @@ class ManualRenderer:
         if primary_face or secondary_face:
             DoorPlacer().place(segments, storeys_proxy, ctx, zone_pid, tracker)
         self._place_manual_entrances(label, zone, segments, tracker, zone_pid)
+        self._adjust_church_camli_entrance(label, zone, segments, tracker, zone_pid)
         self._place_explicit_vitrine(label, zone, segments, tracker, zone_pid)
         UpperWindowPlacer().place(segments, storeys_proxy, ctx, zone_pid, tracker)
 
@@ -396,6 +397,14 @@ class ManualRenderer:
     def _place_explicit_vitrine(self, label: ManualLabel, zone: Zone,
                                 segments: list[WallSegment], tracker,
                                 zone_pid: str) -> None:
+        if label.label == "W-39-1" and zone.id == "camli_vitre_passage":
+            tracker.record(
+                zone_pid,
+                "wall.vitrine",
+                "map+photo:pervititch",
+                "Camli/Vitre is modeled as top glass roof plus arched fanlight, not a side shop-window panel",
+            )
+            return
         text = " ".join([zone.id, zone.description, *zone.map_labels]).lower()
         if "vitr" not in text and "cam" not in text and "glaz" not in text:
             return
@@ -470,6 +479,50 @@ class ManualRenderer:
             f"wall[{seg.face}].explicit_vitrine",
             "map:pervititch",
             {"zone": zone.id, "labels": zone.map_labels},
+        )
+
+    def _adjust_church_camli_entrance(self, label: ManualLabel, zone: Zone,
+                                      segments: list[WallSegment], tracker,
+                                      zone_pid: str) -> None:
+        if label.label != "W-39-1" or zone.id != "camli_vitre_passage":
+            return
+        candidates = [
+            s for s in segments
+            if not s.is_party_wall and s.face in {"W", "S", "E"} and s.length_m > 1.0
+        ]
+        if not candidates:
+            return
+        with_doors = [s for s in candidates if any(op.kind == "door" for op in s.openings)]
+        seg = max(with_doors or candidates, key=lambda s: s.length_m)
+        if not any(op.kind == "door" for op in seg.openings):
+            seg.openings.append(Opening(
+                kind="door",
+                storey_level=0,
+                position_along_wall_m=0.0,
+                width_m=1.0,
+                height_m=2.20,
+                sill_m=0.0,
+                style="arched",
+                frame_profile="moulded",
+                color_source="map+photo:ayia-efimia-church-entrance",
+            ))
+
+        for op in seg.openings:
+            if op.kind != "door":
+                continue
+            width = min(1.45, max(0.95, seg.length_m - 0.55))
+            op.position_along_wall_m = round(max(0.18, (seg.length_m - width) / 2.0), 3)
+            op.width_m = round(width, 3)
+            op.height_m = 2.32
+            op.style = "arched"
+            op.frame_profile = "moulded"
+            op.color_source = "map+photo:ayia-efimia-camli-entrance-white-double-door"
+            break
+        tracker.record(
+            zone_pid,
+            f"wall[{seg.face}].photo_guided_church_door",
+            "user-photo:Ayia Efimia entrance",
+            "white double door with arched iron/glass fanlight; walls opaque, top roof glass",
         )
 
     def _profile(self, label: ManualLabel, meshes) -> str:
