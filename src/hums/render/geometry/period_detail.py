@@ -245,8 +245,24 @@ def _emit_magasin_door(
             p3=p(b, z_bot),
             role="Door",
             surface_id=f"{pid}.magasin_door.{face}.{seg_idx}.{door_idx}.{name}",
-            material_key="door_panel",
+            material_key="magasin_door_panel",
         )
+
+    # Small painted lintel/sign board: not a textual sign, just the storefront
+    # band that makes Mg entries read differently from domestic doors.
+    board_bot = z1 + 0.07
+    board_top = z1 + 0.38
+    board_u0 = max(u0, lu0 - 0.08)
+    board_u1 = min(u1, ru1 + 0.08)
+    mesh.add_quad(
+        p0=p(board_u0, board_bot, -0.06),
+        p1=p(board_u0, board_top, -0.06),
+        p2=p(board_u1, board_top, -0.06),
+        p3=p(board_u1, board_bot, -0.06),
+        role="Door",
+        surface_id=f"{pid}.magasin_door.{face}.{seg_idx}.{door_idx}.lintel_board",
+        material_key="magasin_sign",
+    )
 
     # Center meeting stile.
     stile_w = min(0.045, max(0.025, (u1 - u0) * 0.04))
@@ -257,25 +273,42 @@ def _emit_magasin_door(
         p3=p(lu1 + stile_w, z_bot, -0.095),
         role="Door",
         surface_id=f"{pid}.magasin_door.{face}.{seg_idx}.{door_idx}.center_stile",
-        material_key="trim",
+        material_key="magasin_trim",
     )
+
+    # Strong side/header frame, so the storefront reads at model scale.
+    frame_w = min(0.07, max(0.04, (u1 - u0) * 0.05))
+    for name, a, b, zz0, zz1 in (
+        ("left_jamb", lu0, lu0 + frame_w, z_bot, z_top),
+        ("right_jamb", ru1 - frame_w, ru1, z_bot, z_top),
+        ("head", lu0, ru1, z_top - frame_w, z_top),
+    ):
+        mesh.add_quad(
+            p0=p(a, zz0, -0.08),
+            p1=p(a, zz1, -0.08),
+            p2=p(b, zz1, -0.08),
+            p3=p(b, zz0, -0.08),
+            role="Door",
+            surface_id=f"{pid}.magasin_door.{face}.{seg_idx}.{door_idx}.{name}",
+            material_key="magasin_trim",
+        )
 
     # Horizontal shutter/plank lines: reads as store/workshop entrance, not a
     # domestic glazed transom.
-    strip_h = 0.035
-    z = z_bot + 0.38
+    strip_h = 0.055
+    z = z_bot + 0.30
     n = 0
-    while z + strip_h < z_top - 0.2:
+    while z + strip_h < z_top - 0.16:
         mesh.add_quad(
-            p0=p(lu0, z, -0.09),
-            p1=p(lu0, z + strip_h, -0.09),
-            p2=p(ru1, z + strip_h, -0.09),
-            p3=p(ru1, z, -0.09),
+            p0=p(lu0 + frame_w, z, -0.055),
+            p1=p(lu0 + frame_w, z + strip_h, -0.055),
+            p2=p(ru1 - frame_w, z + strip_h, -0.055),
+            p3=p(ru1 - frame_w, z, -0.055),
             role="Door",
             surface_id=f"{pid}.magasin_door.{face}.{seg_idx}.{door_idx}.shutter.{n}",
-            material_key="trim",
+            material_key="magasin_shutter",
         )
-        z += 0.28
+        z += 0.24
         n += 1
 
 
