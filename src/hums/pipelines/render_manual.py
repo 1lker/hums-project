@@ -328,6 +328,7 @@ class ManualRenderer:
         self._place_church_wooden_annex_window(label, zone, segments, tracker, zone_pid)
         self._place_explicit_vitrine(label, zone, segments, tracker, zone_pid)
         UpperWindowPlacer().place(segments, storeys_proxy, ctx, zone_pid, tracker)
+        self._place_n50_lower_lightwell_window(label, zone, segments, tracker, zone_pid)
         self._place_n50_rear_lightwell_windows(label, zone, segments, tracker, zone_pid)
 
     def _place_manual_entrances(self, label: ManualLabel, zone: Zone,
@@ -704,6 +705,44 @@ class ManualRenderer:
             "wall[rear-west].n50_lightwell_windows",
             "map+georeference:building-entrence-50",
             "one upper window per floor on the rear face looking into the small N-50 lightwell",
+        )
+
+    def _place_n50_lower_lightwell_window(self, label: ManualLabel, zone: Zone,
+                                          segments: list[WallSegment], tracker,
+                                          zone_pid: str) -> None:
+        if label.label != "N-50" or zone.id != "south_two_storey_lightwell_wing":
+            return
+        candidates = [
+            s for s in segments
+            if not s.is_party_wall
+            and s.hatch_pattern != "_street"
+            and 1.05 <= s.length_m <= 1.85
+        ]
+        if not candidates:
+            return
+        seg = max(candidates, key=lambda s: s.length_m)
+        source = "map:georeference:n50-lower-wing-lightwell-window"
+        if any(op.kind == "window" and op.color_source == source for op in seg.openings):
+            return
+        width = min(0.82, max(0.54, seg.length_m - 0.44))
+        seg.openings.append(Opening(
+            kind="window",
+            storey_level=1,
+            position_along_wall_m=round((seg.length_m - width) / 2.0, 3),
+            width_m=round(width, 3),
+            height_m=1.35,
+            sill_m=0.95,
+            style="rectangular",
+            pane_layout="2x2",
+            has_shutters=False,
+            frame_profile="moulded",
+            color_source=source,
+        ))
+        tracker.record(
+            zone_pid,
+            "wall[lightwell].lower_wing_window",
+            "map+georeference:building-entrence-50",
+            "single narrow upper window facing the N-50 rear rectangular lightwell",
         )
 
     def _profile(self, label: ManualLabel, meshes) -> str:
