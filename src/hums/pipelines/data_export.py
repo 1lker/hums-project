@@ -1195,6 +1195,7 @@ def _html_page(data: dict[str, Any]) -> str:
 	      color: inherit;
 	      cursor: pointer;
 	      overflow: hidden;
+	      white-space: normal;
 	    }
 	    .record:hover { border-color: #bca891; background: #fbf7ef; }
 	    .record.selected { border-color: var(--green); box-shadow: inset 4px 0 0 var(--green); }
@@ -1235,6 +1236,13 @@ def _html_page(data: dict[str, Any]) -> str:
 	      font-size: 13px;
 	      line-height: 1.32;
 	      overflow-wrap: anywhere;
+	      white-space: normal;
+	    }
+	    .record-fields .field-value {
+	      display: -webkit-box;
+	      -webkit-line-clamp: 2;
+	      -webkit-box-orient: vertical;
+	      overflow: hidden;
 	    }
 	    .record-notes {
 	      min-width: 0;
@@ -1504,7 +1512,7 @@ def _html_page(data: dict[str, Any]) -> str:
 
 	    function record(row, i) {
 	      const cfg = viewConfig[view];
-	      const fields = cfg.fields.slice(0, 5);
+	      const fields = cfg.fields.slice(0, -1);
 	      const note = cfg.fields[cfg.fields.length - 1];
 	      return `<button class="record ${i === selectedIndex ? 'selected' : ''}" data-row="${i}">
 	        <div class="record-main">
