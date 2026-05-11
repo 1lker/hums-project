@@ -307,6 +307,8 @@ def _color_for(palette, material_key: str) -> tuple[int, int, int]:
         "fountain_tile_blue": (42, 100, 137),
         "fountain_tile_green": (48, 118, 86),
         "fountain_tile_red": (148, 70, 54),
+        "fountain_side_door": (202, 198, 184),
+        "fountain_side_door_shadow": (82, 75, 66),
         "dome_lead": (112, 120, 122),
         "balcony_iron": (45, 40, 38),
         "wood_grain_dark": (96, 61, 34),
