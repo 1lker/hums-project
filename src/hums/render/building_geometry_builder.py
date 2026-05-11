@@ -388,23 +388,38 @@ class BuildingGeometryBuilder:
 
         # User/map correction: a separate wall door sits further left of the
         # fountain. It must not visually attach to the fountain slab.
-        left_wall_u0 = -facade_w / 2 - 2.54
+        left_wall_u0 = -facade_w / 2 - 2.72
         left_wall_u1 = -facade_w / 2 - 1.08
-        left_wall_top = min(height - 0.30, 2.62)
-        left_wall_front_out = 0.18
-        door_out = left_wall_front_out + 0.004
-        trim_out = left_wall_front_out + 0.022
-        detail_out = left_wall_front_out + 0.034
-        knob_out = left_wall_front_out + 0.060
-        _facade_box(mesh, pid, p, left_wall_u0, left_wall_u1, -0.06, left_wall_front_out, 0.00,
-                    left_wall_top, "monument_stone", "left_side_door.wall_back")
-        _facade_box(mesh, pid, p, left_wall_u0 - 0.04, left_wall_u1 + 0.04, 0.14, 0.24,
-                    left_wall_top - 0.18, left_wall_top, "plinth_stone",
-                    "left_side_door.top_lintel")
-        door_u0 = left_wall_u0 + 0.33
-        door_u1 = min(left_wall_u1 - 0.28, door_u0 + 0.72)
+        left_wall_top = min(height - 0.18, 2.84)
+        left_wall_out0 = -0.10
+        left_wall_front_out = 0.20
+        door_u0 = left_wall_u0 + 0.38
+        door_u1 = min(left_wall_u1 - 0.32, door_u0 + 0.72)
         door_z0 = 0.14
         door_z1 = min(2.04, left_wall_top - 0.26)
+        door_out = left_wall_front_out - 0.012
+        trim_out = left_wall_front_out + 0.030
+        detail_out = door_out + 0.012
+        knob_out = left_wall_front_out + 0.060
+
+        # Build the independent wall around the opening instead of drawing a
+        # door over a full slab; this makes the panel read as inset in a wall.
+        wall_piece_specs = [
+            ("left_wall", left_wall_u0, door_u0 - 0.07, 0.00, left_wall_top),
+            ("right_wall", door_u1 + 0.07, left_wall_u1, 0.00, left_wall_top),
+            ("head_wall", door_u0 - 0.07, door_u1 + 0.07, door_z1 + 0.08, left_wall_top),
+            ("base_plinth", left_wall_u0, left_wall_u1, 0.00, door_z0),
+        ]
+        for name, u0, u1, z0, z1 in wall_piece_specs:
+            _facade_box(mesh, pid, p, u0, u1, left_wall_out0, left_wall_front_out,
+                        z0, z1, "monument_stone", f"left_side_door.wall.{name}")
+        _facade_box(mesh, pid, p, door_u0 - 0.08, door_u1 + 0.08,
+                    left_wall_out0 + 0.04, left_wall_front_out - 0.035,
+                    door_z0, door_z1 + 0.08, "fountain_stone_dark",
+                    "left_side_door.recess_shadow")
+        _facade_box(mesh, pid, p, left_wall_u0 - 0.04, left_wall_u1 + 0.04, 0.12, 0.24,
+                    left_wall_top - 0.18, left_wall_top, "plinth_stone",
+                    "left_side_door.top_lintel")
         _facade_role_quad(mesh, pid, p, door_u0, door_z0, door_u1, door_z1,
                           "door_panel", "left_side_door.panel", role="Door", out=door_out)
         for name, u0, u1, z0, z1 in (
