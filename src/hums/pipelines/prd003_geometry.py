@@ -80,8 +80,8 @@ class Prd003Pipeline:
 
         write_reports(scene, REPORT_DIR)
 
-    return {
-        "buildings_input": len(buildings),
+        return {
+            "buildings_input": len(buildings),
             "meshes_generated": len(meshes),
             "faces_total": sum(len(m.faces) for m in meshes),
             "roles": scene.face_count_by_role(),
@@ -90,7 +90,7 @@ class Prd003Pipeline:
                 "ifc_scene": str((IFC_DIR / "block147.ifc").relative_to(PROJECT_ROOT)),
                 "reports": str(REPORT_DIR.relative_to(PROJECT_ROOT)),
             },
-    }
+        }
 
 
 def _apply_map_review_overrides(building: Building) -> None:
