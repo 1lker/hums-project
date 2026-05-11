@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from shapely.geometry import shape
+from shapely.geometry import Polygon, shape
 
 from ..common.heritage_profile import PROFILE
 from ..common.paths import BLOCK_GEOJSON, PARSED, PROJECT_ROOT
@@ -19,7 +19,7 @@ from ..render.reports.geometry_manifest import write_reports
 from ..render.scene_assembler import SceneAssembler
 from ..render.scene.street_mesh import load_block_ring_local
 from ..render.special.church_builder import ChurchBuilder
-from ..render.special.landscape_builder import CourtyardGardenBuilder
+from ..render.special.landscape_builder import CourtyardGardenBuilder, N50_REAR_LIGHTWELL_UTM
 from .render_manual import ManualRenderer
 
 BUILDINGS_JSON = PARSED / "buildings.json"
@@ -142,15 +142,146 @@ def _apply_map_review_overrides(building: Building) -> None:
             "between N-50 and the N-52/54 corner mass. The short rear-east face "
             "is treated as courtyard-exposed, not a same-height party wall."
         )
+        _cut_n50_rear_lightwell_from_mass(building)
         _ensure_n50_rear_lightwell_windows(building)
+
+
+def _cut_n50_rear_lightwell_from_mass(building: Building) -> None:
+    """Cut the map-visible rectangular void out of parcel 50's massing.
+
+    The traced N-50 SHP includes the small right/rear rectangular void visible
+    on the Pervititch crop. Rendering the SHP literally makes the void vanish
+    under the building roof, so the scene-level correction must change the
+    actual N-50 footprint, not just add a lightwell marker on top.
+    """
+    if not building.local_frame or not building.footprint_local:
+        return
+    ox, oy = building.local_frame.origin_utm
+    current = Polygon([(x + ox, y + oy) for x, y in building.footprint_local]).buffer(0)
+    void = Polygon(N50_REAR_LIGHTWELL_UTM).buffer(0)
+    cut = current.difference(void).buffer(0)
+    if cut.is_empty:
+        return
+    if cut.geom_type == "MultiPolygon":
+        polys = [p for p in cut.geoms if p.area > 0.25]
+        if not polys:
+            return
+        cut = max(polys, key=lambda p: p.area)
+    if cut.geom_type != "Polygon" or cut.area < current.area * 0.70:
+        return
+
+    coords = _clean_ring([(x, y) for x, y in list(cut.exterior.coords)[:-1]])
+    if len(coords) < 4:
+        return
+    if _signed_area_utm(coords) < 0:
+        coords.reverse()
+
+    building.footprint_local = [
+        (round(x - ox, 4), round(y - oy, 4))
+        for x, y in coords
+    ]
+    building.wall_segments = _n50_segments_from_cut_ring(building, coords)
+    building.notes["n50_rear_lightwell_cut"] = (
+        "N-50 massing footprint cut by the map-visible rectangular rear/right "
+        "void; void area is approximately one eighth of the original parcel."
+    )
+
+
+def _n50_segments_from_cut_ring(building: Building, coords_utm: list[tuple[float, float]]) -> list[WallSegment]:
+    assert building.local_frame is not None
+    ox, oy = building.local_frame.origin_utm
+    local = [(x - ox, y - oy) for x, y in coords_utm]
+    total_h = sum(s.height_m for s in building.storeys if not s.is_basement)
+
+    segments: list[WallSegment] = []
+    for idx, (a, b) in enumerate(zip(local, local[1:] + local[:1])):
+        au = coords_utm[idx]
+        bu = coords_utm[(idx + 1) % len(coords_utm)]
+        length = ((b[0] - a[0]) ** 2 + (b[1] - a[1]) ** 2) ** 0.5
+        face = _face_from_utm_edge(au, bu)
+        is_top_street = length < 4.2 and max(au[1], bu[1]) > 4539716.0
+        is_lightwell_edge = _edge_touches_n50_lightwell(au, bu)
+        adjacent = None if is_top_street or is_lightwell_edge else (
+            7.0 if length > 8.0 else total_h
+        )
+        seg = WallSegment(
+            start=(round(a[0], 4), round(a[1], 4)),
+            end=(round(b[0], 4), round(b[1], 4)),
+            thickness_m=0.55,
+            face=face if (is_top_street or is_lightwell_edge or adjacent is None) else "INT",
+            is_street_facing=is_top_street or is_lightwell_edge or adjacent is None,
+            is_party_wall=adjacent is not None and not is_lightwell_edge and not is_top_street,
+            adjacent_height_m=adjacent,
+            hatch_pattern="_street" if is_top_street else None,
+        )
+        segments.append(seg)
+
+    _restore_n50_openings_after_cut(building, segments)
+    return segments
+
+
+def _restore_n50_openings_after_cut(building: Building, segments: list[WallSegment]) -> None:
+    o = PROFILE.openings
+    top = max(
+        (s for s in segments if s.length_m > 1.5),
+        key=lambda s: ((s.start[1] + s.end[1]) * 0.5, -abs(s.length_m - 3.4)),
+    )
+    door_w = min(o.door_w_m, max(0.78, top.length_m - 0.9))
+    door_pos = max(0.28, (top.length_m - door_w) / 2.0)
+    top.openings.append(Opening(
+        kind="door",
+        storey_level=0,
+        position_along_wall_m=round(door_pos, 3),
+        width_m=round(door_w, 3),
+        height_m=o.door_h_m,
+        sill_m=0.0,
+        style="rectangular",
+        frame_profile="moulded",
+        color_source="map:pervititch",
+    ))
+    for level in (1, 2):
+        top.openings.append(Opening(
+            kind="window",
+            storey_level=level,
+            position_along_wall_m=round(door_pos, 3),
+            width_m=round(min(o.upper_window_w_m, door_w), 3),
+            height_m=o.upper_window_h_m,
+            sill_m=o.upper_window_sill_m,
+            style="rectangular",
+            pane_layout="2x2",
+            frame_profile="moulded",
+            color_source="map:geometry-detected:street-exposed-facade",
+        ))
+
+    long_party = [
+        s for s in segments
+        if s.length_m > 7.0 and s.is_party_wall and (s.adjacent_height_m or 0) < 9.0
+    ]
+    if long_party:
+        seg = max(long_party, key=lambda s: s.length_m)
+        for pos in (seg.length_m * 0.23, seg.length_m * 0.50, seg.length_m * 0.77):
+            seg.openings.append(Opening(
+                kind="window",
+                storey_level=2,
+                position_along_wall_m=round(max(0.35, min(seg.length_m - o.upper_window_w_m - 0.35, pos)), 3),
+                width_m=o.upper_window_w_m,
+                height_m=o.upper_window_h_m,
+                sill_m=o.upper_window_sill_m,
+                style="rectangular",
+                pane_layout="2x2",
+                frame_profile="moulded",
+                color_source="map:geometry-detected:height-difference-exposed-party-wall",
+            ))
 
 
 def _ensure_n50_rear_lightwell_windows(building: Building) -> None:
     candidates = [
         seg for seg in building.wall_segments
-        if 2.2 <= seg.length_m <= 3.1
-        and seg.adjacent_height_m is not None
-        and seg.adjacent_height_m >= 9.0
+        if 2.0 <= seg.length_m <= 5.0
+        and (
+            seg.adjacent_height_m is not None and seg.adjacent_height_m >= 9.0
+            or _local_edge_touches_n50_lightwell(building, seg)
+        )
     ]
     if not candidates:
         return
@@ -184,6 +315,82 @@ def _ensure_n50_rear_lightwell_windows(building: Building) -> None:
             frame_profile="moulded",
             color_source=source,
         ))
+
+
+def _clean_ring(coords: list[tuple[float, float]]) -> list[tuple[float, float]]:
+    deduped: list[tuple[float, float]] = []
+    for p in coords:
+        if not deduped or _pt_dist(p, deduped[-1]) > 0.08:
+            deduped.append(p)
+    if len(deduped) > 1 and _pt_dist(deduped[0], deduped[-1]) <= 0.08:
+        deduped.pop()
+
+    changed = True
+    while changed and len(deduped) >= 4:
+        changed = False
+        out: list[tuple[float, float]] = []
+        n = len(deduped)
+        for i, p in enumerate(deduped):
+            a = deduped[(i - 1) % n]
+            b = deduped[(i + 1) % n]
+            if _point_line_distance(p, a, b) < 0.06:
+                changed = True
+                continue
+            out.append(p)
+        deduped = out
+    return deduped
+
+
+def _face_from_utm_edge(a: tuple[float, float], b: tuple[float, float]) -> str:
+    dx = b[0] - a[0]
+    dy = b[1] - a[1]
+    ang = __import__("math").degrees(__import__("math").atan2(-dx, dy))
+    if -45 <= ang < 45:
+        return "N"
+    if 45 <= ang < 135:
+        return "E"
+    if -135 <= ang < -45:
+        return "W"
+    return "S"
+
+
+def _edge_touches_n50_lightwell(a: tuple[float, float], b: tuple[float, float]) -> bool:
+    from shapely.geometry import LineString
+    return LineString([a, b]).distance(Polygon(N50_REAR_LIGHTWELL_UTM).exterior) < 0.16
+
+
+def _local_edge_touches_n50_lightwell(building: Building, seg: WallSegment) -> bool:
+    if not building.local_frame:
+        return False
+    ox, oy = building.local_frame.origin_utm
+    a = (seg.start[0] + ox, seg.start[1] + oy)
+    b = (seg.end[0] + ox, seg.end[1] + oy)
+    return _edge_touches_n50_lightwell(a, b)
+
+
+def _signed_area_utm(coords: list[tuple[float, float]]) -> float:
+    return sum(
+        coords[i][0] * coords[(i + 1) % len(coords)][1]
+        - coords[(i + 1) % len(coords)][0] * coords[i][1]
+        for i in range(len(coords))
+    ) / 2.0
+
+
+def _point_line_distance(p: tuple[float, float], a: tuple[float, float], b: tuple[float, float]) -> float:
+    import math
+    ax, ay = a
+    bx, by = b
+    px, py = p
+    dx = bx - ax
+    dy = by - ay
+    denom = math.hypot(dx, dy)
+    if denom <= 0.001:
+        return _pt_dist(p, a)
+    return abs(dy * px - dx * py + bx * ay - by * ax) / denom
+
+
+def _pt_dist(a: tuple[float, float], b: tuple[float, float]) -> float:
+    return ((a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2) ** 0.5
 
 
 def _block_centroid() -> tuple[float, float]:
