@@ -752,6 +752,332 @@ def _html_page(data: dict[str, Any]) -> str:
 """
 
 
+def _html_page(data: dict[str, Any]) -> str:
+    """Generate the interactive data viewer.
+
+    Defined after the legacy renderer so this cleaner layout is the active
+    implementation while keeping the export contract unchanged.
+    """
+    payload = json.dumps(data, ensure_ascii=False).replace("</", "<\\/")
+    generated = html.escape(str(data["generated_at"]))
+    page = """<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Block 147 Building Data</title>
+  <style>
+    :root {
+      color-scheme: light;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #f4f5f1;
+      color: #202422;
+      --panel: #fffdf8;
+      --panel-2: #f7f1e8;
+      --line: #d7d0c4;
+      --line-strong: #a99a88;
+      --ink-muted: #635f58;
+      --accent: #315f55;
+      --accent-2: #6f4731;
+      --header: #253330;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; min-height: 100%; }
+    body { background: var(--panel-2); }
+    .shell { min-height: 100vh; display: grid; grid-template-rows: auto 1fr; }
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      display: grid;
+      grid-template-columns: minmax(260px, 1fr) auto;
+      gap: 16px;
+      align-items: center;
+      padding: 16px 20px 12px;
+      background: rgba(244, 245, 241, 0.98);
+      border-bottom: 1px solid var(--line);
+      backdrop-filter: blur(10px);
+    }
+    h1 { margin: 0; font-size: 20px; line-height: 1.18; letter-spacing: 0; }
+    .meta { margin-top: 4px; color: var(--ink-muted); font-size: 12px; }
+    nav { display: flex; gap: 7px; flex-wrap: wrap; justify-content: flex-end; }
+    a.button, button {
+      min-height: 34px;
+      border: 1px solid var(--line-strong);
+      background: var(--panel);
+      color: #251f1a;
+      border-radius: 6px;
+      padding: 7px 10px;
+      font: inherit;
+      font-size: 12px;
+      line-height: 1.2;
+      text-decoration: none;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    button.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+    main {
+      display: grid;
+      grid-template-rows: auto auto 1fr;
+      gap: 12px;
+      min-height: 0;
+      padding: 14px 20px 18px;
+    }
+    .stats { display: grid; grid-template-columns: repeat(5, minmax(120px, 1fr)); gap: 8px; }
+    .stat {
+      min-width: 0;
+      border: 1px solid var(--line);
+      background: var(--panel);
+      border-radius: 8px;
+      padding: 9px 11px;
+    }
+    .stat-value { font-size: 18px; font-weight: 700; color: var(--header); }
+    .stat-label { margin-top: 2px; color: var(--ink-muted); font-size: 11px; }
+    .toolbar {
+      display: grid;
+      grid-template-columns: minmax(260px, 1fr) 160px 170px 160px auto;
+      gap: 9px;
+      align-items: center;
+    }
+    input, select {
+      width: 100%;
+      min-height: 36px;
+      border: 1px solid #c8bbab;
+      border-radius: 6px;
+      padding: 8px 10px;
+      background: #fff;
+      color: #1f1f1f;
+      font: inherit;
+      font-size: 12px;
+    }
+    .count { justify-self: end; color: var(--ink-muted); font-size: 12px; white-space: nowrap; }
+    .table-wrap {
+      min-height: 320px;
+      max-height: calc(100vh - 218px);
+      overflow: auto;
+      border: 1px solid var(--line);
+      background: var(--panel);
+      border-radius: 8px;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.75);
+    }
+    table { width: 100%; min-width: 1680px; border-collapse: separate; border-spacing: 0; table-layout: fixed; }
+    th, td {
+      border-bottom: 1px solid #ece5dc;
+      border-right: 1px solid #efe8df;
+      padding: 8px 10px;
+      vertical-align: top;
+      font-size: 12px;
+      line-height: 1.35;
+    }
+    th {
+      position: sticky;
+      top: 0;
+      z-index: 3;
+      background: var(--header);
+      color: #fff;
+      text-align: left;
+      font-size: 11px;
+      font-weight: 650;
+      box-shadow: 0 1px 0 rgba(0,0,0,0.18);
+    }
+    tr:nth-child(even) td { background: #fbf8f2; }
+    tr:hover td { background: #f2f5ee; }
+    .cell { max-height: 118px; overflow: auto; overflow-wrap: anywhere; }
+    .cell.long { min-width: 260px; max-height: 148px; }
+    .cell.id { font-weight: 650; color: #1f2c29; }
+    .pill {
+      display: inline-block;
+      border: 1px solid #c4b6a2;
+      border-radius: 999px;
+      padding: 2px 7px;
+      background: #fff;
+      color: #332b24;
+      white-space: nowrap;
+    }
+    .pill.Yes { background: #e7f2ee; border-color: #95b7ab; color: #20473f; }
+    .pill.No { background: #f5efe7; border-color: #d0b99f; color: #63432c; }
+    .pill.A { background: #eee8dc; }
+    .pill.B { background: #f5e4da; }
+    .pill.C { background: #edf0db; }
+    .legend-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 10px;
+      overflow: auto;
+      max-height: calc(100vh - 170px);
+    }
+    .legend-card {
+      border: 1px solid var(--line);
+      background: var(--panel);
+      padding: 12px;
+      border-radius: 8px;
+    }
+    .legend-code { font-weight: 700; font-size: 15px; color: var(--accent-2); }
+    .legend-card p { margin: 8px 0 0; font-size: 12px; line-height: 1.4; }
+    .empty { padding: 24px; color: var(--ink-muted); font-size: 13px; }
+    .muted { color: var(--ink-muted); }
+    @media (max-width: 980px) {
+      header { grid-template-columns: 1fr; }
+      nav { justify-content: start; }
+      .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .toolbar { grid-template-columns: 1fr 1fr; }
+      .count { justify-self: start; }
+      .table-wrap { max-height: calc(100vh - 330px); }
+    }
+    @media (max-width: 620px) {
+      header { padding: 14px 14px 10px; }
+      main { padding: 12px 14px 16px; }
+      .stats, .toolbar { grid-template-columns: 1fr; }
+      nav { gap: 6px; }
+      .table-wrap { max-height: calc(100vh - 430px); }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <header>
+      <div>
+        <h1>Block 147 Building Data</h1>
+        <div class="meta">Generated __GENERATED__ · Excel + manual map corrections + current viewer reports</div>
+      </div>
+      <nav>
+        <button class="active" data-view="units">Model Units</button>
+        <button data-view="source">Source Parcels</button>
+        <button data-view="manual">Manual Zones</button>
+        <button data-view="qa">QA Flags</button>
+        <button data-view="legend">Code Legend</button>
+        <a class="button" href="./block147_building_data.xlsx">Excel</a>
+        <a class="button" href="./viewer.html?refresh=data">3D Viewer</a>
+      </nav>
+    </header>
+    <main id="app"></main>
+  </div>
+  <script id="payload" type="application/json">__PAYLOAD__</script>
+  <script>
+    const data = JSON.parse(document.getElementById('payload').textContent);
+    let view = 'units';
+    let query = '';
+    let material = '';
+    let manual = '';
+    let roof = '';
+    const app = document.getElementById('app');
+    const viewMap = {
+      units: { rows: () => data.model_units || [] },
+      source: { rows: () => data.source_parcels || [] },
+      manual: { rows: () => data.manual_overrides || [] },
+      qa: { rows: () => data.qa_flags || [] }
+    };
+
+    document.querySelectorAll('button[data-view]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('button[data-view]').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        view = btn.dataset.view;
+        render();
+      });
+    });
+
+    function render() {
+      if (view === 'legend') return renderLegend();
+      const rows = viewMap[view].rows();
+      const filtered = rows.filter(row => {
+        const text = Object.values(row).join(' ').toLowerCase();
+        const okQuery = !query || text.includes(query.toLowerCase());
+        const okMat = !material || String(row.material_class || '').includes(material);
+        const okManual = !manual || String(row.manual_override || '') === manual;
+        const roofText = `${row.roof_shape || ''} ${row.roof_material || ''} ${row.rendered_roof_materials || ''}`.toLowerCase();
+        const okRoof = !roof || roofText.includes(roof.toLowerCase());
+        return okQuery && okMat && okManual && okRoof;
+      });
+      app.innerHTML = `
+        ${summary()}
+        <div class="toolbar">
+          <input id="q" value="${escapeAttr(query)}" placeholder="Search parcel, code, roof, note...">
+          <select id="mat">
+            <option value="">All materials</option>
+            <option value="A" ${material==='A'?'selected':''}>A stone</option>
+            <option value="B" ${material==='B'?'selected':''}>B masonry</option>
+            <option value="C" ${material==='C'?'selected':''}>C wooden</option>
+          </select>
+          <select id="manual" ${view === 'source' || view === 'manual' || view === 'qa' ? 'disabled' : ''}>
+            <option value="">All source types</option>
+            <option value="Yes" ${manual==='Yes'?'selected':''}>Manual corrected</option>
+            <option value="No" ${manual==='No'?'selected':''}>Excel/geometry</option>
+          </select>
+          <select id="roof">
+            <option value="">All roofs</option>
+            <option value="gable" ${roof==='gable'?'selected':''}>Gable</option>
+            <option value="hip" ${roof==='hip'?'selected':''}>Hip</option>
+            <option value="vault" ${roof==='vault'?'selected':''}>Vault</option>
+            <option value="tile" ${roof==='tile'?'selected':''}>Tile</option>
+            <option value="sheet" ${roof==='sheet'?'selected':''}>Sheet metal</option>
+          </select>
+          <div class="count">${filtered.length} rows</div>
+        </div>
+        ${table(filtered)}
+      `;
+      document.getElementById('q').addEventListener('input', e => { query = e.target.value; render(); });
+      document.getElementById('mat').addEventListener('change', e => { material = e.target.value; render(); });
+      document.getElementById('manual').addEventListener('change', e => { manual = e.target.value; render(); });
+      document.getElementById('roof').addEventListener('change', e => { roof = e.target.value; render(); });
+    }
+
+    function summary() {
+      const stats = [
+        ['Model units', (data.model_units || []).length],
+        ['Source parcels', (data.source_parcels || []).length],
+        ['Manual zones', (data.manual_overrides || []).length],
+        ['QA flags', (data.qa_flags || []).length],
+        ['Code entries', (data.code_legend || []).length],
+      ];
+      return `<section class="stats">${stats.map(([label, value]) => `
+        <div class="stat">
+          <div class="stat-value">${escapeHtml(value)}</div>
+          <div class="stat-label">${escapeHtml(label)}</div>
+        </div>
+      `).join('')}</section>`;
+    }
+
+    function renderLegend() {
+      app.innerHTML = `<div class="legend-grid">${(data.code_legend || []).map(item => `
+        <section class="legend-card">
+          <div class="legend-code">${escapeHtml(item.code)} <span class="muted">(${item.observed_mentions || 0} mentions)</span></div>
+          <p>${escapeHtml(item.meaning)}</p>
+          <p><strong>Model:</strong> ${escapeHtml(item.model_use)}</p>
+          <p class="muted">${escapeHtml(item.confidence)}</p>
+        </section>
+      `).join('')}</div>`;
+    }
+
+    function table(rows) {
+      if (!rows.length) return '<div class="table-wrap"><div class="empty">No rows match the current filters.</div></div>';
+      const headers = Object.keys(rows[0]);
+      return `<div class="table-wrap"><table><thead><tr>${headers.map(h => `<th>${escapeHtml(h)}</th>`).join('')}</tr></thead><tbody>
+        ${rows.map(row => `<tr>${headers.map(h => cell(row[h], h)).join('')}</tr>`).join('')}
+      </tbody></table></div>`;
+    }
+
+    function cell(value, key) {
+      const v = value == null ? '' : String(value);
+      const display = escapeHtml(v).replaceAll('\\n', '<br>');
+      const longKeys = ['source_notes', 'map_notes', 'zone_description', 'bim_notes', 'wall_decoded', 'vault_decoded', 'roles', 'rendered_roof_materials'];
+      const idKeys = ['model_id', 'parcel_id', 'manual_label', 'source_parcels', 'source_footprint'];
+      if (['material_class','manual_override','roof_material'].includes(key) && v) {
+        return `<td><span class="pill ${escapeAttr(v)}">${display}</span></td>`;
+      }
+      const klass = `${longKeys.includes(key) ? 'long ' : ''}${idKeys.includes(key) ? 'id ' : ''}`.trim();
+      return `<td><div class="cell ${klass}">${display}</div></td>`;
+    }
+    function escapeHtml(s) { return String(s).replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch])); }
+    function escapeAttr(s) { return escapeHtml(s).replaceAll('"', '&quot;'); }
+    render();
+  </script>
+</body>
+</html>
+"""
+    return page.replace("__GENERATED__", generated).replace("__PAYLOAD__", payload)
+
+
 def _table_by_id(path: Path) -> dict[str, dict[str, str]]:
     rows = _markdown_table(path)
     return {row.get("parcel_id", ""): row for row in rows if row.get("parcel_id")}
