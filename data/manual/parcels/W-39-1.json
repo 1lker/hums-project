@@ -2,15 +2,15 @@
   "label": "W-39-1",
   "parcel_ids": ["W-39/1"],
   "verified": false,
-  "map_notes": "The W-39/1 church-edge footprint must not be rendered as one all-glass block. The Pervititch crop shows Camli/Vitre only on the lower hatched passage. The adjacent yellow/wooden church-edge area labelled T. 1 bs. is not glass; it is a wooden one-storey-plus-basement annex with sheet-metal T roof. The east/right area near the Clocher square remains an opaque side/narthex mass.",
+  "map_notes": "The W-39/1 church-edge footprint must not be rendered as one all-glass block. The Pervititch crop shows Camli/Vitre only on the lower hatched passage; the user-supplied front photo confirms this is the Ayia Efimia church entrance: plastered low narthex wall, white double door, and a glazed/iron arched fanlight above the door. The adjacent yellow/wooden church-edge area labelled T. 1 bs. is not glass; it is a wooden one-storey-plus-basement annex with sheet-metal T roof. The east/right area near the Clocher square remains an opaque side/narthex mass.",
   "footprint_ref": "churche-entrence-camli-area-(39-1,-39-2)-clocher.shp",
   "structure_type": "building",
   "primary_zone_axis": "west_to_east",
   "zones": [
     {
       "id": "camli_vitre_passage",
-      "description": "Lower blue-hatched Camli-Vitre church passage. This is the glazed part only, not the whole W-39/1 footprint.",
-      "material_class": "C+glass",
+      "description": "Lower blue-hatched Camli-Vitre church entrance passage. Photo correction: this is not a glass wall or all-glass roof; the main facade is plastered masonry/woodwork, with glass only in the arched fanlight/transom over the white church door.",
+      "material_class": "B",
       "map_colour": "yellow_blue_hatch",
       "storeys_above_grade": 1.0,
       "has_mezzanine": false,
@@ -18,18 +18,18 @@
       "storey_heights_m": [3.8],
       "ground_floor_use": "passage",
       "roof": {
-        "shape": "complex_pitched",
-        "material": "glass_roof",
-        "pitch_deg": 12.0,
+        "shape": "gable",
+        "material": "tile_TR",
+        "pitch_deg": 18.0,
         "has_chimney": false,
-        "has_skylight": true
+        "has_skylight": false
       },
       "footprint_fraction": [0.0, 0.68],
       "clip_ranges": [
         {"axis": "west_to_east", "fraction": [0.0, 0.68]},
         {"axis": "south_to_north", "fraction": [0.0, 0.52]}
       ],
-      "map_labels": ["Camli", "Vitre", "diagonal roof/glass hatch"]
+      "map_labels": ["Camli", "Vitre", "church entrance", "arched glazed fanlight"]
     },
     {
       "id": "wooden_church_edge_annex",
