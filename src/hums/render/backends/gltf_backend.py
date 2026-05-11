@@ -222,6 +222,9 @@ def _material_for(root: gl.GLTF2, palette, material_key: str, meta: dict) -> int
         roughness = 0.92
     elif material_key == "roof_unknown_muted":
         roughness = 0.78
+    elif material_key == "fountain_water":
+        alpha = 0.58
+        roughness = 0.18
 
     mat = gl.Material(
         name=material_key,
@@ -289,6 +292,13 @@ def _color_for(palette, material_key: str) -> tuple[int, int, int]:
         "roof_unknown_muted": (126, 112, 94),
         "plinth_stone": (160, 148, 130),
         "cornice_paint": (236, 225, 205),
+        "fountain_shadow": (92, 78, 63),
+        "fountain_plaque_green": (42, 86, 66),
+        "fountain_gold": (202, 159, 74),
+        "fountain_stone_dark": (128, 119, 103),
+        "fountain_basin_stone": (198, 187, 168),
+        "fountain_metal": (142, 102, 42),
+        "fountain_water": (128, 180, 196),
         "dome_lead": (112, 120, 122),
         "balcony_iron": (45, 40, 38),
         "wood_grain_dark": (96, 61, 34),

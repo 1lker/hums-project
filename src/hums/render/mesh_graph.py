@@ -36,6 +36,9 @@ MaterialKey = Literal[
     "tile_terracotta", "tile_marseille", "sheet_metal_grey",
     "vault_roof_masonry", "roof_unknown_muted", "dome_lead",
     "plinth_stone", "cornice_paint", "balcony_iron",
+    "fountain_shadow", "fountain_plaque_green", "fountain_gold",
+    "fountain_stone_dark", "fountain_basin_stone", "fountain_metal",
+    "fountain_water",
     "wood_grain_dark", "wood_batten",
     "grass_ground", "garden_shrub", "tree_canopy", "tree_trunk",
 ]
