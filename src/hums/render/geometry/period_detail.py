@@ -254,6 +254,7 @@ def _emit_magasin_door(
     board_top = z1 + 0.48
     board_u0 = max(u0 - 0.08, lu0 - 0.18)
     board_u1 = min(u1 + 0.08, ru1 + 0.18)
+    _emit_magasin_stall_riser(mesh, pid, face, seg_idx, door_idx, p, board_u0, board_u1, z0)
     mesh.add_quad(
         p0=p(board_u0, board_bot, 0.065),
         p1=p(board_u0, board_top, 0.065),
@@ -263,6 +264,7 @@ def _emit_magasin_door(
         surface_id=f"{pid}.magasin_door.{face}.{seg_idx}.{door_idx}.lintel_board",
         material_key="magasin_sign",
     )
+    _emit_magasin_canopy(mesh, pid, face, seg_idx, door_idx, sx, sy, ux, uy, nx, ny, board_u0, board_u1, board_top)
 
     # Center meeting stile.
     stile_w = min(0.045, max(0.025, (u1 - u0) * 0.04))
@@ -310,6 +312,68 @@ def _emit_magasin_door(
         )
         z += 0.24
         n += 1
+
+
+def _emit_magasin_stall_riser(mesh, pid, face, seg_idx, door_idx, p, u0, u1, z0) -> None:
+    """Low masonry/wood threshold strip common to old small-shop fronts."""
+    top = z0 + 0.34
+    mesh.add_quad(
+        p0=p(u0, z0, 0.055),
+        p1=p(u0, top, 0.055),
+        p2=p(u1, top, 0.055),
+        p3=p(u1, z0, 0.055),
+        role="PlinthSurface",
+        surface_id=f"{pid}.magasin_storefront.{face}.{seg_idx}.{door_idx}.stall_riser",
+        material_key="plinth_stone",
+    )
+
+
+def _emit_magasin_canopy(
+    mesh: BuildingMesh,
+    pid: str,
+    face: str,
+    seg_idx: int,
+    door_idx: int,
+    sx: float,
+    sy: float,
+    ux: float,
+    uy: float,
+    nx: float,
+    ny: float,
+    u0: float,
+    u1: float,
+    z: float,
+) -> None:
+    """Short sloped timber/canvas hood, visually separates shops from houses."""
+    depth = 0.42
+    drop = 0.12
+    side = 0.08
+    a = u0 - side
+    b = u1 + side
+
+    def p(u: float, out: float, dz: float = 0.0) -> tuple[float, float, float]:
+        return (sx + ux * u + nx * out, sy + uy * u + ny * out, z + dz)
+
+    mesh.add_quad(
+        p0=p(a, 0.02, 0.0),
+        p1=p(b, 0.02, 0.0),
+        p2=p(b, depth, -drop),
+        p3=p(a, depth, -drop),
+        role="CorniceSurface",
+        surface_id=f"{pid}.magasin_storefront.{face}.{seg_idx}.{door_idx}.canopy",
+        material_key="magasin_canvas",
+    )
+    # Front valance strip.
+    val_h = 0.12
+    mesh.add_quad(
+        p0=p(a, depth, -drop),
+        p1=p(a, depth, -drop - val_h),
+        p2=p(b, depth, -drop - val_h),
+        p3=p(b, depth, -drop),
+        role="CorniceSurface",
+        surface_id=f"{pid}.magasin_storefront.{face}.{seg_idx}.{door_idx}.valance",
+        material_key="magasin_sign",
+    )
 
 
 def _is_magasin_building(building: Building) -> bool:
