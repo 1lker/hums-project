@@ -3,18 +3,18 @@
   "label": "N-52-54-E2",
   "verified": false,
 
-  "map_notes": "`building-entrence-52-54-02` is one traced north-east corner footprint carrying the 52, 54 and 02 labels. The map/parsed labels indicate a height break: 52 is the taller 3E bay, while 54 and 02 read as lower shop/corner portions. The previous equal split created a triangular N-54 wedge even though the map does not show a freestanding triangular building. Render this as connected rectangular/zoned masses inside one footprint: a taller west/north 52 bay and a lower east corner 54/02 bay, with shared party wall and no invented triangular building.",
+  "map_notes": "`building-entrence-52-54-02` is one north-east corner footprint carrying the 52, 54 and 02 labels. User clarified this is one building. The numbers are interpreted as frontage/entrance labels on the same masonry corner building, not as separate masses. Do not split the visible model into a high bay and a low bay; keep one continuous footprint and one coherent roof.",
 
   "footprint_ref": "building-entrence-52-54-02.shp",
+  "footprint_mode": "traced",
 
   "structure_type": "building",
-
   "primary_zone_axis": "west_to_east",
 
   "zones": [
     {
-      "id": "n52_high_bay",
-      "description": "Taller west/north bay for label 52. Keeps the 3E height note without creating a triangular N-54 wedge.",
+      "id": "corner_mass",
+      "description": "Single masonry corner building for labels 52, 54 and 02. The label notations remain provenance; no separate triangular or low corner building is generated.",
       "material_class": "B",
       "map_colour": "pink",
       "storeys_above_grade": 3,
@@ -29,28 +29,8 @@
         "has_chimney": false,
         "has_skylight": false
       },
-      "footprint_fraction": [0.0, 0.48],
-      "map_labels": ["52", "3E", "VF"]
-    },
-    {
-      "id": "n54_e2_low_corner",
-      "description": "Lower connected east/corner bay for labels 54 and 02. Uses one shared footprint zone instead of a freestanding triangular corner building.",
-      "material_class": "B",
-      "map_colour": "pink",
-      "storeys_above_grade": 1,
-      "has_mezzanine": false,
-      "has_basement": false,
-      "storey_heights_m": [3.8],
-      "ground_floor_use": "shop",
-      "roof": {
-        "shape": "hip",
-        "material": "unknown",
-        "pitch_deg": 14.0,
-        "has_chimney": false,
-        "has_skylight": false
-      },
-      "footprint_fraction": [0.48, 1.0],
-      "map_labels": ["54", "02", "Mg.", "1-2", "VF"]
+      "footprint_fraction": [0.0, 1.0],
+      "map_labels": ["52", "54", "02", "3E", "VF", "Mg.", "1-2"]
     }
   ],
 
@@ -61,21 +41,15 @@
     "entrance_hints": [
       {
         "face": "N",
-        "zone": "n52_high_bay",
-        "count": 1,
-        "description": "North street entrance for 52 label."
-      },
-      {
-        "face": "N",
-        "zone": "n54_e2_low_corner",
-        "count": 1,
-        "description": "North street entrance for 54 label."
+        "zone": "corner_mass",
+        "count": 2,
+        "description": "North street frontage entrances for labels 52 and 54 on the same building."
       },
       {
         "face": "E",
-        "zone": "n54_e2_low_corner",
+        "zone": "corner_mass",
         "count": 1,
-        "description": "East street entrance for 02 label."
+        "description": "East street/corner entrance for label 02 on the same building."
       }
     ],
     "shop_windows": false,
@@ -86,6 +60,12 @@
   "palette_override": null,
 
   "open_questions": [
-    "Exact internal 52/54/02 division line is still approximate; current split follows the map labels and avoids the old false triangular N-54 footprint."
-  ]
+    "The raw register contains both 3E and 1-2 notes across 52/54/02. User clarification takes priority for visible massing: model as one building; only add a real height step later if the map division line is confirmed as a physical height break."
+  ],
+
+  "resolved_assumptions": {
+    "single_building": "User clarified that the 52, 54 and 02 labels belong to one building.",
+    "numbers": "52/54/02 are treated as frontage/entrance references, not separate building footprints.",
+    "roof": "One coherent corner hip roof is used; no split low bay or triangular corner mass."
+  }
 }
