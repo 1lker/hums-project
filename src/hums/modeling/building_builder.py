@@ -239,18 +239,19 @@ class BuildingBuilder:
         )
 
     def _place_east_row_rear_map_window(self, pid: str, segments, storeys, tracker) -> None:
-        """User/map-confirmed rear-center window for east-row magazines 4/6/8/10.
+        """User/map-confirmed rear/notch window for east-row magazines.
 
         This is deliberately not a generic shop-window rule. These small
-        shops otherwise have no upper-window logic because they are one-storey,
-        and E-4/E-6 rear edges can be over-classified as party walls by the
+        shops otherwise have no upper-window logic when they are one-storey,
+        and rear edges can be over-classified as party walls by the
         georeferenced footprint overlap. The Pervititch reread marks one
-        centered rear opening for each of 4, 6, 8 and 10.
+        centered rear opening/notch for 4, 6, 8, 10 and the same small
+        notch/triangle evidence is visible on 12 and 14.
         """
-        if pid not in {"E-4", "E-6", "E-8", "E-10"}:
+        if pid not in {"E-4", "E-6", "E-8", "E-10", "E-12", "E-14"}:
             return
         if any(
-            op.kind == "window" and op.color_source == "map:pervititch:east-row-rear-center-window"
+            op.kind == "window" and op.color_source.startswith("map:pervititch:east-row-rear")
             for seg in segments
             for op in seg.openings
         ):
@@ -279,13 +280,13 @@ class BuildingBuilder:
             has_shutters=False,
             has_balcony=False,
             frame_profile="moulded",
-            color_source="map:pervititch:east-row-rear-center-window",
+            color_source="map:pervititch:east-row-rear-notch-window",
         ))
         tracker.record(
             pid,
             f"wall[{seg.face}].rear_center_window",
             "map:pervititch",
-            "one centered rear-facing window visible for east-row magazine",
+            "one centered rear-facing window placed from map notch/triangle evidence",
         )
 
     def _storeys(self, parcel: dict, tracker: AssumptionTracker, structure_type: str = "building") -> list[Storey]:
