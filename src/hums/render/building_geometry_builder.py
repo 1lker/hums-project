@@ -355,6 +355,18 @@ class BuildingGeometryBuilder:
         plaque_z0, plaque_z1 = height - 0.88, height - 0.48
         _facade_quad(mesh, pid, p, plaque_u0, plaque_z0, plaque_u1, plaque_z1,
                      "fountain_plaque_green", "inscription.green_plaque", out=0.46)
+        _facade_quad(mesh, pid, p, plaque_u0 - 0.08, plaque_z0 - 0.06,
+                     plaque_u1 + 0.08, plaque_z0, "fountain_tile_blue",
+                     "inscription.blue_bottom_border", out=0.505)
+        _facade_quad(mesh, pid, p, plaque_u0 - 0.08, plaque_z1,
+                     plaque_u1 + 0.08, plaque_z1 + 0.06, "fountain_tile_blue",
+                     "inscription.blue_top_border", out=0.505)
+        _facade_quad(mesh, pid, p, plaque_u0 - 0.14, plaque_z0 - 0.04,
+                     plaque_u0 - 0.08, plaque_z1 + 0.04, "fountain_tile_red",
+                     "inscription.red_left_border", out=0.51)
+        _facade_quad(mesh, pid, p, plaque_u1 + 0.08, plaque_z0 - 0.04,
+                     plaque_u1 + 0.14, plaque_z1 + 0.04, "fountain_tile_red",
+                     "inscription.red_right_border", out=0.51)
         strokes = [
             (-0.56, plaque_z1 - 0.11, -0.18, plaque_z1 - 0.08),
             (-0.10, plaque_z1 - 0.09, 0.44, plaque_z1 - 0.07),
@@ -369,6 +381,22 @@ class BuildingGeometryBuilder:
             _facade_line(mesh, pid, p, u0, z0, u1, z1, 0.035, "fountain_gold",
                          f"inscription.gold_stroke.{i}", out=0.49)
 
+        # Colored ceramic accents make this read as a fountain wall, not a
+        # ground marker. The pattern is abstracted from Ottoman fountain tile
+        # borders without copying any modern storefront detail.
+        tile_z0 = 1.02
+        tile_h = 0.13
+        for side, u0 in (("left", -1.34), ("right", 1.21)):
+            for i in range(10):
+                z0 = tile_z0 + i * 0.155
+                key = "fountain_tile_blue" if i % 2 == 0 else "fountain_tile_green"
+                _facade_quad(mesh, pid, p, u0, z0, u0 + 0.13, z0 + tile_h,
+                             key, f"tile_border.{side}.{i}", out=0.515)
+        for i, u0 in enumerate((-0.58, -0.36, -0.14, 0.08, 0.30, 0.52)):
+            key = "fountain_tile_red" if i % 2 else "fountain_tile_blue"
+            _facade_quad(mesh, pid, p, u0, 2.66, u0 + 0.12, 2.78,
+                         key, f"arch_upper_tile.{i}", out=0.515)
+
         # Rosette medallions flanking the plaque.
         rosette_z = (plaque_z0 + plaque_z1) / 2.0
         _facade_disk(mesh, pid, p, -1.03, rosette_z, 0.24, "plinth_stone", "rosette.left", out=0.45)
@@ -382,6 +410,18 @@ class BuildingGeometryBuilder:
                 z1 = rosette_z + math.sin(ang) * 0.21
                 _facade_line(mesh, pid, p, u0, z0, u1, z1, 0.045, "fountain_stone_dark",
                              f"rosette.{side}.petal.{petal}", out=0.50)
+
+        # Make the water element legible in the full-block viewer.
+        _facade_disk(mesh, pid, p, 0.0, 0.86, 0.13, "fountain_metal", "spout.round_plate",
+                     out=0.53, segments=24)
+        _facade_box(mesh, pid, p, -0.06, 0.06, 0.50, 0.72, 0.78, 0.86,
+                    "fountain_metal", "spout.short_pipe")
+        _facade_box(mesh, pid, p, -0.035, 0.035, 0.66, 0.70, 0.48, 0.78,
+                    "fountain_water", "spout.visible_falling_water")
+        _facade_line(mesh, pid, p, -0.15, 0.52, -0.02, 0.44, 0.035,
+                     "fountain_water", "water.splash.left", out=0.71)
+        _facade_line(mesh, pid, p, 0.15, 0.52, 0.02, 0.44, 0.035,
+                     "fountain_water", "water.splash.right", out=0.71)
 
         # Fine stone joints and side weathering strips for carved-stone scale.
         for i, z in enumerate((0.86, 1.32, 1.94, 2.48, height - 1.08)):
@@ -417,6 +457,13 @@ def _fountain_front_frame(
         return None
     cx_poly = sum(x for x, _ in ring) / len(ring)
     cy_poly = sum(y for _, y in ring) / len(ring)
+    front_segments = [
+        s for s in building.wall_segments
+        if s.is_street_facing and not s.is_party_wall and s.face in {"S", "W"}
+    ]
+    if front_segments:
+        return _composite_fountain_front_frame(front_segments, cx_poly, cy_poly)
+
     best = None
     best_len = 0.0
     segment_edges = [
@@ -447,6 +494,60 @@ def _fountain_front_frame(
         best = (mx, my, ux, uy, nx, ny, length)
         best_len = length
     return best
+
+
+def _composite_fountain_front_frame(
+    segments,
+    cx_poly: float,
+    cy_poly: float,
+) -> tuple[float, float, float, float, float, float, float] | None:
+    total_len = sum(max(s.length_m, 0.0) for s in segments)
+    if total_len <= 0.01:
+        return None
+
+    mx = 0.0
+    my = 0.0
+    nx_sum = 0.0
+    ny_sum = 0.0
+    points: list[tuple[float, float]] = []
+    for s in segments:
+        ax, ay = s.start
+        bx, by = s.end
+        length = s.length_m
+        if length <= 0.01:
+            continue
+        points.append((ax, ay))
+        points.append((bx, by))
+        mid_x = (ax + bx) / 2.0
+        mid_y = (ay + by) / 2.0
+        mx += mid_x * length
+        my += mid_y * length
+        dx = bx - ax
+        dy = by - ay
+        nx = -dy / length
+        ny = dx / length
+        if ((mid_x + nx) - cx_poly) ** 2 + ((mid_y + ny) - cy_poly) ** 2 < (
+            (mid_x - nx) - cx_poly
+        ) ** 2 + ((mid_y - ny) - cy_poly) ** 2:
+            nx = -nx
+            ny = -ny
+        nx_sum += nx * length
+        ny_sum += ny * length
+
+    if not points:
+        return None
+    cx = mx / total_len
+    cy = my / total_len
+    n_len = math.hypot(nx_sum, ny_sum)
+    if n_len <= 0.01:
+        return None
+    nx = nx_sum / n_len
+    ny = ny_sum / n_len
+    ux = -ny
+    uy = nx
+    projections = [x * ux + y * uy for x, y in points]
+    edge_len = max(projections) - min(projections)
+    return (cx, cy, ux, uy, nx, ny, max(edge_len, 2.75))
 
 
 def _facade_quad(
