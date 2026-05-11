@@ -18,7 +18,7 @@ Block centroid (UTM 35N): (670348.7891039198, 4539704.61695908)
 | W-32#1 | 114 | 29 | Door, GroundSurface, HeaderSurface, JambSurface, PlinthSurface, RoofSurface, SillSurface, WallSurface | period_default | traced |
 | W-32#2 | 70 | 18 | Door, GroundSurface, HeaderSurface, JambSurface, PlinthSurface, RoofSurface, SillSurface, WallSurface | period_default | traced |
 | W-32#3 | 94 | 24 | Door, GroundSurface, HeaderSurface, JambSurface, PlinthSurface, RoofSurface, SillSurface, WallSurface | period_default | traced |
-| W-39/2 | 1141 | 266 | Door, GroundSurface, MonumentBody, RoofSurface | period_default | traced |
+| W-39/2 | 1173 | 274 | Door, GroundSurface, MonumentBody, RoofSurface | period_default | traced |
 | N-40-42.north_two_storey | 656 | 166 | CorniceSurface, Door, FloorSurface, GroundSurface, HeaderSurface, JambSurface, Mullion, PlinthSurface, RoofSurface, SillSurface, StringcourseSurface, WallSurface, Window, WoodCladding | period_default | traced |
 | N-40-42.middle_four_storey | 176 | 46 | FloorSurface, GroundSurface, HeaderSurface, JambSurface, Mullion, RoofSurface, SillSurface, WallSurface, Window | period_default | traced |
 | N-40-42.south_three_storey_vitrine | 456 | 116 | CorniceSurface, Door, FloorSurface, GroundSurface, HeaderSurface, JambSurface, Mullion, PlinthSurface, RoofSurface, SillSurface, WallSurface, Window, WoodCladding | period_default | traced |
