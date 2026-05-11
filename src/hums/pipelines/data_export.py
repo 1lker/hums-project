@@ -1078,6 +1078,492 @@ def _html_page(data: dict[str, Any]) -> str:
     return page.replace("__GENERATED__", generated).replace("__PAYLOAD__", payload)
 
 
+def _html_page(data: dict[str, Any]) -> str:
+    """Generate a readable master-detail data viewer, not a 30-column squeeze."""
+    payload = json.dumps(data, ensure_ascii=False).replace("</", "<\\/")
+    generated = html.escape(str(data["generated_at"]))
+    page = """<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Block 147 Building Data</title>
+  <style>
+    :root {
+      color-scheme: light;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      --bg: #f3efe7;
+      --panel: #fffdf8;
+      --panel-soft: #f8f5ef;
+      --ink: #202422;
+      --muted: #625d55;
+      --line: #d8cec0;
+      --line-strong: #a99480;
+      --green: #315f55;
+      --brick: #7a4d34;
+      --blue: #2f586b;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; min-height: 100%; background: var(--bg); color: var(--ink); }
+    body { overflow: hidden; }
+    .shell { height: 100vh; display: grid; grid-template-rows: auto 1fr; }
+    header {
+      display: grid;
+      grid-template-columns: minmax(280px, 1fr) auto;
+      gap: 16px;
+      align-items: center;
+      padding: 16px 22px 14px;
+      background: rgba(255,253,248,0.98);
+      border-bottom: 1px solid var(--line);
+    }
+    h1 { margin: 0; font-size: 21px; line-height: 1.16; letter-spacing: 0; }
+    .meta { margin-top: 4px; color: var(--muted); font-size: 12px; }
+    nav { display: flex; gap: 7px; flex-wrap: wrap; justify-content: flex-end; }
+    button, .button {
+      min-height: 36px;
+      border: 1px solid var(--line-strong);
+      border-radius: 6px;
+      padding: 8px 11px;
+      background: #fffaf3;
+      color: #2b241e;
+      font: inherit;
+      font-size: 12px;
+      line-height: 1.2;
+      text-decoration: none;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    button.active { background: var(--green); color: #fff; border-color: var(--green); }
+    main {
+      min-height: 0;
+      display: grid;
+      grid-template-rows: auto auto 1fr;
+      gap: 12px;
+      padding: 14px 22px 18px;
+    }
+    .stats { display: grid; grid-template-columns: repeat(5, minmax(130px, 1fr)); gap: 10px; }
+    .stat {
+      min-width: 0;
+      padding: 10px 12px;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+    }
+    .stat-value { font-size: 22px; font-weight: 750; color: #263530; }
+    .stat-label { margin-top: 2px; color: var(--muted); font-size: 12px; }
+    .toolbar {
+      display: grid;
+      grid-template-columns: minmax(260px, 1fr) 160px 170px 160px auto;
+      gap: 10px;
+      align-items: center;
+    }
+    input, select {
+      width: 100%;
+      min-height: 40px;
+      border: 1px solid #c7b9a6;
+      border-radius: 7px;
+      padding: 9px 11px;
+      background: #fff;
+      color: #1f1f1f;
+      font: inherit;
+      font-size: 13px;
+    }
+    .count { justify-self: end; color: var(--muted); font-size: 13px; white-space: nowrap; }
+    .workspace {
+      min-height: 0;
+      display: grid;
+      grid-template-columns: minmax(520px, 1fr) minmax(360px, 0.72fr);
+      gap: 12px;
+    }
+    .records, .detail {
+      min-height: 0;
+      overflow: auto;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 9px;
+    }
+    .records { padding: 8px; }
+    .record {
+      width: 100%;
+      display: grid;
+      grid-template-columns: minmax(150px, 0.8fr) minmax(180px, 1fr) minmax(190px, 1fr) minmax(180px, 1fr) minmax(150px, 0.8fr);
+      gap: 10px;
+      align-items: start;
+      margin: 0 0 8px;
+      padding: 11px 12px;
+      border: 1px solid #e1d8cc;
+      border-radius: 8px;
+      background: #fffbf4;
+      text-align: left;
+      color: inherit;
+      cursor: pointer;
+    }
+    .record:hover { border-color: #bca891; background: #fbf7ef; }
+    .record.selected { border-color: var(--green); box-shadow: inset 4px 0 0 var(--green); }
+    .record-title { font-weight: 760; font-size: 14px; overflow-wrap: anywhere; }
+    .field-label {
+      display: block;
+      margin-bottom: 3px;
+      color: var(--muted);
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: .02em;
+      text-transform: uppercase;
+    }
+    .field-value {
+      display: block;
+      min-width: 0;
+      font-size: 13px;
+      line-height: 1.32;
+      overflow-wrap: anywhere;
+    }
+    .summary-note {
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      min-height: 24px;
+      border: 1px solid #c6b7a5;
+      border-radius: 999px;
+      padding: 2px 8px;
+      background: #fff;
+      color: #332b24;
+      font-size: 12px;
+      white-space: nowrap;
+    }
+    .pill.yes { background: #e7f2ee; border-color: #91b5a8; color: #21483f; }
+    .pill.no { background: #f7efe5; border-color: #d0b99f; color: #684731; }
+    .pill.a { background: #eee8dc; }
+    .pill.b { background: #f5e4da; }
+    .pill.c { background: #edf0db; }
+    .detail {
+      display: grid;
+      grid-template-rows: auto 1fr;
+      overflow: hidden;
+    }
+    .detail-head {
+      padding: 15px 16px;
+      border-bottom: 1px solid var(--line);
+      background: #fbf8f1;
+    }
+    .detail-title { margin: 0; font-size: 18px; line-height: 1.25; overflow-wrap: anywhere; }
+    .detail-subtitle { margin-top: 4px; color: var(--muted); font-size: 12px; line-height: 1.35; }
+    .kv {
+      overflow: auto;
+      padding: 10px 12px 14px;
+      display: grid;
+      grid-template-columns: minmax(130px, 0.35fr) minmax(220px, 1fr);
+      gap: 0;
+    }
+    .kv-key, .kv-value {
+      border-bottom: 1px solid #eee5da;
+      padding: 9px 8px;
+      font-size: 12px;
+      line-height: 1.38;
+      overflow-wrap: anywhere;
+    }
+    .kv-key {
+      color: var(--muted);
+      font-weight: 720;
+      background: #fbf8f2;
+    }
+    .kv-value { white-space: pre-wrap; }
+    .legend-grid {
+      min-height: 0;
+      overflow: auto;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 10px;
+    }
+    .legend-card {
+      border: 1px solid var(--line);
+      background: var(--panel);
+      border-radius: 8px;
+      padding: 13px;
+    }
+    .legend-code { font-weight: 800; color: var(--brick); }
+    .legend-card p { margin: 8px 0 0; font-size: 13px; line-height: 1.4; }
+    .empty {
+      padding: 24px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    @media (max-width: 1200px) {
+      body { overflow: auto; }
+      .shell { min-height: 100vh; height: auto; }
+      .workspace { grid-template-columns: 1fr; }
+      .detail { min-height: 520px; }
+      .record { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .record .note-field { grid-column: 1 / -1; }
+    }
+    @media (max-width: 760px) {
+      header { grid-template-columns: 1fr; padding: 14px; }
+      nav { justify-content: start; }
+      main { padding: 12px 14px 16px; }
+      .stats, .toolbar, .record, .kv { grid-template-columns: 1fr; }
+      .count { justify-self: start; }
+      .detail { min-height: 620px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <header>
+      <div>
+        <h1>Block 147 Building Data</h1>
+        <div class="meta">Generated __GENERATED__ · readable data viewer + Excel export</div>
+      </div>
+      <nav>
+        <button class="active" data-view="units">Model Units</button>
+        <button data-view="source">Source Parcels</button>
+        <button data-view="manual">Manual Zones</button>
+        <button data-view="qa">QA Flags</button>
+        <button data-view="legend">Code Legend</button>
+        <a class="button" href="./block147_building_data.xlsx">Excel</a>
+        <a class="button" href="./viewer.html?refresh=data">3D Viewer</a>
+      </nav>
+    </header>
+    <main id="app"></main>
+  </div>
+  <script id="payload" type="application/json">__PAYLOAD__</script>
+  <script>
+    const data = JSON.parse(document.getElementById('payload').textContent);
+    let view = 'units';
+    let query = '';
+    let material = '';
+    let manual = '';
+    let roof = '';
+    let selectedIndex = 0;
+    const app = document.getElementById('app');
+
+    const viewConfig = {
+      units: {
+        rows: () => data.model_units || [],
+        title: row => row.model_id || row.parcel_id || 'Model unit',
+        subtitle: row => [row.source_parcels, row.source_type].filter(Boolean).join(' · '),
+        fields: [
+          ['material_class', 'Material'],
+          ['model_storeys', 'Storeys'],
+          ['roof_shape', 'Roof shape'],
+          ['roof_material', 'Roof material'],
+          ['openings', 'Openings'],
+          ['source_notes', 'Notes']
+        ]
+      },
+      source: {
+        rows: () => data.source_parcels || [],
+        title: row => row.parcel_id || 'Source parcel',
+        subtitle: row => [row.zone, row.street_facing].filter(Boolean).join(' · '),
+        fields: [
+          ['material_class', 'Material'],
+          ['storeys_corrected', 'Storeys'],
+          ['roof_shape', 'Roof shape'],
+          ['roof_material_decoded', 'Roof material'],
+          ['primary_door_face', 'Primary door'],
+          ['bim_notes', 'Notes']
+        ]
+      },
+      manual: {
+        rows: () => data.manual_overrides || [],
+        title: row => `${row.manual_label || ''}.${row.zone_id || ''}`,
+        subtitle: row => row.source_parcels || '',
+        fields: [
+          ['material_class', 'Material'],
+          ['storeys_above_grade', 'Storeys'],
+          ['roof_shape', 'Roof shape'],
+          ['roof_material', 'Roof material'],
+          ['map_labels', 'Map labels'],
+          ['zone_description', 'Description']
+        ]
+      },
+      qa: {
+        rows: () => data.qa_flags || [],
+        title: row => row.model_id || 'QA row',
+        subtitle: row => row.flags || '',
+        fields: [
+          ['flags', 'Flags'],
+          ['notes', 'Notes']
+        ]
+      }
+    };
+
+    document.querySelectorAll('button[data-view]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('button[data-view]').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        view = btn.dataset.view;
+        selectedIndex = 0;
+        render();
+      });
+    });
+
+    function rowsForView() {
+      if (view === 'legend') return [];
+      return viewConfig[view].rows();
+    }
+
+    function filteredRows() {
+      return rowsForView().filter(row => {
+        const text = Object.values(row).join(' ').toLowerCase();
+        const roofText = `${row.roof_shape || ''} ${row.roof_material || ''} ${row.roof_material_decoded || ''} ${row.rendered_roof_materials || ''}`.toLowerCase();
+        const okQuery = !query || text.includes(query.toLowerCase());
+        const okMat = !material || String(row.material_class || '').includes(material);
+        const okManual = !manual || String(row.manual_override || '') === manual;
+        const okRoof = !roof || roofText.includes(roof.toLowerCase());
+        return okQuery && okMat && okManual && okRoof;
+      });
+    }
+
+    function render() {
+      if (view === 'legend') return renderLegend();
+      const rows = filteredRows();
+      if (selectedIndex >= rows.length) selectedIndex = 0;
+      const selected = rows[selectedIndex] || null;
+      app.innerHTML = `
+        ${summary()}
+        ${toolbar(rows.length)}
+        <section class="workspace">
+          <div class="records">${rows.length ? rows.map((row, i) => record(row, i)).join('') : '<div class="empty">No rows match the current filters.</div>'}</div>
+          ${detail(selected)}
+        </section>
+      `;
+      bindControls();
+    }
+
+    function summary() {
+      const stats = [
+        ['Model units', (data.model_units || []).length],
+        ['Source parcels', (data.source_parcels || []).length],
+        ['Manual zones', (data.manual_overrides || []).length],
+        ['QA flags', (data.qa_flags || []).length],
+        ['Code entries', (data.code_legend || []).length],
+      ];
+      return `<section class="stats">${stats.map(([label, value]) => `
+        <div class="stat">
+          <div class="stat-value">${escapeHtml(value)}</div>
+          <div class="stat-label">${escapeHtml(label)}</div>
+        </div>
+      `).join('')}</section>`;
+    }
+
+    function toolbar(count) {
+      return `<div class="toolbar">
+        <input id="q" value="${escapeAttr(query)}" placeholder="Search parcel, code, roof, note...">
+        <select id="mat">
+          <option value="">All materials</option>
+          <option value="A" ${material==='A'?'selected':''}>A stone</option>
+          <option value="B" ${material==='B'?'selected':''}>B masonry</option>
+          <option value="C" ${material==='C'?'selected':''}>C wooden</option>
+        </select>
+        <select id="manual" ${view !== 'units' ? 'disabled' : ''}>
+          <option value="">All source types</option>
+          <option value="Yes" ${manual==='Yes'?'selected':''}>Manual corrected</option>
+          <option value="No" ${manual==='No'?'selected':''}>Excel/geometry</option>
+        </select>
+        <select id="roof">
+          <option value="">All roofs</option>
+          <option value="gable" ${roof==='gable'?'selected':''}>Gable</option>
+          <option value="hip" ${roof==='hip'?'selected':''}>Hip</option>
+          <option value="vault" ${roof==='vault'?'selected':''}>Vault</option>
+          <option value="tile" ${roof==='tile'?'selected':''}>Tile</option>
+          <option value="sheet" ${roof==='sheet'?'selected':''}>Sheet metal</option>
+        </select>
+        <div class="count">${count} rows</div>
+      </div>`;
+    }
+
+    function record(row, i) {
+      const cfg = viewConfig[view];
+      const fields = cfg.fields.slice(0, 5);
+      const note = cfg.fields[cfg.fields.length - 1];
+      return `<button class="record ${i === selectedIndex ? 'selected' : ''}" data-row="${i}">
+        <div>
+          <span class="field-label">Record</span>
+          <span class="record-title">${escapeHtml(cfg.title(row))}</span>
+        </div>
+        ${fields.map(([key, label]) => fieldBlock(row, key, label)).join('')}
+        <div class="note-field">
+          <span class="field-label">${escapeHtml(note[1])}</span>
+          <span class="field-value summary-note">${escapeHtml(value(row, note[0]))}</span>
+        </div>
+      </button>`;
+    }
+
+    function fieldBlock(row, key, label) {
+      let v = key === 'openings'
+        ? `Doors ${value(row, 'doors') || 0} · Shopfronts ${value(row, 'shopfronts') || 0} · Windows ${value(row, 'upper_windows') || 0}`
+        : value(row, key);
+      const pill = ['material_class', 'manual_override', 'roof_material'].includes(key);
+      return `<div>
+        <span class="field-label">${escapeHtml(label)}</span>
+        <span class="field-value">${pill ? pillHtml(v) : escapeHtml(v)}</span>
+      </div>`;
+    }
+
+    function detail(row) {
+      if (!row) return '<aside class="detail"><div class="empty">Select a row to inspect all fields.</div></aside>';
+      const cfg = viewConfig[view];
+      const entries = Object.entries(row);
+      return `<aside class="detail">
+        <div class="detail-head">
+          <h2 class="detail-title">${escapeHtml(cfg.title(row))}</h2>
+          <div class="detail-subtitle">${escapeHtml(cfg.subtitle(row))}</div>
+        </div>
+        <div class="kv">${entries.map(([key, val]) => `
+          <div class="kv-key">${escapeHtml(key)}</div>
+          <div class="kv-value">${formatValue(key, val)}</div>
+        `).join('')}</div>
+      </aside>`;
+    }
+
+    function renderLegend() {
+      app.innerHTML = `<div class="legend-grid">${(data.code_legend || []).map(item => `
+        <section class="legend-card">
+          <div class="legend-code">${escapeHtml(item.code)} <span class="muted">(${item.observed_mentions || 0} mentions)</span></div>
+          <p>${escapeHtml(item.meaning)}</p>
+          <p><strong>Model:</strong> ${escapeHtml(item.model_use)}</p>
+          <p class="muted">${escapeHtml(item.confidence)}</p>
+        </section>
+      `).join('')}</div>`;
+    }
+
+    function bindControls() {
+      document.getElementById('q').addEventListener('input', e => { query = e.target.value; selectedIndex = 0; render(); });
+      document.getElementById('mat').addEventListener('change', e => { material = e.target.value; selectedIndex = 0; render(); });
+      document.getElementById('manual').addEventListener('change', e => { manual = e.target.value; selectedIndex = 0; render(); });
+      document.getElementById('roof').addEventListener('change', e => { roof = e.target.value; selectedIndex = 0; render(); });
+      document.querySelectorAll('[data-row]').forEach(btn => {
+        btn.addEventListener('click', () => { selectedIndex = Number(btn.dataset.row || 0); render(); });
+      });
+    }
+
+    function value(row, key) {
+      const v = row[key];
+      return v == null || v === '' ? '—' : String(v);
+    }
+    function formatValue(key, val) {
+      const v = val == null || val === '' ? '—' : String(val);
+      if (['material_class', 'manual_override', 'roof_material'].includes(key) && v !== '—') return pillHtml(v);
+      return escapeHtml(v);
+    }
+    function pillHtml(v) {
+      const cls = String(v).toLowerCase().replace(/[^a-z0-9_-]+/g, '');
+      return `<span class="pill ${cls}">${escapeHtml(v)}</span>`;
+    }
+    function escapeHtml(s) { return String(s).replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch])); }
+    function escapeAttr(s) { return escapeHtml(s).replaceAll('"', '&quot;'); }
+    render();
+  </script>
+</body>
+</html>
+"""
+    return page.replace("__GENERATED__", generated).replace("__PAYLOAD__", payload)
+
+
 def _table_by_id(path: Path) -> dict[str, dict[str, str]]:
     rows = _markdown_table(path)
     return {row.get("parcel_id", ""): row for row in rows if row.get("parcel_id")}
