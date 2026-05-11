@@ -148,11 +148,11 @@ class ManualRenderer:
         # parcel_ids_matched overlap label.parcel_ids.
         for feat in fc["features"]:
             if label.footprint_ref and feat["properties"].get("source_file") == label.footprint_ref:
-                return shape(feat["geometry"])
+                return _manual_footprint(shape(feat["geometry"]), label)
         for feat in fc["features"]:
             matched = feat["properties"].get("parcel_ids_matched") or []
             if any(pid in matched for pid in label.parcel_ids):
-                return shape(feat["geometry"])
+                return _manual_footprint(shape(feat["geometry"]), label)
         return None
 
     def _other_parcel_features(self, label: ManualLabel):
@@ -475,6 +475,12 @@ class ManualRenderer:
 def _zone_wants_vitrine(zone: Zone) -> bool:
     text = " ".join([zone.id, zone.description, *zone.map_labels]).lower()
     return "vitr" in text or "cam" in text or "glaz" in text
+
+
+def _manual_footprint(poly, label: ManualLabel):
+    if label.footprint_mode == "minimum_rotated_rectangle":
+        return poly.minimum_rotated_rectangle
+    return poly
 
 
 def _available_opening_slots(length_m: float, occupied: list[tuple[float, float]]) -> list[tuple[float, float]]:

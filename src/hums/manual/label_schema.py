@@ -74,5 +74,6 @@ class ManualLabel:
     primary_zone_axis: ZoneAxis
     zones: list[Zone]
     facades: Facades
+    footprint_mode: str = "traced"
     palette_override: dict | None = None
     open_questions: list[str] = field(default_factory=list)

@@ -79,6 +79,7 @@ class ManualLabelLoader:
             primary_zone_axis=d.get("primary_zone_axis", "north_to_south"),
             zones=zones,
             facades=facades,
+            footprint_mode=d.get("footprint_mode", "traced"),
             palette_override=d.get("palette_override"),
             open_questions=list(d.get("open_questions", [])),
         )
