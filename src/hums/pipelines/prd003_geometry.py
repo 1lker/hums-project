@@ -5,6 +5,7 @@ from pathlib import Path
 
 from shapely.geometry import shape
 
+from ..common.heritage_profile import PROFILE
 from ..common.paths import BLOCK_GEOJSON, PARSED, PROJECT_ROOT
 from ..common.prd import prd
 from ..modeling.building import (
@@ -56,9 +57,7 @@ class Prd003Pipeline:
         church_mesh = ChurchBuilder().build(block_centroid)
         if church_mesh is not None:
             meshes.append(church_mesh)
-        garden_mesh = CourtyardGardenBuilder().build()
-        if garden_mesh is not None:
-            meshes.append(garden_mesh)
+        meshes.extend(CourtyardGardenBuilder().build_all())
         scene = SceneAssembler().assemble(meshes, block_centroid)
         block_ring = load_block_ring_local(block_centroid)
         if block_ring:
@@ -136,6 +135,55 @@ def _apply_map_review_overrides(building: Building) -> None:
             "Checked for a possible two-height split. Crop shows roof/hatch marks "
             "and the entrance arrow, but no confirmed internal height boundary."
         )
+
+    elif building.parcel_id == "N-50":
+        building.notes["map_review_2026_05_11"] = (
+            "Georeferenced reread found a small rectangular rear open lightwell "
+            "between N-50 and the N-52/54 corner mass. The short rear-east face "
+            "is treated as courtyard-exposed, not a same-height party wall."
+        )
+        _ensure_n50_rear_lightwell_windows(building)
+
+
+def _ensure_n50_rear_lightwell_windows(building: Building) -> None:
+    candidates = [
+        seg for seg in building.wall_segments
+        if 2.2 <= seg.length_m <= 3.1
+        and seg.adjacent_height_m is not None
+        and seg.adjacent_height_m >= 9.0
+    ]
+    if not candidates:
+        return
+    target = max(candidates, key=lambda seg: seg.length_m)
+    target.is_party_wall = False
+    target.is_street_facing = True
+    target.adjacent_height_m = None
+    target.hatch_pattern = None
+
+    source = "map:georeference:n50-rear-lightwell-window"
+    if any(op.kind == "window" and op.color_source == source for op in target.openings):
+        return
+    o = PROFILE.openings
+    width = min(o.upper_window_w_m, max(0.72, target.length_m - 0.72))
+    pos = max(0.28, (target.length_m - width) / 2.0)
+    upper_levels = [
+        s.level for s in building.storeys
+        if s.level >= 1 and not s.is_basement
+    ]
+    for level in upper_levels[:2]:
+        target.openings.append(Opening(
+            kind="window",
+            storey_level=level,
+            position_along_wall_m=round(pos, 3),
+            width_m=round(width, 3),
+            height_m=o.upper_window_h_m,
+            sill_m=o.upper_window_sill_m,
+            style="rectangular",
+            pane_layout="2x2",
+            has_shutters=building.material_class == "C",
+            frame_profile="moulded",
+            color_source=source,
+        ))
 
 
 def _block_centroid() -> tuple[float, float]:

@@ -327,6 +327,7 @@ class ManualRenderer:
         self._place_church_wooden_annex_window(label, zone, segments, tracker, zone_pid)
         self._place_explicit_vitrine(label, zone, segments, tracker, zone_pid)
         UpperWindowPlacer().place(segments, storeys_proxy, ctx, zone_pid, tracker)
+        self._place_n50_rear_lightwell_windows(label, zone, segments, tracker, zone_pid)
 
     def _place_manual_entrances(self, label: ManualLabel, zone: Zone,
                                 segments: list[WallSegment], tracker,
@@ -637,6 +638,56 @@ class ManualRenderer:
             f"wall[{seg.face}].wooden_annex_single_window",
             "map+photo:Ayia Efimia church edge",
             "single window on the wooden/T. 1 bs. annex beside the Camli entrance",
+        )
+
+    def _place_n50_rear_lightwell_windows(self, label: ManualLabel, zone: Zone,
+                                          segments: list[WallSegment], tracker,
+                                          zone_pid: str) -> None:
+        if label.label != "N-52-54-E2" or zone.id != "corner_mass":
+            return
+        candidates = [
+            s for s in segments
+            if s.face == "INT"
+            and s.length_m > 6.0
+            and s.is_party_wall
+        ]
+        if not candidates:
+            return
+        # This is the west/rear wall descending toward the N-50 lightwell.
+        # It was previously treated as an opaque party wall because the KML
+        # footprints nearly touch; the Pervititch crop shows a small open void.
+        seg = min(candidates, key=lambda s: (s.start[0] + s.end[0]) * 0.5)
+        source = "map:georeference:n50-rear-lightwell-window"
+        if any(op.kind == "window" and op.color_source == source for op in seg.openings):
+            return
+
+        seg.is_party_wall = False
+        seg.is_street_facing = True
+        seg.adjacent_height_m = None
+        seg.hatch_pattern = None
+
+        o = PROFILE.openings
+        width = min(o.upper_window_w_m, max(0.72, seg.length_m * 0.12))
+        pos = min(seg.length_m - width - 0.35, max(0.35, seg.length_m * 0.74))
+        for level in (1, 2):
+            seg.openings.append(Opening(
+                kind="window",
+                storey_level=level,
+                position_along_wall_m=round(pos, 3),
+                width_m=round(width, 3),
+                height_m=o.upper_window_h_m,
+                sill_m=o.upper_window_sill_m,
+                style="rectangular",
+                pane_layout="2x2",
+                has_shutters=False,
+                frame_profile="moulded",
+                color_source=source,
+            ))
+        tracker.record(
+            zone_pid,
+            "wall[rear-west].n50_lightwell_windows",
+            "map+georeference:building-entrence-50",
+            "one upper window per floor on the rear face looking into the small N-50 lightwell",
         )
 
     def _profile(self, label: ManualLabel, meshes) -> str:

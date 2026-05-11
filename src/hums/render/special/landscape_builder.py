@@ -22,6 +22,20 @@ COURTYARD_147_TREE_SOURCE = (
     "GeoTIFF threshold bbox around 670355.20 / 4539699.12"
 )
 
+N50_REAR_LIGHTWELL_UTM = (
+    (670358.18, 4539708.67),
+    (670360.50, 4539707.44),
+    (670361.52, 4539706.89),
+    (670362.50, 4539708.36),
+    (670362.81, 4539709.27),
+    (670358.02, 4539708.74),
+)
+N50_REAR_LIGHTWELL_SOURCE = (
+    "Georeferenced negative space behind parcel 50, bounded by the N-48, "
+    "N-50 and N-52/54 traced KML/SHP footprints and confirmed in the "
+    "building-entrence-50 Pervititch crop."
+)
+
 GARDEN_PALETTE = FacadePalette(
     wall_main=(126, 150, 88),
     wall_accent=(86, 126, 62),
@@ -35,6 +49,16 @@ GARDEN_PALETTE = FacadePalette(
 
 @prd("004", "CourtyardGardenBuilder")
 class CourtyardGardenBuilder:
+    def build_all(self) -> list[BuildingMesh]:
+        meshes: list[BuildingMesh] = []
+        garden = self.build()
+        if garden is not None:
+            meshes.append(garden)
+        lightwell = self.build_n50_rear_lightwell()
+        if lightwell is not None:
+            meshes.append(lightwell)
+        return meshes
+
     def build(self) -> BuildingMesh | None:
         patch = _courtyard_patch()
         if patch is None or patch.area < 5.0:
@@ -76,6 +100,46 @@ class CourtyardGardenBuilder:
         _emit_map_tree(mesh, c, COURTYARD_147_TREE_UTM)
         return mesh
 
+    def build_n50_rear_lightwell(self) -> BuildingMesh | None:
+        patch = _n50_rear_lightwell_patch()
+        if patch is None or patch.area < 0.65:
+            return None
+
+        c = patch.centroid
+        mesh = BuildingMesh(
+            parcel_id="COURTYARD-147-N50-LIGHTWELL",
+            placement_origin_utm=(c.x, c.y),
+            placement_rotation_deg=0.0,
+            palette=GARDEN_PALETTE,
+            metadata={
+                "material_class": "landscape",
+                "structure_type": "courtyard_lightwell",
+                "footprint_source": "map-interpreted",
+                "source_footprint_file": "N-50 / N-52-54 georeferenced KML negative space",
+                "notes": {
+                    "map_reading": (
+                        "Small rectangular open rear area behind parcel 50. It is "
+                        "modeled as a paved lightwell, not as an extra building; "
+                        "windows on adjacent faces may look into this void."
+                    ),
+                    "ring_utm": N50_REAR_LIGHTWELL_UTM,
+                    "source": N50_REAR_LIGHTWELL_SOURCE,
+                },
+            },
+        )
+
+        local_ring = [(x - c.x, y - c.y) for x, y in list(patch.exterior.coords)[:-1]]
+        ground = [mesh.add_vertex(x, y, 0.055) for x, y in reversed(local_ring)]
+        mesh.add_face(
+            ground,
+            role="LandscapeSurface",
+            surface_id="COURTYARD-147-N50-LIGHTWELL.paving",
+            material_key="plinth_stone",
+        )
+        _emit_lightwell_curb(mesh, c, patch)
+        _emit_lightwell_paving_joints(mesh, c, patch)
+        return mesh
+
 
 def _courtyard_patch() -> Polygon | None:
     if not BLOCK_GEOJSON.exists() or not FOOTPRINTS_GEOJSON.exists():
@@ -105,6 +169,99 @@ def _courtyard_patch() -> Polygon | None:
         polys = [p for p in clipped.geoms if p.geom_type == "Polygon"]
         return max(polys, key=lambda p: p.area) if polys else None
     return None
+
+
+def _n50_rear_lightwell_patch() -> Polygon | None:
+    patch = Polygon(N50_REAR_LIGHTWELL_UTM).buffer(0)
+    if patch.is_empty:
+        return None
+    # Pull the paving a few centimetres off the traced building walls so it
+    # reads as open negative space and avoids z-fighting with adjacent slabs.
+    shrunk = patch.buffer(-0.035)
+    if not shrunk.is_empty and shrunk.area > 0.65:
+        patch = shrunk
+    if BLOCK_GEOJSON.exists():
+        block_feats = json.loads(BLOCK_GEOJSON.read_text()).get("features", [])
+        if block_feats:
+            clipped = patch.intersection(shape(block_feats[0]["geometry"]))
+            if clipped.is_empty:
+                return None
+            if clipped.geom_type == "Polygon":
+                patch = clipped
+            elif hasattr(clipped, "geoms"):
+                polys = [p for p in clipped.geoms if p.geom_type == "Polygon"]
+                if not polys:
+                    return None
+                patch = max(polys, key=lambda p: p.area)
+    return patch
+
+
+def _emit_lightwell_curb(mesh: BuildingMesh, origin, patch: Polygon) -> None:
+    coords = list(patch.exterior.coords)
+    for idx, (a, b) in enumerate(zip(coords, coords[1:])):
+        _emit_ground_strip(
+            mesh,
+            origin,
+            a,
+            b,
+            width=0.08,
+            z=0.072,
+            material_key="fountain_stone_dark",
+            surface_id=f"COURTYARD-147-N50-LIGHTWELL.curb.{idx}",
+        )
+
+
+def _emit_lightwell_paving_joints(mesh: BuildingMesh, origin, patch: Polygon) -> None:
+    c = patch.centroid
+    marks = [
+        ((c.x - 0.55, c.y - 0.15), (c.x + 0.48, c.y + 0.08), "joint.a"),
+        ((c.x - 0.18, c.y - 0.78), (c.x + 0.12, c.y + 0.70), "joint.b"),
+        ((c.x - 1.05, c.y + 0.28), (c.x + 0.88, c.y + 0.38), "joint.c"),
+    ]
+    for a, b, name in marks:
+        line = Polygon([
+            (a[0], a[1]), (b[0], b[1]), (b[0] + 0.01, b[1] + 0.01), (a[0] + 0.01, a[1] + 0.01),
+        ])
+        if not patch.buffer(0.04).intersects(line):
+            continue
+        _emit_ground_strip(
+            mesh,
+            origin,
+            a,
+            b,
+            width=0.025,
+            z=0.078,
+            material_key="fountain_stone_dark",
+            surface_id=f"COURTYARD-147-N50-LIGHTWELL.paving.{name}",
+        )
+
+
+def _emit_ground_strip(
+    mesh: BuildingMesh,
+    origin,
+    a: tuple[float, float],
+    b: tuple[float, float],
+    width: float,
+    z: float,
+    material_key: str,
+    surface_id: str,
+) -> None:
+    ax, ay = a[0] - origin.x, a[1] - origin.y
+    bx, by = b[0] - origin.x, b[1] - origin.y
+    dx, dy = bx - ax, by - ay
+    length = math.hypot(dx, dy)
+    if length <= 0.001:
+        return
+    nx, ny = -dy / length * width * 0.5, dx / length * width * 0.5
+    mesh.add_quad(
+        p0=(ax - nx, ay - ny, z),
+        p1=(bx - nx, by - ny, z),
+        p2=(bx + nx, by + ny, z),
+        p3=(ax + nx, ay + ny, z),
+        role="LandscapeSurface",
+        surface_id=surface_id,
+        material_key=material_key,
+    )
 
 
 def _emit_grass_tuft(
