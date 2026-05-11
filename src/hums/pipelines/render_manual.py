@@ -304,16 +304,17 @@ class ManualRenderer:
 
         o = PROFILE.openings
         for hint in hints:
+            wants_vitrine = _zone_wants_vitrine(zone)
             pool = [
                 s for s in segments
                 if s.face == hint.face
                 and not s.is_party_wall
-                and s.length_m > 1.5
+                and s.length_m > 0.75
             ]
             if not pool:
                 pool = [
                     s for s in segments
-                    if not s.is_party_wall and s.length_m > 1.5
+                    if not s.is_party_wall and s.length_m > 0.9
                 ]
             if not pool:
                 continue
@@ -321,17 +322,25 @@ class ManualRenderer:
             pool.sort(key=lambda s: s.length_m, reverse=True)
             seg = pool[0]
             count = max(1, min(int(hint.count), max(1, int(seg.length_m // 1.8))))
-            door_w = min(o.door_w_m, max(0.75, (seg.length_m - 0.5 * (count + 1)) / count))
+            edge_margin = 0.15 if seg.length_m < 1.5 else 0.25
+            door_w = min(o.door_w_m, (seg.length_m - edge_margin * (count + 1)) / count)
+            if wants_vitrine and count == 1:
+                door_w = min(door_w, 0.8)
+            if door_w < 0.55:
+                continue
             gap = (seg.length_m - count * door_w) / (count + 1)
-            if gap < 0.2:
-                gap = 0.2
+            if gap < edge_margin:
+                gap = edge_margin
             existing = [
                 (op.position_along_wall_m, op.position_along_wall_m + op.width_m)
                 for op in seg.openings
                 if op.kind == "door"
             ]
             for i in range(count):
-                pos = max(0.15, gap + i * (door_w + gap))
+                if wants_vitrine and count == 1:
+                    pos = edge_margin
+                else:
+                    pos = max(edge_margin, gap + i * (door_w + gap))
                 end = pos + door_w
                 if any(not (end < a or pos > b) for a, b in existing):
                     continue
@@ -388,16 +397,28 @@ class ManualRenderer:
                 for op in seg.openings
                 if op.kind == "door"
             ]
-            width = min(o.shop_window_w_m, max(0.55, seg.length_m - 0.45))
-            candidates = [
-                0.2,
-                max(0.15, seg.length_m - width - 0.2),
-                max(0.15, (seg.length_m - width) / 2.0),
-            ]
-            for pos in candidates:
-                if not any(not (pos + width < a or pos > b) for a, b in door_ranges):
-                    placement = (seg, pos, width)
-                    break
+            slots = _available_opening_slots(seg.length_m, door_ranges)
+            slot_placement = _shop_window_placement_from_slots(slots, o.shop_window_w_m)
+            if slot_placement is None and door_ranges:
+                _move_one_door_to_edge(seg)
+                door_ranges = [
+                    (op.position_along_wall_m, op.position_along_wall_m + op.width_m)
+                    for op in seg.openings
+                    if op.kind == "door"
+                ]
+                slots = _available_opening_slots(seg.length_m, door_ranges)
+                slot_placement = _shop_window_placement_from_slots(slots, o.shop_window_w_m)
+            if slot_placement is not None:
+                pos, width = slot_placement
+                placement = (seg, pos, width)
+                break
+            for start, end in sorted(slots, key=lambda slot: slot[1] - slot[0], reverse=True):
+                width = min(o.shop_window_w_m, end - start)
+                if width < 0.55:
+                    continue
+                pos = start + (end - start - width) / 2.0
+                placement = (seg, pos, width)
+                break
             if placement is not None:
                 break
         if placement is None:
@@ -449,3 +470,46 @@ class ManualRenderer:
             for q in label.open_questions:
                 lines.append(f"- {q}")
         return "\n".join(lines)
+
+
+def _zone_wants_vitrine(zone: Zone) -> bool:
+    text = " ".join([zone.id, zone.description, *zone.map_labels]).lower()
+    return "vitr" in text or "cam" in text or "glaz" in text
+
+
+def _available_opening_slots(length_m: float, occupied: list[tuple[float, float]]) -> list[tuple[float, float]]:
+    margin = 0.12
+    slots: list[tuple[float, float]] = []
+    cursor = margin
+    for start, end in sorted(occupied):
+        free_end = max(cursor, start - margin)
+        if free_end - cursor > 0.45:
+            slots.append((cursor, free_end))
+        cursor = max(cursor, end + margin)
+    tail_end = max(cursor, length_m - margin)
+    if tail_end - cursor > 0.45:
+        slots.append((cursor, tail_end))
+    return slots
+
+
+def _shop_window_placement_from_slots(
+    slots: list[tuple[float, float]],
+    preferred_width_m: float,
+) -> tuple[float, float] | None:
+    for start, end in sorted(slots, key=lambda slot: slot[1] - slot[0], reverse=True):
+        width = min(preferred_width_m, end - start)
+        if width < 0.55:
+            continue
+        pos = start + (end - start - width) / 2.0
+        return pos, width
+    return None
+
+
+def _move_one_door_to_edge(seg: WallSegment) -> None:
+    for opening in seg.openings:
+        if opening.kind != "door":
+            continue
+        new_width = min(opening.width_m, 0.8, max(0.55, seg.length_m - 1.0))
+        opening.width_m = round(new_width, 3)
+        opening.position_along_wall_m = 0.15
+        return

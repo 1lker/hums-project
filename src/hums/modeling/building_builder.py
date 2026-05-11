@@ -107,6 +107,7 @@ class BuildingBuilder:
             placer.place(segments, storeys, placer_ctx, pid, tracker)
         if pid.startswith("W-32#"):
             self._place_w32_magazine_openings(pid, segments, storeys, tracker)
+        self._place_numbered_entrance_fallback(pid, parcel, source_file, segments, tracker)
 
         return Building(
             parcel_id=pid,
@@ -157,6 +158,69 @@ class BuildingBuilder:
             ))
 
         tracker.record(pid, "openings.W-32", "map:pervititch", "west door only; unmarked window assumptions suppressed")
+
+    def _place_numbered_entrance_fallback(self, pid: str, parcel: dict, source_file: str | None,
+                                          segments, tracker) -> None:
+        """Conservative door for numbered `building-entrence` map areas.
+
+        Some parsed rows mark the door arrow as uncertain ("dash", "possible
+        shared gate") even though the traced source and map label are a
+        numbered entrance parcel. In those cases, add one plain door on the
+        best exterior segment instead of leaving the numbered unit blank.
+        """
+        if parcel.get("_structure_type") not in (None, "building"):
+            return
+        if not parcel.get("parcel_number"):
+            return
+        source = (source_file or "").lower()
+        if "building-entrence" not in source and "buildingentrence" not in source:
+            return
+        if any(op.kind == "door" for seg in segments for op in seg.openings):
+            return
+
+        target_faces = _face_hints_from_text(
+            " ".join(str(v) for v in (
+                (parcel.get("openings") or {}).get("primary_door_face"),
+                parcel.get("street_facing"),
+            ) if v)
+        )
+
+        candidates = [
+            s for s in segments
+            if not s.is_party_wall and s.length_m > 1.2
+        ]
+        if not candidates:
+            return
+        face_candidates = [s for s in candidates if s.face in target_faces]
+        strict_candidates = [s for s in candidates if s.hatch_pattern == "_street"]
+        pool = face_candidates or strict_candidates or candidates
+        chosen = max(pool, key=lambda s: s.length_m)
+        chosen.is_street_facing = True
+        if chosen.hatch_pattern is None and chosen.face in {"N", "E", "S", "W"}:
+            chosen.hatch_pattern = "_street"
+
+        o = PROFILE.openings
+        width = min(o.door_w_m, max(0.75, chosen.length_m - 0.4))
+        if width < 0.6:
+            return
+        pos = max(0.2, (chosen.length_m - width) / 2.0)
+        chosen.openings.append(Opening(
+            kind="door",
+            storey_level=0,
+            position_along_wall_m=round(pos, 3),
+            width_m=round(width, 3),
+            height_m=o.door_h_m,
+            sill_m=0.0,
+            style="rectangular",
+            frame_profile="moulded",
+            color_source="map:pervititch:numbered-entrance-fallback",
+        ))
+        tracker.record(
+            pid,
+            f"wall[{chosen.face}].numbered_entrance_fallback",
+            "map:pervititch",
+            {"parcel_number": parcel.get("parcel_number"), "source_file": source_file},
+        )
 
     def _storeys(self, parcel: dict, tracker: AssumptionTracker, structure_type: str = "building") -> list[Storey]:
         # Monuments (çeşme etc.) get a single short body storey; no upper levels, no basement.
@@ -245,8 +309,23 @@ def _snapshot(parcel: dict) -> dict:
         "zone": parcel.get("zone"),
         "street_facing": parcel.get("street_facing"),
         "material": parcel.get("material"),
+        "openings": parcel.get("openings"),
         "storeys_raw": (parcel.get("storeys") or {}).get("raw"),
         "wall_code": (parcel.get("wall") or {}).get("code"),
         "vault_code": (parcel.get("vault") or {}).get("code"),
         "bim_notes": parcel.get("bim_notes"),
     }
+
+
+def _face_hints_from_text(text: str) -> list[str]:
+    t = text.upper()
+    out: list[str] = []
+    for word, face in (
+        ("NORTH", "N"), ("EAST", "E"), ("SOUTH", "S"), ("WEST", "W"),
+    ):
+        if word in t and face not in out:
+            out.append(face)
+    for face in ("N", "E", "S", "W"):
+        if f" {face} " in f" {t} " and face not in out:
+            out.append(face)
+    return out

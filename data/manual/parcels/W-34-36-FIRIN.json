@@ -3,7 +3,7 @@
   "label": "W-34-36-FIRIN",
   "verified": false,
 
-  "map_notes": "`building-entrence-34-36-38` traces the large Firin block on the north-west corner side. The Pervititch map reads this as one bakery complex / connected mass rather than two independent sliced buildings. It also carries different roof/height notes: W-34 is the west street-facing Firin/TR.4 tile portion, while W-36 is an internal VF/vault bay with no direct street arrow. Render the full traced footprint as one shared Firin complex with internal height/roof zoning, one west street entrance from W-34, and no speculative windows.",
+  "map_notes": "`building-entrence-34-36-38` traces the large Firin block on the north-west corner side. The Pervititch map reads this as one bakery complex / connected mass rather than two independent sliced buildings. It also carries different roof/height notes: W-34 is the west street-facing Firin/TR.4 tile portion, while W-36 is the VF/vault bay. Render the full traced footprint as one shared Firin complex with internal height/roof zoning, and keep one numbered entrance for each visible unit label 34 and 36.",
 
   "footprint_ref": "building-entrence-34-36-38.shp",
 
@@ -34,7 +34,7 @@
     },
     {
       "id": "w36_internal_vault",
-      "description": "East/internal W-36 vault bay. It stays connected to the Firin complex, has no direct street door, and carries the VF/half-storey height difference.",
+      "description": "W-36 vault bay. It stays connected to the Firin complex, carries the VF/half-storey height difference, and gets one conservative numbered-unit entrance.",
       "material_class": "B",
       "map_colour": "pink",
       "storeys_above_grade": 2.5,
@@ -62,7 +62,14 @@
       "description": "W-34 west street entrance onto Sögütlü Çeşme."
     },
     "secondary_door": null,
-    "entrance_hints": [],
+    "entrance_hints": [
+      {
+        "face": "W",
+        "zone": "w36_internal_vault",
+        "count": 1,
+        "description": "Conservative W-36 numbered-unit entrance; placed on the best exterior face if the split zone has no west segment."
+      }
+    ],
     "shop_windows": false,
     "balconies": [],
     "shutters_on_upper": false

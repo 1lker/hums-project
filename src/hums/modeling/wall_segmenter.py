@@ -56,9 +56,10 @@ class WallSegmenter:
             b_local = footprint_local[(i + 1) % n]
             a_utm = utm_coords[i]
             b_utm = utm_coords[(i + 1) % n]
+            on_block = self._on_block_boundary(a_utm, b_utm)
             adjacent_height = (
                 self._party_index.adjacent_height(parcel_id, a_utm, b_utm)
-                if self._party_index is not None and parcel_id is not None
+                if self._party_index is not None and parcel_id is not None and not on_block
                 else None
             )
             is_party = adjacent_height is not None
@@ -69,7 +70,6 @@ class WallSegmenter:
             # the shop-window placer (shops front the street, not the
             # courtyard), but windows/doors now get placed on ANY exterior
             # (non-party) face rather than only the perimeter ones.
-            on_block = self._on_block_boundary(a_utm, b_utm)
             is_exterior = not is_party
             is_street = on_block and is_exterior
             face = self._classify_face(a_utm, b_utm, is_exterior)
@@ -96,7 +96,33 @@ class WallSegmenter:
     def _on_block_boundary(self, a_utm, b_utm) -> bool:
         if self._block is None:
             return False
-        return LineString([a_utm, b_utm]).distance(self._block.exterior) <= self._cfg.boundary_tol_m
+        line = LineString([a_utm, b_utm])
+        length = line.length
+        if length < 0.4:
+            return False
+        dx = b_utm[0] - a_utm[0]
+        dy = b_utm[1] - a_utm[1]
+        angle = math.atan2(dy, dx) % math.pi
+        axis = (dx / length, dy / length)
+        block_coords = list(self._block.exterior.coords)
+        for i in range(len(block_coords) - 1):
+            c = block_coords[i]
+            d = block_coords[i + 1]
+            bdx = d[0] - c[0]
+            bdy = d[1] - c[1]
+            block_len = math.hypot(bdx, bdy)
+            if block_len < 0.4:
+                continue
+            block_angle = math.atan2(bdy, bdx) % math.pi
+            dtheta = abs(block_angle - angle)
+            dtheta = min(dtheta, math.pi - dtheta)
+            if dtheta > math.radians(15.0):
+                continue
+            overlap = _projected_overlap(a_utm, b_utm, c, d, axis)
+            min_overlap = max(0.45, min(length, block_len) * 0.25)
+            if overlap >= min_overlap and line.distance(LineString([c, d])) <= self._cfg.boundary_tol_m:
+                return True
+        return False
 
     def _classify_face(self, a_utm, b_utm, is_street: bool) -> Face:
         if not is_street:
@@ -125,3 +151,12 @@ def _signed_area(ring: list[tuple[float, float]]) -> float:
         x2, y2 = ring[(i + 1) % len(ring)]
         s += x1 * y2 - x2 * y1
     return s / 2.0
+
+
+def _projected_overlap(a0, a1, b0, b1, axis: tuple[float, float]) -> float:
+    def dot(p):
+        return p[0] * axis[0] + p[1] * axis[1]
+
+    a_min, a_max = sorted((dot(a0), dot(a1)))
+    b_min, b_max = sorted((dot(b0), dot(b1)))
+    return max(0.0, min(a_max, b_max) - max(a_min, b_min))
