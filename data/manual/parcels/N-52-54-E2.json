@@ -3,7 +3,7 @@
   "label": "N-52-54-E2",
   "verified": false,
 
-  "map_notes": "`building-entrence-52-54-02` is one north-east corner footprint carrying the 52, 54 and 02 labels. User clarified this is one building. The numbers are interpreted as frontage/entrance labels on the same masonry corner building, not as separate masses. Do not split the visible model into a high bay and a low bay; keep one continuous footprint and one coherent roof.",
+  "map_notes": "`building-entrence-52-54-02` is one north-east corner footprint carrying the 52, 54 and 02 labels. User clarified this is one building. The numbers are interpreted as frontage/entrance labels on the same masonry corner building, not as separate masses. Do not split the visible model into a high bay and a low bay; keep one continuous footprint and one coherent roof. User-supplied 2024 right-side street photos are used only as facade-material language for pale masonry, trim, and a restrained darker commercial base; they do not create extra windows, doors, or separate buildings.",
 
   "footprint_ref": "building-entrence-52-54-02.shp",
   "footprint_mode": "traced",
@@ -57,7 +57,14 @@
     "shutters_on_upper": false
   },
 
-  "palette_override": null,
+  "palette_override": {
+    "wall_main": [225, 218, 203],
+    "wall_accent": [191, 177, 155],
+    "trim": [241, 236, 220],
+    "shutters": [74, 64, 55],
+    "roof": [112, 116, 112],
+    "gf_shopfront": [58, 52, 45]
+  },
 
   "open_questions": [
     "The raw register contains both 3E and 1-2 notes across 52/54/02. User clarification takes priority for visible massing: model as one building; only add a real height step later if the map division line is confirmed as a physical height break."

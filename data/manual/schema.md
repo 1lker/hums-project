@@ -32,6 +32,7 @@ When present, this file is the **sole source of truth** for that parcel.
 | `ground_floor_use` | string | `bakery` / `shop` / `residential` / `magazine` / `passage` / `none` |
 | `roof` | Roof | see below |
 | `footprint_fraction` | [number, number] | `[0, 1]` = whole footprint; `[0, 0.55]` = first 55% along long axis |
+| `clip_ranges` | array | optional sequential clips like `{axis, fraction}` for rectangular sub-areas that need two-axis map splits |
 
 ## `Roof`
 

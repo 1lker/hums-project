@@ -3,7 +3,7 @@
   "label": "W-34-36-FIRIN",
   "verified": false,
 
-  "map_notes": "`building-entrence-34-36-38` traces the Firin block on the north-west corner. The map shows the bakery as one connected masonry mass; the west-edge parcel numbers/entry marks (34/36/38) are frontage divisions, not a separate grey roof block inside the bakery. The previous east-west split created a cut-off roof patch beside the wooden building. Render this as one continuous bakery mass with one coherent TR/tile roof, while keeping multiple conservative west-side entrances for the numbered frontage.",
+  "map_notes": "`building-entrence-34-36-38` traces the Firin block on the north-west corner. The map shows the bakery as one connected masonry mass; the west-edge parcel numbers/entry marks (34/36/38) are frontage divisions, not a separate grey roof block inside the bakery. The previous east-west split created a cut-off roof patch beside the wooden building. Render this as one continuous bakery mass with one coherent TR/tile roof, while keeping multiple conservative west-side entrances for the numbered frontage. User-supplied 2024 street photos are used only as facade-material language here: pale plaster masonry and a darker bakery/shop ground-floor band, not copied modern signage or changed footprint geometry.",
 
   "footprint_ref": "building-entrence-34-36-38.shp",
   "footprint_mode": "traced",
@@ -51,7 +51,14 @@
     "shutters_on_upper": false
   },
 
-  "palette_override": null,
+  "palette_override": {
+    "wall_main": [224, 211, 193],
+    "wall_accent": [188, 163, 137],
+    "trim": [240, 230, 213],
+    "shutters": [93, 56, 36],
+    "roof": [166, 82, 52],
+    "gf_shopfront": [54, 45, 39]
+  },
 
   "open_questions": [
     "Firin height/roof notes combine 2 1/2, 3+, VF/MB and TR.4. Current visual priority is a coherent, non-cut single bakery roof; a finer stepped roof can be added only where the map division lines clearly require it without creating fake separate masses."

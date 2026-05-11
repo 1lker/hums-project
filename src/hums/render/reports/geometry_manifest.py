@@ -57,6 +57,7 @@ def _write_lod3_coverage(scene: SceneGraph, path: Path) -> None:
                 and b.metadata.get("structure_type") == "building"
                 and not (role in {"Window", "Door"} and b.parcel_id in intentional_closed)
                 and not (role == "Window" and _window_absence_is_intentional(counts))
+                and not _manual_opening_absence_is_intentional(b, role)
             ):
                 complete = False
         row.append("✅" if complete else "⚠️")
@@ -76,6 +77,25 @@ def _window_absence_is_intentional(counts: dict[str, int]) -> bool:
     # Do not force invented windows where the Pervititch map gives no vitrine,
     # no camli note, and no upper storey.
     return counts.get("Door", 0) > 0 and counts.get("FloorSurface", 0) == 0
+
+
+def _manual_opening_absence_is_intentional(mesh, role: str) -> bool:
+    if role not in {"Window", "Door"}:
+        return False
+    notes = mesh.metadata.get("notes") or {}
+    if not isinstance(notes, dict):
+        return False
+    text = " ".join(str(v) for v in (
+        notes.get("zone_id"),
+        notes.get("description"),
+        " ".join(notes.get("map_labels") or []),
+    ) if v).lower()
+    return any(token in text for token in (
+        "church_service_annex",
+        "church edge",
+        "opaque timber annex",
+        "wooden/yellow",
+    ))
 
 
 def _intentional_no_exterior_openings() -> set[str]:

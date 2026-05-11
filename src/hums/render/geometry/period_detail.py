@@ -3,6 +3,7 @@
 Adds:
   * Dentil bands under the main cornice (small alternating teeth blocks).
   * Corner quoins — stone blocks stacked at street corners on masonry A/B.
+  * Non-glass ground-floor shop bands for Mg./Firin/bakery frontages.
   * Panelled door upgrade: recessed 6-panel door + transom light above.
   * Chimney cap — projecting stone cap on every chimney.
 All of these are additive — they never replace the main wall / roof
@@ -40,7 +41,88 @@ class PeriodDetail:
         self._emit_dentils(mesh, building, eaves_z)
         if cls in ("A", "B"):
             self._emit_corner_quoins(mesh, building)
+        if _is_magasin_building(building):
+            self._emit_magasin_ground_band(mesh, building)
         self._upgrade_doors(mesh, building)
+
+    # ---- shop / bakery ground-floor frontage -------------------------------
+    def _emit_magasin_ground_band(self, mesh: BuildingMesh, building: Building) -> None:
+        """Give mapped Mg./Firin fronts a shop cadence without inventing glass."""
+        pid = building.parcel_id
+        ground_h = next(
+            (s.height_m for s in building.storeys if s.level == 0 and not s.is_basement),
+            3.6,
+        )
+        if ground_h < 2.4:
+            return
+        base_h = min(0.42, max(0.28, ground_h * 0.10))
+        fascia_top = min(ground_h - 0.10, 3.25)
+        fascia_h = min(0.48, max(0.30, ground_h * 0.13))
+        fascia_bot = max(base_h + 1.65, fascia_top - fascia_h)
+
+        for idx, seg in enumerate(building.wall_segments):
+            if not _is_strict_street(seg):
+                continue
+            length = _seg_length(seg)
+            if length < 1.2:
+                continue
+
+            ux, uy, nx, ny = _seg_axes(seg)
+            sx, sy = seg.start
+            variant = _magasin_variant(pid, idx, 0)
+            sign_key = ("magasin_sign_umber", "magasin_sign_green", "magasin_sign_slate", "magasin_sign_ochre")[variant % 4]
+            plinth_key = "plinth_stone" if (building.material_class or "").upper() in ("A", "B") else "magasin_trim_aged"
+            trim_key = ("magasin_trim_dark", "magasin_trim_brown", "magasin_trim_aged")[variant % 3]
+
+            def p(u: float, z: float, out: float = 0.055) -> tuple[float, float, float]:
+                return (sx + ux * u + nx * out, sy + uy * u + ny * out, z)
+
+            u0 = 0.08
+            u1 = length - 0.08
+            if u1 - u0 <= 0.5:
+                continue
+
+            # Continuous low stall/plinth band, common to old street shops.
+            mesh.add_quad(
+                p0=p(u0, 0.0),
+                p1=p(u0, base_h),
+                p2=p(u1, base_h),
+                p3=p(u1, 0.0),
+                role="PlinthSurface",
+                surface_id=f"{pid}.magasin_frontage.{seg.face}.{idx}.base",
+                material_key=plinth_key,
+            )
+
+            # Narrow fascia/sign board above the shopfront zone. This is a
+            # material cue only, not text signage or an invented opening.
+            mesh.add_quad(
+                p0=p(u0, fascia_bot, 0.06),
+                p1=p(u0, fascia_top, 0.06),
+                p2=p(u1, fascia_top, 0.06),
+                p3=p(u1, fascia_bot, 0.06),
+                role="CorniceSurface",
+                surface_id=f"{pid}.magasin_frontage.{seg.face}.{idx}.fascia",
+                material_key=sign_key,
+            )
+
+            # Thin end pilasters/frame strips make each shopfront read as a
+            # built facade instead of a repeated domestic door pasted on.
+            strip_w = min(0.12, max(0.07, length * 0.025))
+            for name, a, b in (
+                ("left_frame", u0, min(u0 + strip_w, u1)),
+                ("right_frame", max(u1 - strip_w, u0), u1),
+            ):
+                if b - a <= 0.03:
+                    continue
+                mesh.add_quad(
+                    p0=p(a, base_h),
+                    p1=p(a, fascia_top),
+                    p2=p(b, fascia_top),
+                    p3=p(b, base_h),
+                    role="JambSurface",
+                    surface_id=f"{pid}.magasin_frontage.{seg.face}.{idx}.{name}",
+                    material_key=trim_key,
+                )
 
     # ---- dentil band under cornice -----------------------------------------
     def _emit_dentils(self, mesh: BuildingMesh, building: Building, eaves_z: float) -> None:

@@ -8,6 +8,7 @@ from __future__ import annotations
 import sys
 
 from .imagery.image_ingest import ingest as imagery_ingest
+from .pipelines.data_export import DataExportPipeline
 from .pipelines.prd001_data_foundation import Prd001Pipeline
 from .pipelines.prd002_buildings import Prd002Pipeline
 from .pipelines.prd003_geometry import Prd003Pipeline
@@ -47,6 +48,9 @@ def main(argv: list[str]) -> int:
         p = render()
         print(f"wrote {p}")
         return 0
+    if cmd == "data-view":
+        DataExportPipeline().run()
+        return 0
     if cmd == "imagery-ingest":
         if len(argv) < 3:
             print("usage: python -m hums imagery-ingest <parcel_id>", file=sys.stderr)
@@ -58,7 +62,7 @@ def main(argv: list[str]) -> int:
 
 
 def _usage() -> None:
-    print(f"usage: python -m hums <{'|'.join(PIPELINES)}|imagery-ingest <parcel_id>>",
+    print(f"usage: python -m hums <{'|'.join(PIPELINES)}|data-view|imagery-ingest <parcel_id>>",
           file=sys.stderr)
 
 

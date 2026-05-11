@@ -88,7 +88,14 @@ class ManualRenderer:
         # Pre-compute all zone sub-polygons.
         zone_polys: dict[str, "object"] = {}
         for z in label.zones:
-            sp = split_zone(footprint, label.primary_zone_axis, z.footprint_fraction)
+            if z.clip_ranges:
+                sp = footprint
+                for axis, frac in z.clip_ranges:
+                    sp = split_zone(sp, axis, frac)
+                    if sp.is_empty:
+                        break
+            else:
+                sp = split_zone(footprint, label.primary_zone_axis, z.footprint_fraction)
             if not sp.is_empty and sp.geom_type == "Polygon" and sp.area > 1.0:
                 zone_polys[z.id] = sp
 
@@ -226,6 +233,7 @@ class ManualRenderer:
             for k, v in label.palette_override.items():
                 if hasattr(palette, k) and v:
                     setattr(palette, k, tuple(v))
+            palette.source = "manual_palette_override"
 
         # Opening placement per manual hints.
         self._place_zone_openings(label, zone, segments, tracker, zone_pid)

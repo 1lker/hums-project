@@ -35,6 +35,7 @@ class Zone:
     roof: ZoneRoof
     footprint_fraction: tuple[float, float]   # [start, end] along primary axis
     map_labels: list[str] = field(default_factory=list)
+    clip_ranges: list[tuple[str, tuple[float, float]]] = field(default_factory=list)
 
 
 @dataclass

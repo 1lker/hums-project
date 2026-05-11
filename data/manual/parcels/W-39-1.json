@@ -2,14 +2,14 @@
   "label": "W-39-1",
   "parcel_ids": ["W-39/1"],
   "verified": false,
-  "map_notes": "The W-39/1 church-edge footprint must not be rendered as one all-glass block. The Pervititch crop shows a blue-hatched/labelled Camli-Vitre passage on the west/left part and a different opaque side/narthex mass at the east/right part near the Clocher square. The dashed and diagonal map lines are roof/glass-roof evidence, not a flat slab. Model the camli zone with glass material and an inclined/complex glass roof; model the side mass with opaque masonry and its own pitched sheet-metal roof.",
+  "map_notes": "The W-39/1 church-edge footprint must not be rendered as one all-glass block. The Pervititch crop shows Camli/Vitre only on the lower hatched passage. The adjacent yellow/wooden church-edge area labelled T. 1 bs. is not glass; it is a wooden one-storey-plus-basement annex with sheet-metal T roof. The east/right area near the Clocher square remains an opaque side/narthex mass.",
   "footprint_ref": "churche-entrence-camli-area-(39-1,-39-2)-clocher.shp",
   "structure_type": "building",
   "primary_zone_axis": "west_to_east",
   "zones": [
     {
       "id": "camli_vitre_passage",
-      "description": "West/left blue-hatched Camli-Vitre church passage. This is the glazed part only, not the whole W-39/1 footprint.",
+      "description": "Lower blue-hatched Camli-Vitre church passage. This is the glazed part only, not the whole W-39/1 footprint.",
       "material_class": "C+glass",
       "map_colour": "yellow_blue_hatch",
       "storeys_above_grade": 1.0,
@@ -25,7 +25,35 @@
         "has_skylight": true
       },
       "footprint_fraction": [0.0, 0.68],
+      "clip_ranges": [
+        {"axis": "west_to_east", "fraction": [0.0, 0.68]},
+        {"axis": "south_to_north", "fraction": [0.0, 0.52]}
+      ],
       "map_labels": ["Camli", "Vitre", "diagonal roof/glass hatch"]
+    },
+    {
+      "id": "wooden_church_edge_annex",
+      "description": "Yellow/wooden area adjacent to the lower passage and church, labelled T. 1 bs.; opaque timber annex.",
+      "material_class": "C",
+      "map_colour": "yellow",
+      "storeys_above_grade": 1.0,
+      "has_mezzanine": false,
+      "has_basement": true,
+      "storey_heights_m": [3.4],
+      "ground_floor_use": "church_service_annex",
+      "roof": {
+        "shape": "gable",
+        "material": "sheet_metal_T",
+        "pitch_deg": 14.0,
+        "has_chimney": false,
+        "has_skylight": false
+      },
+      "footprint_fraction": [0.0, 0.68],
+      "clip_ranges": [
+        {"axis": "west_to_east", "fraction": [0.0, 0.68]},
+        {"axis": "north_to_south", "fraction": [0.0, 0.48]}
+      ],
+      "map_labels": ["T.", "1 bs.", "wooden/yellow", "church edge"]
     },
     {
       "id": "masonry_side_narthex",
@@ -45,6 +73,9 @@
         "has_skylight": false
       },
       "footprint_fraction": [0.68, 1.0],
+      "clip_ranges": [
+        {"axis": "west_to_east", "fraction": [0.68, 1.0]}
+      ],
       "map_labels": ["side mass", "2p", "Clocher edge", "T"]
     }
   ],

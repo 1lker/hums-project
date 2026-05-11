@@ -12,6 +12,7 @@ help:
 	@echo "make install-dev   — install runtime + dev deps"
 	@echo "make prd001        — run PRD-001 pipeline (data foundation)"
 	@echo "make prd002        — run PRD-002 pipeline (buildings intermediate model)"
+	@echo "make data-view     — export structured building data workbook + browser page"
 	@echo "make imagery-ingest PARCEL=N-44  — scaffold image manifest for parcel"
 	@echo "make docker-build  — build the project Docker image"
 	@echo "make docker-run    — open a shell inside the Docker container"
@@ -47,6 +48,9 @@ render-manual:
 
 diagnostic-map:
 	PYTHONPATH=$(PKG_SRC) $(VPY) -m hums diagnostic-map
+
+data-view:
+	PYTHONPATH=$(PKG_SRC) $(VPY) -m hums data-view
 
 imagery-ingest:
 	@test -n "$(PARCEL)" || (echo "usage: make imagery-ingest PARCEL=N-44"; exit 2)

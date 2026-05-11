@@ -43,6 +43,11 @@ class ManualLabelLoader:
                 ),
                 footprint_fraction=tuple(z["footprint_fraction"]),
                 map_labels=list(z.get("map_labels", [])),
+                clip_ranges=[
+                    (c["axis"], tuple(c["fraction"]))
+                    for c in z.get("clip_ranges", [])
+                    if isinstance(c, dict) and c.get("axis") and c.get("fraction")
+                ],
             )
             for z in d.get("zones", [])
         ]
