@@ -39,7 +39,8 @@ def _write_manifest(scene: SceneGraph, path: Path) -> None:
 
 def _write_lod3_coverage(scene: SceneGraph, path: Path) -> None:
     lines = ["# PRD-003 LOD3 Role Coverage\n",
-             "Required roles per building: " + ", ".join(REQUIRED_LOD3_ROLES) + ".\n",
+             "Required roles per building: " + ", ".join(REQUIRED_LOD3_ROLES)
+             + ". One-storey Mg/shop volumes may intentionally have no Window role when the map gives a door but no vitrine/window evidence.\n",
              "| parcel_id | GroundSurface | WallSurface | RoofSurface | Window | Door | complete? |",
              "|---|---|---|---|---|---|---|"]
     incomplete: list[str] = []
@@ -55,6 +56,7 @@ def _write_lod3_coverage(scene: SceneGraph, path: Path) -> None:
                 n == 0
                 and b.metadata.get("structure_type") == "building"
                 and not (role in {"Window", "Door"} and b.parcel_id in intentional_closed)
+                and not (role == "Window" and _window_absence_is_intentional(counts))
             ):
                 complete = False
         row.append("✅" if complete else "⚠️")
@@ -67,6 +69,13 @@ def _write_lod3_coverage(scene: SceneGraph, path: Path) -> None:
         for pid in incomplete:
             lines.append(f"- {pid}")
     path.write_text("\n".join(lines) + "\n")
+
+
+def _window_absence_is_intentional(counts: dict[str, int]) -> bool:
+    # Ground-floor-only shops/magazines often have only the mapped entrance.
+    # Do not force invented windows where the Pervititch map gives no vitrine,
+    # no camli note, and no upper storey.
+    return counts.get("Door", 0) > 0 and counts.get("FloorSurface", 0) == 0
 
 
 def _intentional_no_exterior_openings() -> set[str]:
