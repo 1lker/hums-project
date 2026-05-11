@@ -50,7 +50,22 @@ class BuildingBuilder:
 
         storeys = self._storeys(parcel, tracker, structure_type)
         roof = self._roof_builder.build(parcel.get("roof") or {}, pid, tracker)
-        if pid.startswith("W-32#"):
+        if structure_type == "fountain":
+            roof = RoofDescriptor(
+                shape="flat",
+                material="unknown",
+                pitch_deg=0.0,
+                slope_direction=None,
+                has_chimney=False,
+                has_skylight=False,
+            )
+            tracker.record(
+                pid,
+                "roof.fountain_coping",
+                "map:pervititch",
+                "non-building çeşme uses stone coping/plinth surfaces, not a house gable roof",
+            )
+        elif pid.startswith("W-32#"):
             roof = RoofDescriptor(
                 shape="flat",
                 material="unknown",
