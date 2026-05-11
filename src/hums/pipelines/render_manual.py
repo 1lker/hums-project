@@ -124,7 +124,6 @@ class ManualRenderer:
             if mesh is None:
                 continue
             self._emit_manual_subunit_details(label, building, mesh)
-            _remove_n50_cut_wall_faces(label, footprint, building, mesh)
             mesh.metadata["source_footprint_file"] = label.footprint_ref
             mesh.metadata["manual_label"] = label.label
             mesh.metadata["manual_zone"] = z.id
@@ -842,6 +841,10 @@ def _remove_n50_cut_wall_faces(label: ManualLabel, source_footprint: Polygon, bu
 N50_REAR_LEFT_UTM = (670358.181, 4539708.674)
 N50_FRONT_LEFT_UTM = (670363.529, 4539718.195)
 N50_FRONT_SPLIT_LOCAL_Y = 5.46
+N50_LIGHTWELL_LEFT_LOCAL_X = 2.45
+N50_LIGHTWELL_REAR_LOCAL_Y = 0.10
+N50_LIGHTWELL_FRONT_LOCAL_Y = 3.90
+N50_RIGHT_CLIP_LOCAL_X = 4.45
 
 
 def _zone_polys_for_label(label: ManualLabel, footprint: Polygon) -> dict[str, Polygon]:
@@ -873,15 +876,22 @@ def _n50_l_plan_zone_polys(label: ManualLabel, footprint: Polygon) -> dict[str, 
     small right/rear void beside E-4 and N-52/54. The front/north piece is the
     lower flat-roofed mass; the rear/dashed piece is the taller roofed wing.
     """
-    l_plan = footprint.difference(Polygon(N50_REAR_LIGHTWELL_UTM).buffer(0)).buffer(0)
-    l_plan = _largest_polygon(l_plan) or footprint
-    front_cut = _n50_local_band(N50_FRONT_SPLIT_LOCAL_Y, 11.40, -0.25, 4.45)
-    rear_cut = _n50_local_band(-0.25, N50_FRONT_SPLIT_LOCAL_Y, -0.25, 4.45)
-    front = _largest_polygon(l_plan.intersection(front_cut).buffer(0))
+    front_cut = _n50_local_band(
+        N50_FRONT_SPLIT_LOCAL_Y, 11.40, -0.25, N50_RIGHT_CLIP_LOCAL_X
+    )
+    front = _largest_polygon(footprint.intersection(front_cut).buffer(0))
     if front is None or front.area < 1.0:
         return {}
 
-    rear = _largest_polygon(l_plan.intersection(rear_cut).buffer(0))
+    rear_l_plan = Polygon([
+        _n50_local_to_utm(0.0, 0.0),
+        _n50_local_to_utm(0.0, N50_FRONT_SPLIT_LOCAL_Y),
+        _n50_local_to_utm(N50_RIGHT_CLIP_LOCAL_X, N50_FRONT_SPLIT_LOCAL_Y),
+        _n50_local_to_utm(N50_RIGHT_CLIP_LOCAL_X, N50_LIGHTWELL_FRONT_LOCAL_Y),
+        _n50_local_to_utm(N50_LIGHTWELL_LEFT_LOCAL_X, N50_LIGHTWELL_FRONT_LOCAL_Y),
+        _n50_local_to_utm(N50_LIGHTWELL_LEFT_LOCAL_X, N50_LIGHTWELL_REAR_LOCAL_Y),
+    ])
+    rear = _largest_polygon(footprint.intersection(rear_l_plan).buffer(0))
     if rear is None or rear.area < 1.0:
         return {}
 
