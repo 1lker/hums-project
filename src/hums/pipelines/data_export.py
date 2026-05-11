@@ -1502,32 +1502,36 @@ def _html_page(data: dict[str, Any]) -> str:
       </div>`;
     }
 
-    function record(row, i) {
-      const cfg = viewConfig[view];
-      const fields = cfg.fields.slice(0, 5);
-      const note = cfg.fields[cfg.fields.length - 1];
-      return `<button class="record ${i === selectedIndex ? 'selected' : ''}" data-row="${i}">
-        <div>
-          <span class="field-label">Record</span>
-          <span class="record-title">${escapeHtml(cfg.title(row))}</span>
-        </div>
-        ${fields.map(([key, label]) => fieldBlock(row, key, label)).join('')}
-        <div class="note-field">
-          <span class="field-label">${escapeHtml(note[1])}</span>
-          <span class="field-value summary-note">${escapeHtml(value(row, note[0]))}</span>
-        </div>
-      </button>`;
+	    function record(row, i) {
+	      const cfg = viewConfig[view];
+	      const fields = cfg.fields.slice(0, 5);
+	      const note = cfg.fields[cfg.fields.length - 1];
+	      return `<button class="record ${i === selectedIndex ? 'selected' : ''}" data-row="${i}">
+	        <div class="record-main">
+	          <div>
+	            <span class="field-label">Record</span>
+	            <span class="record-title">${escapeHtml(cfg.title(row))}</span>
+	            <span class="record-subtitle">${escapeHtml(cfg.subtitle(row))}</span>
+	          </div>
+	          ${pillHtml(view === 'units' ? value(row, 'manual_override') : view)}
+	        </div>
+	        <div class="record-fields">${fields.map(([key, label]) => fieldBlock(row, key, label)).join('')}</div>
+	        <div class="record-notes">
+	          <span class="field-label">${escapeHtml(note[1])}</span>
+	          <span class="field-value summary-note">${escapeHtml(value(row, note[0]))}</span>
+	        </div>
+	      </button>`;
     }
 
     function fieldBlock(row, key, label) {
       let v = key === 'openings'
         ? `Doors ${value(row, 'doors') || 0} · Shopfronts ${value(row, 'shopfronts') || 0} · Windows ${value(row, 'upper_windows') || 0}`
         : value(row, key);
-      const pill = ['material_class', 'manual_override', 'roof_material'].includes(key);
-      return `<div>
-        <span class="field-label">${escapeHtml(label)}</span>
-        <span class="field-value">${pill ? pillHtml(v) : escapeHtml(v)}</span>
-      </div>`;
+	      const pill = ['material_class', 'manual_override', 'roof_material'].includes(key);
+	      return `<div class="field">
+	        <span class="field-label">${escapeHtml(label)}</span>
+	        <span class="field-value">${pill ? pillHtml(v) : escapeHtml(v)}</span>
+	      </div>`;
     }
 
     function detail(row) {
