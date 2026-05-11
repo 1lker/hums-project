@@ -559,6 +559,28 @@ def _emit_camli_church_entrance(mesh: BuildingMesh, building: Building) -> None:
                "church_trim_ochre", f"camli_entry.trim.right.{seg_idx}", out=0.170)
     _wall_quad(mesh, pid, p, u0 - trim_w, door_top - 0.05, u1 + trim_w, door_top + 0.10,
                "HeaderSurface", "church_trim_ochre", f"camli_entry.trim.lintel.{seg_idx}", out=0.170)
+    # Low church-front composition from the reference photo: the door is not a
+    # plain house door, it sits in a dressed plaster/stone portal with side
+    # wall panels and a shallow curved crest.
+    side_panel_w = min(0.72, max(0.40, length * 0.06))
+    side_gap = 0.34
+    left_panel_0 = max(0.08, portal_u0 - side_gap - side_panel_w)
+    left_panel_1 = max(left_panel_0, portal_u0 - side_gap)
+    right_panel_0 = min(length - 0.08, portal_u1 + side_gap)
+    right_panel_1 = min(length - 0.08, right_panel_0 + side_panel_w)
+    for side, a, b in (("left", left_panel_0, left_panel_1), ("right", right_panel_0, right_panel_1)):
+        if b - a < 0.24:
+            continue
+        _wall_quad(mesh, pid, p, a, 0.52, b, 1.62,
+                   "WallSurface", "church_stone_light", f"camli_entry.wall_panel.{side}.{seg_idx}", out=0.072)
+        _wall_line(mesh, pid, p, a, 0.52, b, 0.52,
+                   0.028, "church_stone_shadow", f"camli_entry.wall_panel.{side}.base.{seg_idx}", out=0.128)
+        _wall_line(mesh, pid, p, a, 1.62, b, 1.62,
+                   0.026, "church_trim_ochre", f"camli_entry.wall_panel.{side}.top.{seg_idx}", out=0.128)
+        _wall_line(mesh, pid, p, a, 0.52, a, 1.62,
+                   0.024, "church_trim_ochre", f"camli_entry.wall_panel.{side}.left.{seg_idx}", out=0.128)
+        _wall_line(mesh, pid, p, b, 0.52, b, 1.62,
+                   0.024, "church_trim_ochre", f"camli_entry.wall_panel.{side}.right.{seg_idx}", out=0.128)
     for knob_u in (leaf_mid - 0.10, leaf_mid + 0.10):
         _wall_disk(mesh, pid, p, knob_u, 1.05, 0.045, "church_lamp_gold",
                    f"camli_entry.door.knob.{seg_idx}.{knob_u:.2f}", out=0.178, segments=12, role="Door")
@@ -591,9 +613,22 @@ def _emit_camli_church_entrance(mesh: BuildingMesh, building: Building) -> None:
     for i, ((a_u, a_z), (b_u, b_z)) in enumerate(zip(arc, arc[1:])):
         _wall_line(mesh, pid, p, a_u, a_z, b_u, b_z, 0.060,
                    "church_trim_ochre", f"camli_entry.fanlight.arch_trim.{seg_idx}.{i}", out=0.212)
-
     center_u = (fan_u0 + fan_u1) / 2.0
     center_z = fan_bottom + 0.08
+    crest_width = min(portal_u1 - portal_u0, max(1.40, (fan_u1 - fan_u0) * 0.92))
+    crest_u0 = max(0.08, center_u - crest_width / 2.0)
+    crest_u1 = min(length - 0.08, center_u + crest_width / 2.0)
+    crest_base = spring + arch_rise + 0.05
+    crest_top = crest_base + 0.20
+    _wall_poly(
+        mesh, pid, p,
+        [(crest_u0, crest_base), (center_u, crest_top), (crest_u1, crest_base), (crest_u1, crest_base - 0.12), (crest_u0, crest_base - 0.12)],
+        "HeaderSurface", "church_trim_ochre",
+        f"camli_entry.curved_crest.{seg_idx}", out=0.218,
+    )
+    _wall_line(mesh, pid, p, crest_u0 + 0.12, crest_base - 0.05, crest_u1 - 0.12, crest_base - 0.05,
+               0.035, "church_stone_shadow", f"camli_entry.curved_crest.shadow.{seg_idx}", out=0.236)
+
     for n, t in enumerate((0.12, 0.26, 0.38, 0.50, 0.62, 0.74, 0.88)):
         u = fan_u0 + (fan_u1 - fan_u0) * t
         z = spring + arch_rise * math.sin(math.pi * t)

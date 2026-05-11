@@ -323,6 +323,7 @@ class ManualRenderer:
             DoorPlacer().place(segments, storeys_proxy, ctx, zone_pid, tracker)
         self._place_manual_entrances(label, zone, segments, tracker, zone_pid)
         self._adjust_church_camli_entrance(label, zone, segments, tracker, zone_pid)
+        self._place_church_wooden_annex_window(label, zone, segments, tracker, zone_pid)
         self._place_explicit_vitrine(label, zone, segments, tracker, zone_pid)
         UpperWindowPlacer().place(segments, storeys_proxy, ctx, zone_pid, tracker)
 
@@ -494,13 +495,20 @@ class ManualRenderer:
             return
         with_doors = [s for s in candidates if any(op.kind == "door" for op in s.openings)]
         seg = max(with_doors or candidates, key=lambda s: s.length_m)
+
+        # Keep only the map/photo-indicated church gate for this Camli passage.
+        for other in segments:
+            if other is seg:
+                continue
+            other.openings = [op for op in other.openings if op.kind != "door"]
+
         if not any(op.kind == "door" for op in seg.openings):
             seg.openings.append(Opening(
                 kind="door",
                 storey_level=0,
                 position_along_wall_m=0.0,
-                width_m=1.0,
-                height_m=2.20,
+                width_m=1.8,
+                height_m=2.45,
                 sill_m=0.0,
                 style="arched",
                 frame_profile="moulded",
@@ -510,10 +518,13 @@ class ManualRenderer:
         for op in seg.openings:
             if op.kind != "door":
                 continue
-            width = min(1.72, max(1.12, seg.length_m - 0.42))
-            op.position_along_wall_m = round(max(0.18, (seg.length_m - width) / 2.0), 3)
+            if seg.length_m > 4.0:
+                width = min(2.15, max(1.72, seg.length_m * 0.17))
+            else:
+                width = min(1.72, max(1.12, seg.length_m - 0.42))
+            op.position_along_wall_m = round(max(0.22, (seg.length_m - width) / 2.0), 3)
             op.width_m = round(width, 3)
-            op.height_m = 2.38
+            op.height_m = 2.45
             op.style = "arched"
             op.frame_profile = "moulded"
             op.color_source = "map+photo:ayia-efimia-camli-entrance-white-double-door"
@@ -523,6 +534,47 @@ class ManualRenderer:
             f"wall[{seg.face}].photo_guided_church_door",
             "user-photo:Ayia Efimia entrance",
             "white double door with arched iron/glass fanlight; walls opaque, top roof glass",
+        )
+
+    def _place_church_wooden_annex_window(self, label: ManualLabel, zone: Zone,
+                                          segments: list[WallSegment], tracker,
+                                          zone_pid: str) -> None:
+        if label.label != "W-39-1" or zone.id != "wooden_church_edge_annex":
+            return
+        candidates = [
+            s for s in segments
+            if not s.is_party_wall and s.face == "W" and s.length_m > 1.25
+        ]
+        if not candidates:
+            candidates = [
+                s for s in segments
+                if not s.is_party_wall and s.face in {"W", "N"} and s.length_m > 1.25
+            ]
+        if not candidates:
+            return
+        seg = max(candidates, key=lambda s: s.length_m)
+        if any(op.kind == "window" for op in seg.openings):
+            return
+        width = min(0.92, max(0.72, seg.length_m * 0.14))
+        margin = min(0.55, max(0.28, seg.length_m * 0.08))
+        available = seg.length_m - width - margin * 2
+        pos = margin + max(0.0, available * 0.45)
+        seg.openings.append(Opening(
+            kind="window",
+            storey_level=0,
+            position_along_wall_m=round(pos, 3),
+            width_m=round(width, 3),
+            height_m=1.25,
+            sill_m=1.05,
+            style="rectangular",
+            frame_profile="barred_wooden_annex",
+            color_source="map+photo:ayia-efimia-wooden-annex-single-window",
+        ))
+        tracker.record(
+            zone_pid,
+            f"wall[{seg.face}].wooden_annex_single_window",
+            "map+photo:Ayia Efimia church edge",
+            "single window on the wooden/T. 1 bs. annex beside the Camli entrance",
         )
 
     def _profile(self, label: ManualLabel, meshes) -> str:

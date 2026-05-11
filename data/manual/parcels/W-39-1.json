@@ -84,7 +84,7 @@
     "primary_door": {
       "face": "W",
       "zone": "camli_vitre_passage",
-      "description": "West/Sogutlu Cesme access into the glazed passage"
+      "description": "Original W-side Camli/Vitre church entrance; user photo shows plaster wall with a white double door and arched glazed iron fanlight"
     },
     "secondary_door": {
       "face": "E",
