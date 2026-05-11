@@ -41,11 +41,63 @@ class PeriodDetail:
         self._emit_dentils(mesh, building, eaves_z)
         if cls in ("A", "B"):
             self._emit_corner_quoins(mesh, building)
-        if _is_magasin_building(building):
+        if _is_firin_building(building):
+            self._emit_firin_ground_band(mesh, building)
+        elif _is_magasin_building(building):
             self._emit_magasin_ground_band(mesh, building)
         self._upgrade_doors(mesh, building)
 
     # ---- shop / bakery ground-floor frontage -------------------------------
+    def _emit_firin_ground_band(self, mesh: BuildingMesh, building: Building) -> None:
+        """Restrained bakery base: masonry/service frontage, not Mg. shop rhythm."""
+        pid = building.parcel_id
+        ground_h = next(
+            (s.height_m for s in building.storeys if s.level == 0 and not s.is_basement),
+            3.6,
+        )
+        base_h = min(0.48, max(0.34, ground_h * 0.12))
+
+        for idx, seg in enumerate(building.wall_segments):
+            if not _is_strict_street(seg):
+                continue
+            length = _seg_length(seg)
+            if length < 0.9:
+                continue
+            ux, uy, nx, ny = _seg_axes(seg)
+            sx, sy = seg.start
+
+            def p(u: float, z: float, out: float = 0.052) -> tuple[float, float, float]:
+                return (sx + ux * u + nx * out, sy + uy * u + ny * out, z)
+
+            u0 = 0.08
+            u1 = length - 0.08
+            if u1 - u0 <= 0.35:
+                continue
+
+            mesh.add_quad(
+                p0=p(u0, 0.0),
+                p1=p(u0, base_h),
+                p2=p(u1, base_h),
+                p3=p(u1, 0.0),
+                role="PlinthSurface",
+                surface_id=f"{pid}.firin_frontage.{seg.face}.{idx}.stone_base",
+                material_key="plinth_stone",
+            )
+            # A plain render band separates the service/bakery ground floor
+            # from upper masonry without reading as a row of Mg. shop signs.
+            band_bot = min(ground_h - 0.42, 2.78)
+            band_top = min(ground_h - 0.18, band_bot + 0.22)
+            if band_top > band_bot:
+                mesh.add_quad(
+                    p0=p(u0, band_bot, 0.056),
+                    p1=p(u0, band_top, 0.056),
+                    p2=p(u1, band_top, 0.056),
+                    p3=p(u1, band_bot, 0.056),
+                    role="StringcourseSurface",
+                    surface_id=f"{pid}.firin_frontage.{seg.face}.{idx}.plain_bakery_band",
+                    material_key="cornice_paint",
+                )
+
     def _emit_magasin_ground_band(self, mesh: BuildingMesh, building: Building) -> None:
         """Give mapped Mg./Firin fronts a shop cadence without inventing glass."""
         pid = building.parcel_id
@@ -241,6 +293,7 @@ class PeriodDetail:
         """Add period door detail without turning Mg shops into houses."""
         storey_zs = _floor_zs(building)
         pid = building.parcel_id
+        is_firin = _is_firin_building(building)
         is_magasin = _is_magasin_building(building)
         for idx, seg in enumerate(building.wall_segments):
             for k, op in enumerate(seg.openings):
@@ -253,6 +306,9 @@ class PeriodDetail:
                 u0 = op.position_along_wall_m
                 u1 = u0 + op.width_m
                 sx, sy = seg.start
+                if is_firin:
+                    _emit_firin_door(mesh, pid, seg.face, idx, k, sx, sy, ux, uy, nx, ny, u0, u1, z0, z1)
+                    continue
                 if is_magasin:
                     _emit_magasin_door(mesh, pid, seg.face, idx, k, sx, sy, ux, uy, nx, ny, u0, u1, z0, z1)
                     continue
@@ -285,6 +341,145 @@ class PeriodDetail:
                         surface_id=f"{pid}.door_panel.{seg.face}.{idx}.{k}.{p_idx}",
                         material_key="door_panel",
                     )
+
+
+def _emit_firin_door(
+    mesh: BuildingMesh,
+    pid: str,
+    face: str,
+    seg_idx: int,
+    door_idx: int,
+    sx: float,
+    sy: float,
+    ux: float,
+    uy: float,
+    nx: float,
+    ny: float,
+    u0: float,
+    u1: float,
+    z0: float,
+    z1: float,
+) -> None:
+    """Bakery/service entrance: one robust masonry-framed door, no Mg. shutters."""
+    width = u1 - u0
+    if width <= 0.55:
+        return
+
+    def p(u: float, z: float, out: float = 0.05) -> tuple[float, float, float]:
+        return (sx + ux * u + nx * out, sy + uy * u + ny * out, z)
+
+    sid = f"{pid}.firin_entry.{face}.{seg_idx}.{door_idx}"
+    frame_w = min(0.13, max(0.08, width * 0.08))
+    head_h = 0.22
+    threshold_h = 0.16
+    door_z0 = z0 + threshold_h
+    door_z1 = min(z1, z0 + 2.48)
+    transom_bot = door_z1 - 0.30
+
+    mesh.add_quad(
+        p0=p(u0 - frame_w, z0, 0.072),
+        p1=p(u0 - frame_w, door_z1 + head_h, 0.072),
+        p2=p(u1 + frame_w, door_z1 + head_h, 0.072),
+        p3=p(u1 + frame_w, z0, 0.072),
+        role="JambSurface",
+        surface_id=f"{sid}.masonry_reveal",
+        material_key="plinth_stone",
+    )
+    for name, a, b in (
+        ("left_jamb", u0 - frame_w, u0),
+        ("right_jamb", u1, u1 + frame_w),
+    ):
+        mesh.add_quad(
+            p0=p(a, z0 + 0.02, 0.092),
+            p1=p(a, door_z1 + head_h, 0.092),
+            p2=p(b, door_z1 + head_h, 0.092),
+            p3=p(b, z0 + 0.02, 0.092),
+            role="JambSurface",
+            surface_id=f"{sid}.{name}",
+            material_key="trim",
+        )
+    mesh.add_quad(
+        p0=p(u0 - frame_w, door_z1, 0.096),
+        p1=p(u0 - frame_w, door_z1 + head_h, 0.096),
+        p2=p(u1 + frame_w, door_z1 + head_h, 0.096),
+        p3=p(u1 + frame_w, door_z1, 0.096),
+        role="HeaderSurface",
+        surface_id=f"{sid}.stone_lintel",
+        material_key="trim",
+    )
+    mesh.add_quad(
+        p0=p(u0 - frame_w * 0.65, z0, 0.11),
+        p1=p(u0 - frame_w * 0.65, z0 + threshold_h, 0.11),
+        p2=p(u1 + frame_w * 0.65, z0 + threshold_h, 0.11),
+        p3=p(u1 + frame_w * 0.65, z0, 0.11),
+        role="SillSurface",
+        surface_id=f"{sid}.stone_threshold",
+        material_key="plinth_stone",
+    )
+
+    mid = (u0 + u1) / 2.0
+    for name, a, b in (("left_leaf", u0, mid), ("right_leaf", mid, u1)):
+        mesh.add_quad(
+            p0=p(a, door_z0, 0.112),
+            p1=p(a, transom_bot - 0.04, 0.112),
+            p2=p(b, transom_bot - 0.04, 0.112),
+            p3=p(b, door_z0, 0.112),
+            role="Door",
+            surface_id=f"{sid}.{name}",
+            material_key="door_panel",
+        )
+    seam_w = min(0.035, max(0.022, width * 0.03))
+    mesh.add_quad(
+        p0=p(mid - seam_w, door_z0 + 0.08, 0.124),
+        p1=p(mid - seam_w, transom_bot - 0.10, 0.124),
+        p2=p(mid + seam_w, transom_bot - 0.10, 0.124),
+        p3=p(mid + seam_w, door_z0 + 0.08, 0.124),
+        role="Mullion",
+        surface_id=f"{sid}.center_stile",
+        material_key="trim",
+    )
+
+    # Small upper ventilation/transom slot: fırın/service cue, not a shop vitrine.
+    vent_u0 = u0 + width * 0.16
+    vent_u1 = u1 - width * 0.16
+    vent_z0 = transom_bot
+    vent_z1 = door_z1 - 0.08
+    if vent_u1 - vent_u0 > 0.30 and vent_z1 - vent_z0 > 0.12:
+        mesh.add_quad(
+            p0=p(vent_u0, vent_z0, 0.118),
+            p1=p(vent_u0, vent_z1, 0.118),
+            p2=p(vent_u1, vent_z1, 0.118),
+            p3=p(vent_u1, vent_z0, 0.118),
+            role="Window",
+            surface_id=f"{sid}.small_vent",
+            material_key="window_glass",
+        )
+        for n in range(3):
+            z = vent_z0 + (n + 1) * (vent_z1 - vent_z0) / 4.0
+            bar_h = 0.018
+            mesh.add_quad(
+                p0=p(vent_u0, z - bar_h, 0.126),
+                p1=p(vent_u0, z + bar_h, 0.126),
+                p2=p(vent_u1, z + bar_h, 0.126),
+                p3=p(vent_u1, z - bar_h, 0.126),
+                role="Mullion",
+                surface_id=f"{sid}.vent_bar.{n}",
+                material_key="trim",
+            )
+
+    # Modest unlettered bakery plaque above the lintel. It references the map
+    # Firin label without copying modern signage or becoming a magazine fascia.
+    plaque_u0 = max(u0 - frame_w * 0.35, u0 - 0.08)
+    plaque_u1 = min(u1 + frame_w * 0.35, u1 + 0.08)
+    mesh.add_quad(
+        p0=p(plaque_u0, door_z1 + head_h + 0.08, 0.086),
+        p1=p(plaque_u0, door_z1 + head_h + 0.32, 0.086),
+        p2=p(plaque_u1, door_z1 + head_h + 0.32, 0.086),
+        p3=p(plaque_u1, door_z1 + head_h + 0.08, 0.086),
+        role="HeaderSurface",
+        surface_id=f"{sid}.plain_firin_plaque",
+        material_key="cornice_paint",
+    )
 
 
 def _emit_magasin_door(
@@ -527,7 +722,13 @@ def _magasin_variant(pid: str, seg_idx: int, door_idx: int) -> int:
     return (sum(ord(ch) for ch in pid) + seg_idx * 7 + door_idx * 13) % 11
 
 
+def _is_firin_building(building: Building) -> bool:
+    return building.parcel_id.startswith("W-34-36-FIRIN")
+
+
 def _is_magasin_building(building: Building) -> bool:
+    if _is_firin_building(building):
+        return False
     texts: list[str] = []
     for storey in building.storeys:
         if storey.level == 0 and storey.use:
