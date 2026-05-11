@@ -29,6 +29,6 @@ Roof shapes and materials used by the visible scene. Material keys are the glTF/
 | W-39-1.camli_vitre_passage | complex_pitched | glass_roof | 12.0 | window_glass | Camlı/Vitre rendered as glazed roof |
 | W-39-1.wooden_church_edge_annex | gable | sheet_metal_T | 14.0 | sheet_metal_grey | T rendered as aged sheet metal |
 | W-39-1.masonry_side_narthex | hip | sheet_metal_T | 20.0 | sheet_metal_grey | T rendered as aged sheet metal |
-| CHURCH | church_special | kiremit + lead/zinc dome |  | dome_lead, dome_lead_dark, tile_terracotta | special church roof: low tile body, shallow low kubbe with 3 glazed marks; kubbe centered at (670342.95, 4539707.85) from Pervititch GeoTIFF kubbe mark; clocher 16.9 m from Pervititch raster clocher square within W-39/1 |
+| CHURCH | church_special | kiremit + lead/zinc dome |  | dome_lead, dome_lead_dark, tile_terracotta | special church roof: low tile body, curved lead/zinc kubbe with 3 arched glazed eyes; kubbe centered at (670342.95, 4539707.85) from Pervititch GeoTIFF kubbe mark; clocher 16.9 m from Pervititch raster clocher square within W-39/1 |
 | COURTYARD-147-GARDEN |  |  |  |  |  |
 | COURTYARD-147-N50-LIGHTWELL |  |  |  |  |  |
