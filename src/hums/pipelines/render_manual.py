@@ -439,13 +439,13 @@ class ManualRenderer:
         corner_seg = max(corner_candidates, key=lambda item: item[0])[1]
         moved = min(main_doors, key=lambda op: op.position_along_wall_m)
         main_seg.openings.remove(moved)
-        width = min(0.82, max(0.62, corner_seg.length_m - 0.24))
+        width = min(1.18, max(0.86, corner_seg.length_m - 0.30))
         moved.position_along_wall_m = round(max(0.12, (corner_seg.length_m - width) / 2.0), 3)
         moved.width_m = round(width, 3)
-        moved.height_m = max(moved.height_m, 2.35)
+        moved.height_m = max(moved.height_m, 2.55)
         moved.style = "rectangular"
-        moved.frame_profile = "moulded"
-        moved.color_source = "map:pervititch:W-34-36-FIRIN:leftmost-corner-bakery-entry"
+        moved.frame_profile = "bakery_service"
+        moved.color_source = "map:pervititch:W-34-36-FIRIN:single-firin-service-entry"
         corner_seg.openings = [
             op for op in corner_seg.openings
             if not (op.kind == "door" and op.storey_level == 0)
@@ -455,7 +455,7 @@ class ManualRenderer:
             zone_pid,
             f"wall[{corner_seg.face}].leftmost_corner_bakery_entry",
             "map+user-correction:pervititch",
-            "leftmost Firin entrance belongs on the short diagonal/kinked corner segment, while the other shutters remain on the west frontage",
+            "single Firin street/service entrance belongs on the short diagonal/kinked corner segment; W-36 is internal-only and this is not an Mg./magazine storefront row",
         )
 
     def _place_explicit_vitrine(self, label: ManualLabel, zone: Zone,
