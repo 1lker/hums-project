@@ -563,10 +563,15 @@ class ManualRenderer:
         ]
         if not candidates:
             return
-        south_faces = [s for s in candidates if s.face == "S"]
-        # The Camli/Vitre label and user correction put the church entrance on
-        # the main long passage wall, not on the short fountain-side edge.
-        seg = max(south_faces or candidates, key=lambda s: s.length_m)
+        primary_face = (
+            label.facades.primary_door.face
+            if label.facades.primary_door and label.facades.primary_door.zone == zone.id
+            else None
+        )
+        primary_faces = [s for s in candidates if primary_face and s.face == primary_face]
+        # The 39/1 Camli/Vitre door belongs on the mapped church entrance face.
+        # Keep it separate from the 39/2 fountain-side entrance.
+        seg = max(primary_faces or candidates, key=lambda s: s.length_m)
 
         # Keep only the map/photo-indicated church gate for this Camli passage.
         for other in segments:

@@ -26,7 +26,7 @@ Required roles per building: GroundSurface, WallSurface, RoofSurface, Window, Do
 | N-52-54-E2.corner_mass | 1 | 38 | 8 | 14 | 43 | ✅ |
 | S-41-43-45-E16.merged_mass | 1 | 25 | 7 | 7 | 62 | ✅ |
 | W-34-36-FIRIN.bakery_mass | 1 | 66 | 10 | 23 | 9 | ✅ |
-| W-39-1.camli_vitre_passage | 1 | 10 | 5 | 2 | 20 | ✅ |
+| W-39-1.camli_vitre_passage | 1 | 6 | 5 | 2 | 20 | ✅ |
 | W-39-1.wooden_church_edge_annex | 1 | 14 | 5 | 1 | 0 | ✅ |
 | W-39-1.masonry_side_narthex | 1 | 50 | 13 | 12 | 3 | ✅ |
 | CHURCH | 1 | 0 | 75 | 113 | 0 | ✅ |
