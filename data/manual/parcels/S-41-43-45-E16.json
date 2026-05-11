@@ -3,7 +3,7 @@
   "label": "S-41-43-45-E16",
   "verified": false,
 
-  "map_notes": "The `buildingentrence41-43-45-16` trace is not four separate building footprints. On the Pervititch map it reads as one connected south/east corner mass with four numbered entrances/units (41, 43, 45, 16) under a common roof line. Treat parcel numbers as entrances/sub-units, not as four standalone triangular/cut buildings. The final scene must therefore use the full traced polygon as one merged building mass with one shared roof; add multiple street doors rather than slicing the footprint into separate triangular volumes.",
+  "map_notes": "The `buildingentrence41-43-45-16` trace is not four separate freestanding footprints. On the Pervititch map it reads as one connected south/east corner row: four numbered building/entrance units (41, 43, 45, 16) combined under one common roof. Treat the numbers as sub-units in one shared-roof building. The final scene uses the full traced polygon as one merged building mass with one shared roof, multiple street doors, and subtle facade division seams rather than separate triangular/cut roof volumes.",
 
   "footprint_ref": "building-entrence-41-43-45-16.shp",
 
@@ -14,7 +14,7 @@
   "zones": [
     {
       "id": "merged_mass",
-      "description": "Merged south/east corner row containing the 41, 43, 45 and 16 entrances. Four map labels indicate entrances/sub-units, not separate roof masses.",
+      "description": "Merged south/east corner row containing the 41, 43, 45 and 16 building/entrance units. Four map labels indicate sub-units under a shared roof, not separate roof masses.",
       "material_class": "B",
       "map_colour": "pink",
       "storeys_above_grade": 2,

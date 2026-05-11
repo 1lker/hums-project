@@ -125,6 +125,7 @@ class ManualRenderer:
             mesh = geom_builder.build(building)
             if mesh is None:
                 continue
+            self._emit_manual_subunit_details(label, building, mesh)
             mesh.metadata["source_footprint_file"] = label.footprint_ref
             mesh.metadata["manual_label"] = label.label
             mesh.metadata["manual_zone"] = z.id
@@ -471,6 +472,41 @@ class ManualRenderer:
                 lines.append(f"- {q}")
         return "\n".join(lines)
 
+    def _emit_manual_subunit_details(self, label: ManualLabel, building: Building, mesh) -> None:
+        if label.label != "S-41-43-45-E16":
+            return
+        if building.notes.get("zone_id") != "merged_mass":
+            return
+        total_height = sum(s.height_m for s in building.storeys if not s.is_basement)
+        seam_count = 0
+        for idx, seg in enumerate(building.wall_segments):
+            if seg.face != "S" or seg.length_m < 6.0:
+                continue
+            door_centers = sorted(
+                op.position_along_wall_m + op.width_m / 2.0
+                for op in seg.openings
+                if op.kind == "door"
+            )
+            if len(door_centers) >= 3:
+                seam_positions = [
+                    (door_centers[i] + door_centers[i + 1]) / 2.0
+                    for i in range(len(door_centers) - 1)
+                ]
+            else:
+                seam_positions = [seg.length_m / 3.0, 2.0 * seg.length_m / 3.0]
+            for n, pos in enumerate(seam_positions):
+                _emit_vertical_facade_seam(
+                    mesh, seg,
+                    pos=max(0.35, min(seg.length_m - 0.35, pos)),
+                    z0=0.25,
+                    z1=max(0.8, total_height - 0.12),
+                    surface_id=f"{building.parcel_id}.subunit_seam.S.{idx}.{n}",
+                )
+                seam_count += 1
+        mesh.metadata["subunit_group"] = "41-43-45-16"
+        mesh.metadata["subunit_count"] = 4
+        mesh.metadata["subunit_seam_count"] = seam_count
+
 
 def _zone_wants_vitrine(zone: Zone) -> bool:
     text = " ".join([zone.id, zone.description, *zone.map_labels]).lower()
@@ -519,3 +555,38 @@ def _move_one_door_to_edge(seg: WallSegment) -> None:
         opening.width_m = round(new_width, 3)
         opening.position_along_wall_m = 0.15
         return
+
+
+def _emit_vertical_facade_seam(
+    mesh,
+    seg: WallSegment,
+    pos: float,
+    z0: float,
+    z1: float,
+    surface_id: str,
+) -> None:
+    sx, sy = seg.start
+    ex, ey = seg.end
+    length = math.hypot(ex - sx, ey - sy)
+    if length < 0.5 or z1 <= z0:
+        return
+    ux = (ex - sx) / length
+    uy = (ey - sy) / length
+    nx = -uy
+    ny = ux
+    # Match the outward-normal convention used by FacadeBanding and offset a
+    # hair forward so the seam reads as a surface detail rather than z-fight.
+    outward = 0.045
+    half_w = 0.045
+    u0 = max(0.05, pos - half_w)
+    u1 = min(length - 0.05, pos + half_w)
+    p0 = (sx + ux * u0 + nx * outward, sy + uy * u0 + ny * outward, z0)
+    p1 = (sx + ux * u0 + nx * outward, sy + uy * u0 + ny * outward, z1)
+    p2 = (sx + ux * u1 + nx * outward, sy + uy * u1 + ny * outward, z1)
+    p3 = (sx + ux * u1 + nx * outward, sy + uy * u1 + ny * outward, z0)
+    mesh.add_quad(
+        p0=p0, p1=p1, p2=p2, p3=p3,
+        role="WallSurface",
+        surface_id=surface_id,
+        material_key="trim",
+    )
