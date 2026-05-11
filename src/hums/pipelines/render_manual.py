@@ -18,7 +18,7 @@ import json
 import math
 from pathlib import Path
 
-from shapely.geometry import Polygon, shape
+from shapely.geometry import LineString, Polygon, shape
 
 from ..common.heritage_profile import PROFILE
 from ..common.paths import BLOCK_GEOJSON, FOOTPRINTS_GEOJSON, PROJECT_ROOT
@@ -124,10 +124,11 @@ class ManualRenderer:
             if mesh is None:
                 continue
             self._emit_manual_subunit_details(label, building, mesh)
+            _remove_n50_cut_wall_faces(label, footprint, building, mesh)
             mesh.metadata["source_footprint_file"] = label.footprint_ref
             mesh.metadata["manual_label"] = label.label
             mesh.metadata["manual_zone"] = z.id
-            mesh.metadata["opening_counts"] = self._opening_counts(building)
+            mesh.metadata["opening_counts"] = _mesh_opening_counts(mesh)
             meshes.append(mesh)
 
         return label, meshes, block_centroid
@@ -802,6 +803,54 @@ class ManualRenderer:
 def _zone_wants_vitrine(zone: Zone) -> bool:
     text = " ".join([zone.id, zone.description, *zone.map_labels]).lower()
     return "vitr" in text or "cam" in text or "glaz" in text
+
+
+def _mesh_opening_counts(mesh) -> dict[str, int]:
+    counts = {"door": 0, "shop_window": 0, "window": 0}
+    role_map = {
+        "Door": "door",
+        "Window": "window",
+    }
+    for face in mesh.faces:
+        key = role_map.get(face.semantic_role)
+        if key:
+            counts[key] += 1
+        elif "shop_window" in face.surface_id:
+            counts["shop_window"] += 1
+    return counts
+
+
+def _remove_n50_cut_wall_faces(label: ManualLabel, source_footprint: Polygon, building: Building, mesh) -> None:
+    if label.label != "N-50" or building.local_frame is None:
+        return
+
+    void_edge = Polygon(N50_REAR_LIGHTWELL_UTM).exterior
+    source_edge = source_footprint.exterior
+    ox, oy = building.local_frame.origin_utm
+    prefixes: list[str] = []
+
+    for idx, seg in enumerate(building.wall_segments):
+        a = (seg.start[0] + ox, seg.start[1] + oy)
+        b = (seg.end[0] + ox, seg.end[1] + oy)
+        line = LineString([a, b])
+        buf = line.buffer(0.05, cap_style=2)
+        near_void = buf.intersection(void_edge.buffer(0.05)).area
+        near_source = buf.intersection(source_edge.buffer(0.05)).area
+        if near_void > 0.035 and near_void > near_source + 0.01:
+            prefixes.append(f"{building.parcel_id}.wall.{seg.face}.{idx}.")
+
+    if not prefixes:
+        return
+
+    before = len(mesh.faces)
+    mesh.faces = [
+        face for face in mesh.faces
+        if not any(face.surface_id.startswith(prefix) for prefix in prefixes)
+    ]
+    removed = before - len(mesh.faces)
+    if removed:
+        mesh.metadata["n50_cut_wall_faces_removed"] = removed
+        mesh.metadata["n50_cut_wall_prefixes_removed"] = prefixes
 
 
 N50_REAR_LEFT_UTM = (670358.181, 4539708.674)
