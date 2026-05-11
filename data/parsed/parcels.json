@@ -1,0 +1,2026 @@
+[
+  {
+    "parcel_id": "N-40",
+    "parcel_number": "(40)",
+    "sub": "/(98) cplx",
+    "zone": "North — NW corner",
+    "street_facing": "T…L Sokak (N)",
+    "material": {
+      "class": "C",
+      "decoded": "Wooden",
+      "map_colour": "YELLOW → WOODEN",
+      "raw_material_label": "Wooden frame (Class C)"
+    },
+    "wall": {
+      "code": "Mg.+VF+MB+2½+TR.4+3.T",
+      "decoded": "Wooden Mg frontage of Firin; French vault; Massive Brick body; 2½ floors; TR.4 tile zone; T zones",
+      "thickness_raw": "—",
+      "thickness_m": null
+    },
+    "vault": {
+      "code": "VF",
+      "decoded": "Voûte Française (French concrete vault)"
+    },
+    "ground_floor": {
+      "use": "Mg (Shop/Bakery frontage)",
+      "code": "Mg."
+    },
+    "storeys": {
+      "raw": "2½",
+      "count": 2,
+      "has_mezzanine": true,
+      "is_basement_level": false
+    },
+    "basement": "None",
+    "condition": "—",
+    "change_v2": "v2 CORR: was pink/masonry — YELLOW on map = WOODEN frontage",
+    "bim_notes": "Wooden GF frontage of the masonry Firin body (98); dual-material BIM required",
+    "roof": {
+      "shape": "Complex pitched",
+      "material_code": "VF+T+TR.4",
+      "material_decoded": "French vault below + sheet metal T zones + Turkish tile zone 4",
+      "slope_direction": "Multi-directional (complex corner)",
+      "structure": "Timber rafter + masonry vault zones",
+      "special_features": "Multiple roof levels; bakery chimney likely",
+      "has_chimney": true,
+      "has_skylight": null,
+      "bim_family": "Complex multi-pitch BIM",
+      "notes": "Firin bakery must have chimney; TR.4 = Turkish tile zone 4 = specific tile zone on plan"
+    },
+    "openings": {
+      "primary_door_face": "North (T…L Sok.)",
+      "primary_door_type": "Street door (bakery)",
+      "secondary_door_face": "West (via (34)/(36))",
+      "secondary_door_type": "Internal passage to Sögütlü Çeşme",
+      "shared_entrance_with": "(34)/(36) sub-units",
+      "arrow_type": "Small arrow ↑ North",
+      "x_mark_observed": false,
+      "x_mark_interpretation": "—",
+      "line_type_gf": "Solid thick (masonry+wood mix)",
+      "wall_opening_type": "Street door + internal gate",
+      "bim_notes": "Corner building; dual entry points; bakery = functional delivery entrance likely on west"
+    },
+    "walls_analysis": {
+      "gf_line_type": "Solid (mixed thick/thin)",
+      "upper_line_type": "Standard solid",
+      "special_feature": "Complex multi-boundary",
+      "feature_meaning": "Corner complex; Firin body + wooden frontage",
+      "hatch_pattern": "Hatching in masonry body",
+      "hatch_meaning": "Masonry fill hatch",
+      "opening_gaps": "—",
+      "opening_location": "—",
+      "bim_notes": "BIM: separate wood frontage volume from masonry body"
+    }
+  },
+  {
+    "parcel_id": "N-42",
+    "parcel_number": "(42)",
+    "sub": "—",
+    "zone": "North",
+    "street_facing": "T…L Sokak (N)",
+    "material": {
+      "class": "C",
+      "decoded": "Wooden",
+      "map_colour": "YELLOW → WOODEN",
+      "raw_material_label": "Wooden frame — OLD (Class C)"
+    },
+    "wall": {
+      "code": "M.+VT+4b+Vx+Vitr.",
+      "decoded": "Wooden; Turkish vault ceiling; 4 b-storey levels; OLD building; glazed element",
+      "thickness_raw": "—",
+      "thickness_m": null
+    },
+    "vault": {
+      "code": "VT",
+      "decoded": "Voûte Turque (Turkish brick arch vault)"
+    },
+    "ground_floor": {
+      "use": "Shop/Residential",
+      "code": "Mg."
+    },
+    "storeys": {
+      "raw": "4b",
+      "count": 4,
+      "has_mezzanine": false,
+      "is_basement_level": true
+    },
+    "basement": "None",
+    "condition": "Vx (Old)",
+    "change_v2": "CORRECT from v2: colour confirmed YELLOW=wooden; Vitr. glazed element retained",
+    "bim_notes": "OLD wooden; 4 b-level storeys; glazed element = BIM curtain-wall family; priority condition survey",
+    "roof": {
+      "shape": "Pitched / flat unknown",
+      "material_code": "T",
+      "material_decoded": "Sheet Metal (Tôle)",
+      "slope_direction": "Unknown (dashed outline = uncertain upper)",
+      "structure": "Unknown — dashed outline on map",
+      "special_features": "Dashed outline on map = upper floor projection",
+      "has_chimney": false,
+      "has_skylight": false,
+      "bim_family": "Sheet metal pitch BIM",
+      "notes": "Dashed line at (42) = overhang or uncertain upper floor wall"
+    },
+    "openings": {
+      "primary_door_face": "North (T…L Sok.)",
+      "primary_door_type": "Street door",
+      "secondary_door_face": "—",
+      "secondary_door_type": "—",
+      "shared_entrance_with": "Possible shared with (40)",
+      "arrow_type": "No clear arrow — may share Firin entry",
+      "x_mark_observed": false,
+      "x_mark_interpretation": "—",
+      "line_type_gf": "DASHED outline = upper floor projection/overhang",
+      "wall_opening_type": "Street door (lower floor only)",
+      "bim_notes": "DASHED LINE at (42) = upper floor projects beyond GF footprint; only GF has street access"
+    },
+    "walls_analysis": {
+      "gf_line_type": "Solid (GF)",
+      "upper_line_type": "DASHED outline = upper floor projection",
+      "special_feature": "DASHED OUTLINE on map around upper storey",
+      "feature_meaning": "Upper floor projects beyond GF footprint (overhang)",
+      "hatch_pattern": "None visible",
+      "hatch_meaning": "—",
+      "opening_gaps": "—",
+      "opening_location": "—",
+      "bim_notes": "BIM: upper floor is larger than GF footprint; model as cantilever/overhang"
+    }
+  },
+  {
+    "parcel_id": "N-44",
+    "parcel_number": "(44)",
+    "sub": "—",
+    "zone": "North",
+    "street_facing": "T…L Sokak (N)",
+    "material": {
+      "class": "B",
+      "decoded": "Masonry",
+      "map_colour": "PINK → MASONRY",
+      "raw_material_label": "Masonry (Class B)"
+    },
+    "wall": {
+      "code": "Mg.+VT+2MO",
+      "decoded": "Masonry shop; Turkish vault ceiling; +2 masonry ordinary upper floors",
+      "thickness_raw": "—",
+      "thickness_m": null
+    },
+    "vault": {
+      "code": "VT",
+      "decoded": "Voûte Turque"
+    },
+    "ground_floor": {
+      "use": "Mg (Shop)",
+      "code": "Mg."
+    },
+    "storeys": {
+      "raw": "Δ3",
+      "count": 3,
+      "has_mezzanine": false,
+      "is_basement_level": false
+    },
+    "basement": "None",
+    "condition": "—",
+    "change_v2": "CORRECT from v2: Δ3 confirmed; +2 MO upper floors (not b-levels)",
+    "bim_notes": "3 storeys; VT vault ceiling; masonry; × mark visible on map = possible skylight/tabatière",
+    "roof": {
+      "shape": "Pitched",
+      "material_code": "—",
+      "material_decoded": "Unspecified — no tile code",
+      "slope_direction": "Unknown",
+      "structure": "Timber/masonry above VT vault",
+      "special_features": "× mark on map near (44) = possible tabatière",
+      "has_chimney": false,
+      "has_skylight": null,
+      "bim_family": "Unspecified pitched BIM",
+      "notes": "VT vault below → roof above vault: either pitched tiles or terrace"
+    },
+    "openings": {
+      "primary_door_face": "North (T…L Sok.)",
+      "primary_door_type": "Street door",
+      "secondary_door_face": "—",
+      "secondary_door_type": "—",
+      "shared_entrance_with": "—",
+      "arrow_type": "Arrow ↑ North confirmed",
+      "x_mark_observed": null,
+      "x_mark_interpretation": "POSSIBLE TABATIÈRE (skylight) in roof",
+      "line_type_gf": "Solid",
+      "wall_opening_type": "Street door + possible skylight",
+      "bim_notes": "× mark = tabatière or gate; BIM skylight element or gate family needed"
+    },
+    "walls_analysis": {
+      "gf_line_type": "Solid",
+      "upper_line_type": "Solid (3-storey load-bearing)",
+      "special_feature": "—",
+      "feature_meaning": "—",
+      "hatch_pattern": "Standard masonry fill",
+      "hatch_meaning": "Masonry",
+      "opening_gaps": "× in roof zone",
+      "opening_location": "Tabatière or gate in party wall",
+      "bim_notes": "BIM: check for skylight or gate element"
+    }
+  },
+  {
+    "parcel_id": "N-46",
+    "parcel_number": "(46)",
+    "sub": "—",
+    "zone": "North",
+    "street_facing": "T…L Sokak (N)",
+    "material": {
+      "class": "B",
+      "decoded": "Masonry",
+      "map_colour": "PINK → MASONRY",
+      "raw_material_label": "Masonry (Class B)"
+    },
+    "wall": {
+      "code": "Mg.+VF+1MO",
+      "decoded": "Masonry shop; French vault ceiling; +1 masonry ordinary upper floor",
+      "thickness_raw": "—",
+      "thickness_m": null
+    },
+    "vault": {
+      "code": "VF",
+      "decoded": "Voûte Française"
+    },
+    "ground_floor": {
+      "use": "Mg (Shop)",
+      "code": "Mg."
+    },
+    "storeys": {
+      "raw": "Δ2",
+      "count": 2,
+      "has_mezzanine": false,
+      "is_basement_level": false
+    },
+    "basement": "None",
+    "condition": "—",
+    "change_v2": "CORRECT from v2: TF tiles NOT confirmed; × mark in wall = possible gate/tabatière",
+    "bim_notes": "Δ2; VF vault; × mark on map between (46)/(48) = possible shared gate or skylight",
+    "roof": {
+      "shape": "Pitched",
+      "material_code": "—",
+      "material_decoded": "Unspecified (TF removed in v2)",
+      "slope_direction": "Unknown",
+      "structure": "Timber above VF vault",
+      "special_features": "× mark visible between (46)/(48) on map",
+      "has_chimney": false,
+      "has_skylight": null,
+      "bim_family": "Unspecified pitched BIM",
+      "notes": "× between (46)/(48) = shared skylight or gate opening"
+    },
+    "openings": {
+      "primary_door_face": "North (T…L Sok.)",
+      "primary_door_type": "Street door",
+      "secondary_door_face": "—",
+      "secondary_door_type": "—",
+      "shared_entrance_with": "Possible shared gate with (48)",
+      "arrow_type": "Arrow ↑ North",
+      "x_mark_observed": null,
+      "x_mark_interpretation": "SHARED GATE or skylight between parcels",
+      "line_type_gf": "Solid",
+      "wall_opening_type": "Street door + shared gate/skylight",
+      "bim_notes": "× between (46)+(48) = gate in party wall OR shared tabatière; BIM: aperture in party wall"
+    },
+    "walls_analysis": {
+      "gf_line_type": "Solid",
+      "upper_line_type": "Solid",
+      "special_feature": "× mark between (46)+(48)",
+      "feature_meaning": "Gate/aperture in party wall between parcels (shared opening)",
+      "hatch_pattern": "Standard masonry fill",
+      "hatch_meaning": "Masonry",
+      "opening_gaps": "× between parcels",
+      "opening_location": "GATE OR SHARED PASSAGE between (46) and (48)",
+      "bim_notes": "BIM: aperture/gate in shared party wall; may indicate combined access"
+    }
+  },
+  {
+    "parcel_id": "N-48",
+    "parcel_number": "(48)",
+    "sub": "—",
+    "zone": "North",
+    "street_facing": "T…L Sokak (N)",
+    "material": {
+      "class": "B",
+      "decoded": "Masonry",
+      "map_colour": "PINK → MASONRY",
+      "raw_material_label": "Masonry (Class B)"
+    },
+    "wall": {
+      "code": "Mg.+VF+1MO+TF",
+      "decoded": "Masonry shop; French vault; +1 masonry upper; French tiles",
+      "thickness_raw": "—",
+      "thickness_m": null
+    },
+    "vault": {
+      "code": "VF",
+      "decoded": "Voûte Française"
+    },
+    "ground_floor": {
+      "use": "Mg (Shop)",
+      "code": "Mg."
+    },
+    "storeys": {
+      "raw": "Δ2",
+      "count": 2,
+      "has_mezzanine": false,
+      "is_basement_level": false
+    },
+    "basement": "None",
+    "condition": "—",
+    "change_v2": "TF confirmed; VF vault; +1 MO upper",
+    "bim_notes": "Δ2; TF pitched roof; VF vault; BIM split-material GF/upper",
+    "roof": {
+      "shape": "Pitched",
+      "material_code": "TF",
+      "material_decoded": "French Clay Tiles (Tuiles Françaises)",
+      "slope_direction": "Toward street (N) = standard front pitch",
+      "structure": "Timber rafter with clay tiles",
+      "special_features": "TF confirmed",
+      "has_chimney": false,
+      "has_skylight": false,
+      "bim_family": "Pitched TF tile BIM",
+      "notes": "TF pitched tile roof confirmed; standard Ottoman shop typology"
+    },
+    "openings": {
+      "primary_door_face": "North (T…L Sok.)",
+      "primary_door_type": "Street door",
+      "secondary_door_face": "—",
+      "secondary_door_type": "—",
+      "shared_entrance_with": "Possible shared gate with (46)",
+      "arrow_type": "Arrow ↑ North",
+      "x_mark_observed": null,
+      "x_mark_interpretation": "SHARED with (46)",
+      "line_type_gf": "Solid",
+      "wall_opening_type": "Street door + shared gate/skylight",
+      "bim_notes": "See (46) notes; same × mark shared between parcels"
+    },
+    "walls_analysis": {
+      "gf_line_type": "Solid",
+      "upper_line_type": "Solid",
+      "special_feature": "× mark (shared with 46)",
+      "feature_meaning": "See (46)",
+      "hatch_pattern": "Standard masonry fill",
+      "hatch_meaning": "Masonry",
+      "opening_gaps": "× between parcels",
+      "opening_location": "See (46)",
+      "bim_notes": "See (46)"
+    }
+  },
+  {
+    "parcel_id": "N-50",
+    "parcel_number": "(50)",
+    "sub": "—",
+    "zone": "North",
+    "street_facing": "T…L Sokak (N)",
+    "material": {
+      "class": "B",
+      "decoded": "Masonry",
+      "map_colour": "PINK → MASONRY",
+      "raw_material_label": "Masonry (Class B)"
+    },
+    "wall": {
+      "code": "Mg.+3MO",
+      "decoded": "Masonry shop; 3 masonry ordinary upper floors; no vault marked",
+      "thickness_raw": "—",
+      "thickness_m": null
+    },
+    "vault": {
+      "code": "—",
+      "decoded": "None marked"
+    },
+    "ground_floor": {
+      "use": "Mg (Shop)",
+      "code": "Mg."
+    },
+    "storeys": {
+      "raw": "3MO (3 upper)",
+      "count": 3,
+      "has_mezzanine": false,
+      "is_basement_level": false
+    },
+    "basement": "None",
+    "condition": "—",
+    "change_v2": "No change from v2",
+    "bim_notes": "3-storey masonry; heavy structure; BIM load path analysis recommended",
+    "roof": {
+      "shape": "Pitched (est.)",
+      "material_code": "—",
+      "material_decoded": "Unspecified",
+      "slope_direction": "Unknown",
+      "structure": "Masonry upper — roof type unknown",
+      "special_features": "—",
+      "has_chimney": false,
+      "has_skylight": false,
+      "bim_family": "Unknown BIM",
+      "notes": "3 masonry upper floors = substantial building; roof type not readable"
+    },
+    "openings": {
+      "primary_door_face": "North (T…L Sok.)",
+      "primary_door_type": "Street door",
+      "secondary_door_face": "—",
+      "secondary_door_type": "—",
+      "shared_entrance_with": "—",
+      "arrow_type": "Arrow ↑ North",
+      "x_mark_observed": false,
+      "x_mark_interpretation": "—",
+      "line_type_gf": "Solid",
+      "wall_opening_type": "Street door",
+      "bim_notes": "Standard shop entry"
+    },
+    "walls_analysis": {}
+  },
+  {
+    "parcel_id": "N-52",
+    "parcel_number": "(52)",
+    "sub": "—",
+    "zone": "North",
+    "street_facing": "T…L Sokak (N)",
+    "material": {
+      "class": "B/A",
+      "decoded": "Masonry",
+      "map_colour": "PINK → MASONRY",
+      "raw_material_label": "Masonry (Class B/Mixed)"
+    },
+    "wall": {
+      "code": "3E+VF+M.",
+      "decoded": "3 standard étages; French vault; masonry addition element",
+      "thickness_raw": "—",
+      "thickness_m": null
+    },
+    "vault": {
+      "code": "VF",
+      "decoded": "Voûte Française"
+    },
+    "ground_floor": {
+      "use": "Residential/Mixed",
+      "code": "—"
+    },
+    "storeys": {
+      "raw": "3E (3 étage)",
+      "count": 3,
+      "has_mezzanine": false,
+      "is_basement_level": false
+    },
+    "basement": "None",
+    "condition": "—",
+    "change_v2": "No change from v2",
+    "bim_notes": "3 étage; VF vault; masonry element noted; BIM M. element family",
+    "roof": {
+      "shape": "Pitched (est.)",
+      "material_code": "—",
+      "material_decoded": "Unspecified",
+      "slope_direction": "Unknown",
+      "structure": "Mixed masonry",
+      "special_features": "—",
+      "has_chimney": false,
+      "has_skylight": false,
+      "bim_family": "Unknown BIM",
+      "notes": "3 étage; VF vault below; roof type not marked"
+    },
+    "openings": {
+      "primary_door_face": "North (T…L Sok.)",
+      "primary_door_type": "Street door",
+      "secondary_door_face": "—",
+      "secondary_door_type": "—",
+      "shared_entrance_with": "—",
+      "arrow_type": "Arrow ↑ North",
+      "x_mark_observed": false,
+      "x_mark_interpretation": "—",
+      "line_type_gf": "Solid",
+      "wall_opening_type": "Street door",
+      "bim_notes": "Standard"
+    },
+    "walls_analysis": {}
+  },
+  {
+    "parcel_id": "N-54",
+    "parcel_number": "(54)",
+    "sub": "—",
+    "zone": "NE Corner",
+    "street_facing": "T…L Sok. + İsmayl… Sok.",
+    "material": {
+      "class": "B",
+      "decoded": "Masonry",
+      "map_colour": "PINK → MASONRY",
+      "raw_material_label": "Masonry (Class B)"
+    },
+    "wall": {
+      "code": "VF+M.",
+      "decoded": "Masonry; French vault confirmed on re-check",
+      "thickness_raw": "—",
+      "thickness_m": null
+    },
+    "vault": {
+      "code": "VF",
+      "decoded": "Voûte Française (confirmed v2)"
+    },
+    "ground_floor": {
+      "use": "Shop/Residential",
+      "code": "Mg."
+    },
+    "storeys": {
+      "raw": "1–2",
+      "count": 1,
+      "has_mezzanine": false,
+      "is_basement_level": false
+    },
+    "basement": "None",
+    "condition": "—",
+    "change_v2": "Dual-frontage corner; VF confirmed v2",
+    "bim_notes": "NE corner; dual street frontage; BIM corner treatment; obtain adjacent sheet",
+    "roof": {
+      "shape": "Corner — hip likely",
+      "material_code": "—",
+      "material_decoded": "Unspecified",
+      "slope_direction": "Corner = hip roof (inferred)",
+      "structure": "Masonry corner",
+      "special_features": "—",
+      "has_chimney": false,
+      "has_skylight": false,
+      "bim_family": "Hip roof BIM (inferred)",
+      "notes": "NE corner → hip roof typical for Ottoman corner buildings"
+    },
+    "openings": {
+      "primary_door_face": "North (T…L Sok.) + East (İsmayl…)",
+      "primary_door_type": "Street door (corner — dual)",
+      "secondary_door_face": "East (İsmayl…)",
+      "secondary_door_type": "Secondary street door",
+      "shared_entrance_with": "—",
+      "arrow_type": "Corner arrow ↑ North",
+      "x_mark_observed": false,
+      "x_mark_interpretation": "—",
+      "line_type_gf": "Solid (corner)",
+      "wall_opening_type": "Dual street doors",
+      "bim_notes": "Corner parcel; likely one primary + one secondary street entrance"
+    },
+    "walls_analysis": {}
+  },
+  {
+    "parcel_id": "E-2",
+    "parcel_number": "(2)",
+    "sub": "—",
+    "zone": "East (N end)",
+    "street_facing": "İsmayl… Sokak",
+    "material": {
+      "class": "B",
+      "decoded": "Masonry",
+      "map_colour": "PINK → MASONRY",
+      "raw_material_label": "Masonry (Class B)"
+    },
+    "wall": {
+      "code": "VF+Mg.",
+      "decoded": "French vault; shop",
+      "thickness_raw": "—",
+      "thickness_m": null
+    },
+    "vault": {
+      "code": "VF",
+      "decoded": "Voûte Française"
+    },
+    "ground_floor": {
+      "use": "Mg (Shop)",
+      "code": "Mg."
+    },
+    "storeys": {
+      "raw": "1–2",
+      "count": 1,
+      "has_mezzanine": false,
+      "is_basement_level": false
+    },
+    "basement": "None",
+    "condition": "—",
+    "change_v2": "Colour corrected: PINK=masonry (was wooden in v2)",
+    "bim_notes": "First east-side parcel from north; VF vault",
+    "roof": {
+      "shape": "Pitched",
+      "material_code": "—",
+      "material_decoded": "Unspecified",
+      "slope_direction": "Toward street (E)",
+      "structure": "Masonry+VF",
+      "special_features": "—",
+      "has_chimney": false,
+      "has_skylight": false,
+      "bim_family": "Pitched BIM",
+      "notes": "VF vault; roof material not marked"
+    },
+    "openings": {
+      "primary_door_face": "East (İsmayl… Sok.)",
+      "primary_door_type": "Street door",
+      "secondary_door_face": "—",
+      "secondary_door_type": "—",
+      "shared_entrance_with": "—",
+      "arrow_type": "Arrow → East",
+      "x_mark_observed": false,
+      "x_mark_interpretation": "—",
+      "line_type_gf": "Solid",
+      "wall_opening_type": "Street door",
+      "bim_notes": "Standard east-facing shop door"
+    },
+    "walls_analysis": {}
+  },
+  {
+    "parcel_id": "E-4",
+    "parcel_number": "(4)",
+    "sub": "—",
+    "zone": "East",
+    "street_facing": "İsmayl… Sokak",
+    "material": {
+      "class": "C",
+      "decoded": "Wooden",
+      "map_colour": "YELLOW → WOODEN",
+      "raw_material_label": "Wooden — OLD with basement (Class C)"
+    },
+    "wall": {
+      "code": "T.+bs.+Vx.+MG.",
+      "decoded": "Sheet metal roof; basement; OLD; shop — all 4 codes confirmed",
+      "thickness_raw": "—",
+      "thickness_m": null
+    },
+    "vault": {
+      "code": "—",
+      "decoded": "No vault marked"
+    },
+    "ground_floor": {
+      "use": "MG (Shop)",
+      "code": "MG."
+    },
+    "storeys": {
+      "raw": "1 above grade",
+      "count": 1,
+      "has_mezzanine": false,
+      "is_basement_level": false
+    },
+    "basement": "1 basement (bs confirmed)",
+    "condition": "Vx (Old)",
+    "change_v2": "CORRECT from v2: YELLOW=wooden confirmed; all codes T.bs.Vx.MG confirmed",
+    "bim_notes": "OLD wooden shop; BIM -1 basement level; sheet metal roof; condition survey priority",
+    "roof": {
+      "shape": "Pitched — sheet metal",
+      "material_code": "T",
+      "material_decoded": "Sheet Metal (Tôle)",
+      "slope_direction": "Toward street (E)",
+      "structure": "Wooden rafter + T",
+      "special_features": "—",
+      "has_chimney": false,
+      "has_skylight": false,
+      "bim_family": "Sheet metal pitch BIM",
+      "notes": "T confirmed; wooden rafter likely given Class C construction"
+    },
+    "openings": {
+      "primary_door_face": "East (İsmayl… Sok.)",
+      "primary_door_type": "Street door (OLD wooden)",
+      "secondary_door_face": "—",
+      "secondary_door_type": "—",
+      "shared_entrance_with": "—",
+      "arrow_type": "Arrow → East",
+      "x_mark_observed": false,
+      "x_mark_interpretation": "—",
+      "line_type_gf": "Solid (wooden)",
+      "wall_opening_type": "Street door",
+      "bim_notes": "Wooden frame building; door faces east; basement = separate access likely via external step"
+    },
+    "walls_analysis": {
+      "gf_line_type": "Solid (wooden)",
+      "upper_line_type": "—",
+      "special_feature": "—",
+      "feature_meaning": "—",
+      "hatch_pattern": "No hatch (wooden = blank)",
+      "hatch_meaning": "Wooden = typically shown blank/light",
+      "opening_gaps": "—",
+      "opening_location": "—",
+      "bim_notes": "BIM: wooden frame = no masonry fill hatch"
+    }
+  },
+  {
+    "parcel_id": "E-4a",
+    "parcel_number": "(4a)",
+    "sub": "unnumb.",
+    "zone": "East (interior, church precinct edge)",
+    "street_facing": "İsmayl… Sok. / church E wall",
+    "material": {
+      "class": "C",
+      "decoded": "Wooden",
+      "map_colour": "YELLOW → WOODEN",
+      "raw_material_label": "Wooden annexe — basement (Class C)"
+    },
+    "wall": {
+      "code": "1 bs.+TF.",
+      "decoded": "1 basement level; French tiles; wooden",
+      "thickness_raw": "—",
+      "thickness_m": null
+    },
+    "vault": {
+      "code": "—",
+      "decoded": "Not marked"
+    },
+    "ground_floor": {
+      "use": "Annexe/Sacristy",
+      "code": "—"
+    },
+    "storeys": {
+      "raw": "1",
+      "count": 1,
+      "has_mezzanine": false,
+      "is_basement_level": false
+    },
+    "basement": "1 basement (bs confirmed)",
+    "condition": "—",
+    "change_v2": "NEW in v2; confirmed here — small wooden annexe between parcel (4) and church east wall",
+    "bim_notes": "Unnumbered church annexe; BIM sub-level volume (-1); TF pitched roof",
+    "roof": {
+      "shape": "Pitched — French tiles",
+      "material_code": "TF",
+      "material_decoded": "French Clay Tiles",
+      "slope_direction": "Toward street (E)",
+      "structure": "Wooden rafter + TF",
+      "special_features": "—",
+      "has_chimney": false,
+      "has_skylight": false,
+      "bim_family": "Pitched TF BIM",
+      "notes": "TF confirmed for this small annexe"
+    },
+    "openings": {
+      "primary_door_face": "Internal (church W courtyard)",
+      "primary_door_type": "Courtyard gate",
+      "secondary_door_face": "—",
+      "secondary_door_type": "—",
+      "shared_entrance_with": "Church precinct",
+      "arrow_type": "No street arrow",
+      "x_mark_observed": false,
+      "x_mark_interpretation": "—",
+      "line_type_gf": "Solid (wooden)",
+      "wall_opening_type": "Courtyard gate",
+      "bim_notes": "No street access; entered from church courtyard; basement access = internal stair"
+    },
+    "walls_analysis": {}
+  },
+  {
+    "parcel_id": "E-6",
+    "parcel_number": "(6)",
+    "sub": "—",
+    "zone": "East",
+    "street_facing": "İsmayl… Sokak",
+    "material": {
+      "class": "B",
+      "decoded": "Masonry",
+      "map_colour": "PINK → MASONRY",
+      "raw_material_label": "Masonry (Class B)"
+    },
+    "wall": {
+      "code": "VF+TF+Mg.",
+      "decoded": "French vault; French tiles; shop",
+      "thickness_raw": "—",
+      "thickness_m": null
+    },
+    "vault": {
+      "code": "VF",
+      "decoded": "Voûte Française"
+    },
+    "ground_floor": {
+      "use": "Mg (Shop)",
+      "code": "Mg."
+    },
+    "storeys": {
+      "raw": "1–2",
+      "count": 1,
+      "has_mezzanine": false,
+      "is_basement_level": false
+    },
+    "basement": "None",
+    "condition": "—",
+    "change_v2": "Colour corrected: PINK=masonry",
+    "bim_notes": "VF vault + TF tiles confirmed",
+    "roof": {
+      "shape": "Pitched — French tiles",
+      "material_code": "TF",
+      "material_decoded": "French Clay Tiles",
+      "slope_direction": "Toward street (E)",
+      "structure": "Masonry+VF+TF",
+      "special_features": "—",
+      "has_chimney": false,
+      "has_skylight": false,
+      "bim_family": "Pitched TF BIM",
+      "notes": "VF+TF confirmed"
+    },
+    "openings": {
+      "primary_door_face": "East (İsmayl… Sok.)",
+      "primary_door_type": "Street door",
+      "secondary_door_face": "—",
+      "secondary_door_type": "—",
+      "shared_entrance_with": "—",
+      "arrow_type": "Arrow → East",
+      "x_mark_observed": false,
+      "x_mark_interpretation": "—",
+      "line_type_gf": "Solid",
+      "wall_opening_type": "Street door",
+      "bim_notes": "Standard"
+    },
+    "walls_analysis": {}
+  },
+  {
+    "parcel_id": "E-8",
+    "parcel_number": "(8)",
+    "sub": "—",
+    "zone": "East",
+    "street_facing": "İsmayl… Sokak",
+    "material": {
+      "class": "B",
+      "decoded": "Masonry",
+      "map_colour": "PINK → MASONRY",
+      "raw_material_label": "Masonry (Class B)"
+    },
+    "wall": {
+      "code": "VF+TF+Mg.",
+      "decoded": "French vault; French tiles; shop",
+      "thickness_raw": "—",
+      "thickness_m": null
+    },
+    "vault": {
+      "code": "VF",
+      "decoded": "Voûte Française"
+    },
+    "ground_floor": {
+      "use": "Mg (Shop)",
+      "code": "Mg."
+    },
+    "storeys": {
+      "raw": "1–2",
+      "count": 1,
+      "has_mezzanine": false,
+      "is_basement_level": false
+    },
+    "basement": "None",
+    "condition": "—",
+    "change_v2": "No change; dash mark on map at (8) = wall symbol not arrow",
+    "bim_notes": "Note: map shows '-' dash at (8) = boundary line, not entrance indicator",
+    "roof": {
+      "shape": "Pitched — French tiles",
+      "material_code": "TF",
+      "material_decoded": "French Clay Tiles",
+      "slope_direction": "Toward street (E)",
+      "structure": "Masonry+VF+TF",
+      "special_features": "—",
+      "has_chimney": false,
+      "has_skylight": false,
+      "bim_family": "Pitched TF BIM",
+      "notes": "VF+TF confirmed"
+    },
+    "openings": {
+      "primary_door_face": "East (İsmayl… Sok.)",
+      "primary_door_type": "Street door",
+      "secondary_door_face": "—",
+      "secondary_door_type": "—",
+      "shared_entrance_with": "—",
+      "arrow_type": "Dash mark '-' on map (not arrow) — wall/boundary symbol",
+      "x_mark_observed": false,
+      "x_mark_interpretation": "—",
+      "line_type_gf": "Solid",
+      "wall_opening_type": "Street door (no explicit arrow)",
+      "bim_notes": "NOTE: map shows '-' dash = boundary line, NOT entrance arrow; door direction inferred from typology"
+    },
+    "walls_analysis": {
+      "gf_line_type": "Solid",
+      "upper_line_type": "Solid",
+      "special_feature": "'-' dash on map",
+      "feature_meaning": "BOUNDARY LINE (not entrance arrow)",
+      "hatch_pattern": "Standard masonry fill",
+      "hatch_meaning": "Masonry",
+      "opening_gaps": "—",
+      "opening_location": "—",
+      "bim_notes": "Dash = cadastral boundary symbol, not entrance arrow"
+    }
+  },
+  {
+    "parcel_id": "E-10",
+    "parcel_number": "(10)",
+    "sub": "—",
+    "zone": "East",
+    "street_facing": "İsmayl… Sokak",
+    "material": {
+      "class": "B",
+      "decoded": "Masonry",
+      "map_colour": "PINK → MASONRY",
+      "raw_material_label": "Masonry (Class B)"
+    },
+    "wall": {
+      "code": "VF(YF)+TF+Mg.",
+      "decoded": "VF vault (written YF. on map = Pervititch handwriting); French tiles; shop",
+      "thickness_raw": "—",
+      "thickness_m": null
+    },
+    "vault": {
+      "code": "VF",
+      "decoded": "Voûte Française (map writes YF.)"
+    },
+    "ground_floor": {
+      "use": "Mg (Shop)",
+      "code": "Mg."
+    },
+    "storeys": {
+      "raw": "1–2",
+      "count": 1,
+      "has_mezzanine": false,
+      "is_basement_level": false
+    },
+    "basement": "None",
+    "condition": "—",
+    "change_v2": "YF. handwriting clarified = VF. vault",
+    "bim_notes": "VF vault; note YF. raw notation on map",
+    "roof": {
+      "shape": "Pitched — French tiles",
+      "material_code": "TF",
+      "material_decoded": "French Clay Tiles",
+      "slope_direction": "Toward street (E)",
+      "structure": "Masonry+VF+TF",
+      "special_features": "—",
+      "has_chimney": false,
+      "has_skylight": false,
+      "bim_family": "Pitched TF BIM",
+      "notes": "VF(YF.)+TF confirmed"
+    },
+    "openings": {
+      "primary_door_face": "East (İsmayl… Sok.)",
+      "primary_door_type": "Street door",
+      "secondary_door_face": "—",
+      "secondary_door_type": "—",
+      "shared_entrance_with": "—",
+      "arrow_type": "Arrow → East + ↓ South direction marker",
+      "x_mark_observed": false,
+      "x_mark_interpretation": "—",
+      "line_type_gf": "Solid",
+      "wall_opening_type": "Street door",
+      "bim_notes": "↓ South marker may indicate stair direction inside building"
+    },
+    "walls_analysis": {}
+  },
+  {
+    "parcel_id": "E-12",
+    "parcel_number": "(12)",
+    "sub": "—",
+    "zone": "East",
+    "street_facing": "İsmayl… Sokak",
+    "material": {
+      "class": "B",
+      "decoded": "Masonry",
+      "map_colour": "PINK → MASONRY",
+      "raw_material_label": "Masonry (Class B)"
+    },
+    "wall": {
+      "code": "VF(YF)+TF+2p.Mg.",
+      "decoded": "VF vault; French tiles; 2 partial floors + Mg shop",
+      "thickness_raw": "—",
+      "thickness_m": null
+    },
+    "vault": {
+      "code": "VF",
+      "decoded": "Voûte Française"
+    },
+    "ground_floor": {
+      "use": "2p.Mg (partial 2-floor shop)",
+      "code": "2p.Mg."
+    },
+    "storeys": {
+      "raw": "2p",
+      "count": 2,
+      "has_mezzanine": false,
+      "is_basement_level": false
+    },
+    "basement": "None",
+    "condition": "—",
+    "change_v2": "NEW: '2p.MG.' annotation confirmed near (12) = partial 2nd floor over shop",
+    "bim_notes": "2p partial 2nd floor; VF vault; partial BIM slab above shop",
+    "roof": {
+      "shape": "Pitched — French tiles",
+      "material_code": "TF",
+      "material_decoded": "French Clay Tiles",
+      "slope_direction": "Toward street (E)",
+      "structure": "Masonry+VF+TF",
+      "special_features": "—",
+      "has_chimney": false,
+      "has_skylight": false,
+      "bim_family": "Pitched TF BIM",
+      "notes": "TF confirmed; 2p partial upper floor"
+    },
+    "openings": {
+      "primary_door_face": "East (İsmayl… Sok.)",
+      "primary_door_type": "Street door",
+      "secondary_door_face": "—",
+      "secondary_door_type": "—",
+      "shared_entrance_with": "—",
+      "arrow_type": "Arrow → East",
+      "x_mark_observed": false,
+      "x_mark_interpretation": "—",
+      "line_type_gf": "Solid",
+      "wall_opening_type": "Street door",
+      "bim_notes": "2p partial upper = staircase access to upper unit"
+    },
+    "walls_analysis": {}
+  },
+  {
+    "parcel_id": "E-14",
+    "parcel_number": "(14)",
+    "sub": "—",
+    "zone": "East",
+    "street_facing": "İsmayl… Sokak",
+    "material": {
+      "class": "B",
+      "decoded": "Masonry",
+      "map_colour": "PINK → MASONRY",
+      "raw_material_label": "Masonry (Class B)"
+    },
+    "wall": {
+      "code": "VF(YF)+TF+Mg.",
+      "decoded": "VF vault; French tiles; shop; EXPLICIT entrance arrow",
+      "thickness_raw": "—",
+      "thickness_m": null
+    },
+    "vault": {
+      "code": "VF",
+      "decoded": "Voûte Française"
+    },
+    "ground_floor": {
+      "use": "Mg (Shop)",
+      "code": "Mg."
+    },
+    "storeys": {
+      "raw": "1–2",
+      "count": 1,
+      "has_mezzanine": false,
+      "is_basement_level": false
+    },
+    "basement": "None",
+    "condition": "—",
+    "change_v2": "Explicit entrance arrow on map CONFIRMED; ↓ direction marker also visible",
+    "bim_notes": "Confirmed map entrance arrow; BIM primary door placement reference",
+    "roof": {
+      "shape": "Pitched — French tiles",
+      "material_code": "TF",
+      "material_decoded": "French Clay Tiles",
+      "slope_direction": "Toward street (E)",
+      "structure": "Masonry+VF+TF",
+      "special_features": "—",
+      "has_chimney": false,
+      "has_skylight": false,
+      "bim_family": "Pitched TF BIM",
+      "notes": "TF confirmed; primary entrance arrow confirmed"
+    },
+    "openings": {
+      "primary_door_face": "East (İsmayl… Sok.)",
+      "primary_door_type": "Street door — EXPLICITLY MARKED",
+      "secondary_door_face": "—",
+      "secondary_door_type": "—",
+      "shared_entrance_with": "—",
+      "arrow_type": "BOLD EXPLICIT ARROW → East (confirmed on map)",
+      "x_mark_observed": false,
+      "x_mark_interpretation": "—",
+      "line_type_gf": "Solid",
+      "wall_opening_type": "Primary reference door",
+      "bim_notes": "Use as BIM door anchor point; most clearly marked entrance on east side"
+    },
+    "walls_analysis": {}
+  },
+  {
+    "parcel_id": "E-16",
+    "parcel_number": "(16)",
+    "sub": "—",
+    "zone": "East-South Corner",
+    "street_facing": "İsmayl… Sok. + A…D Sok.",
+    "material": {
+      "class": "B",
+      "decoded": "Masonry",
+      "map_colour": "PINK → MASONRY",
+      "raw_material_label": "Masonry (Class B)"
+    },
+    "wall": {
+      "code": "2p.Mg.",
+      "decoded": "Partial 2nd floor; shop; corner parcel",
+      "thickness_raw": "—",
+      "thickness_m": null
+    },
+    "vault": {
+      "code": "—",
+      "decoded": "Not marked"
+    },
+    "ground_floor": {
+      "use": "Mg (Shop)",
+      "code": "Mg."
+    },
+    "storeys": {
+      "raw": "2p",
+      "count": 2,
+      "has_mezzanine": false,
+      "is_basement_level": false
+    },
+    "basement": "None",
+    "condition": "—",
+    "change_v2": "Colour corrected; near Şekerci (confectioner) + Molör (motor) annotations outside block",
+    "bim_notes": "SE corner; dual frontage; 2p partial upper; × marks near corner = possible gate",
+    "roof": {
+      "shape": "Pitched (est.)",
+      "material_code": "—",
+      "material_decoded": "Unspecified",
+      "slope_direction": "Corner",
+      "structure": "Masonry corner",
+      "special_features": "—",
+      "has_chimney": false,
+      "has_skylight": false,
+      "bim_family": "Corner BIM",
+      "notes": "SE corner; 2p partial"
+    },
+    "openings": {
+      "primary_door_face": "East (İsmayl… Sok.) + South (A…D Sok.)",
+      "primary_door_type": "Street corner door",
+      "secondary_door_face": "South (A…D)",
+      "secondary_door_type": "Secondary street door",
+      "shared_entrance_with": "—",
+      "arrow_type": "Arrow → East + possible ↓ South",
+      "x_mark_observed": false,
+      "x_mark_interpretation": "—",
+      "line_type_gf": "Solid (corner)",
+      "wall_opening_type": "Corner dual doors",
+      "bim_notes": "SE corner; Şekerci (confectioner) noted across street"
+    },
+    "walls_analysis": {}
+  },
+  {
+    "parcel_id": "S-41",
+    "parcel_number": "(41)",
+    "sub": "—",
+    "zone": "South",
+    "street_facing": "A…D Sokak",
+    "material": {
+      "class": "B",
+      "decoded": "Masonry",
+      "map_colour": "PINK → MASONRY",
+      "raw_material_label": "Masonry — multiple sub-units (Class B)"
+    },
+    "wall": {
+      "code": "MO.T.+2P.+Mg.×multi",
+      "decoded": "Masonry ordinary; sheet metal roof; 2 partial floors; multiple Mg. = row of shops",
+      "thickness_raw": "—",
+      "thickness_m": null
+    },
+    "vault": {
+      "code": "—",
+      "decoded": "Not marked"
+    },
+    "ground_floor": {
+      "use": "Mg×multiple (Row of shops)",
+      "code": "Mg.Mg."
+    },
+    "storeys": {
+      "raw": "2p",
+      "count": 2,
+      "has_mezzanine": false,
+      "is_basement_level": false
+    },
+    "basement": "None",
+    "condition": "—",
+    "change_v2": "Colour corrected; 'Mg.Mg.' = multiple shop units in one parcel; Çeşme ON street adjacent",
+    "bim_notes": "Multiple shop units in one parcel; Çeşme (39/2) on street = adjacent public fountain; T sheet metal confirmed",
+    "roof": {
+      "shape": "Flat/low-pitch",
+      "material_code": "T",
+      "material_decoded": "Sheet Metal (Tôle)",
+      "slope_direction": "Flat/multi",
+      "structure": "Masonry+T",
+      "special_features": "Multiple Mg. sub-units",
+      "has_chimney": false,
+      "has_skylight": false,
+      "bim_family": "Sheet metal flat BIM",
+      "notes": "T confirmed MO.T. annotation; multiple shop units"
+    },
+    "openings": {
+      "primary_door_face": "South (A…D Sok.)",
+      "primary_door_type": "Street door — multiple units",
+      "secondary_door_face": "—",
+      "secondary_door_type": "—",
+      "shared_entrance_with": "Multiple Mg. sub-units share frontage",
+      "arrow_type": "Arrows ↓ South (multiple)",
+      "x_mark_observed": false,
+      "x_mark_interpretation": "—",
+      "line_type_gf": "Solid",
+      "wall_opening_type": "Multiple shop doors (row)",
+      "bim_notes": "Multiple Mg. = row of shops with individual doors; Çeşme fountain adjacent on street"
+    },
+    "walls_analysis": {}
+  },
+  {
+    "parcel_id": "S-43",
+    "parcel_number": "(43)",
+    "sub": "—",
+    "zone": "South",
+    "street_facing": "A…D Sokak",
+    "material": {
+      "class": "B",
+      "decoded": "Masonry",
+      "map_colour": "PINK → MASONRY",
+      "raw_material_label": "Masonry (Class B)"
+    },
+    "wall": {
+      "code": "Mg.+VF(?)",
+      "decoded": "Shop; possible VF vault; partial data",
+      "thickness_raw": "—",
+      "thickness_m": null
+    },
+    "vault": {
+      "code": "VF(?)",
+      "decoded": "Partially legible — possible VF"
+    },
+    "ground_floor": {
+      "use": "Mg (Shop)",
+      "code": "Mg."
+    },
+    "storeys": {
+      "raw": "1–2",
+      "count": 1,
+      "has_mezzanine": false,
+      "is_basement_level": false
+    },
+    "basement": "None",
+    "condition": "—",
+    "change_v2": "Partially legible — VF annotation uncertain; obtain continuation sheet",
+    "bim_notes": "Partial data at south edge of image; continuation map needed",
+    "roof": {
+      "shape": "Pitched (est.)",
+      "material_code": "—",
+      "material_decoded": "Unspecified",
+      "slope_direction": "Toward street (S)",
+      "structure": "Masonry",
+      "special_features": "—",
+      "has_chimney": false,
+      "has_skylight": false,
+      "bim_family": "Unknown BIM",
+      "notes": "Partial data"
+    },
+    "openings": {
+      "primary_door_face": "South (A…D Sok.)",
+      "primary_door_type": "Street door",
+      "secondary_door_face": "—",
+      "secondary_door_type": "—",
+      "shared_entrance_with": "—",
+      "arrow_type": "Arrow ↓ South",
+      "x_mark_observed": false,
+      "x_mark_interpretation": "—",
+      "line_type_gf": "Solid",
+      "wall_opening_type": "Street door",
+      "bim_notes": "Partial data"
+    },
+    "walls_analysis": {}
+  },
+  {
+    "parcel_id": "S-45",
+    "parcel_number": "(45)",
+    "sub": "—",
+    "zone": "South (SE)",
+    "street_facing": "A…D Sokak",
+    "material": {
+      "class": "B",
+      "decoded": "Masonry",
+      "map_colour": "PINK → MASONRY",
+      "raw_material_label": "Masonry (Class B)"
+    },
+    "wall": {
+      "code": "Mg.",
+      "decoded": "Shop only readable",
+      "thickness_raw": "—",
+      "thickness_m": null
+    },
+    "vault": {
+      "code": "—",
+      "decoded": "Not visible"
+    },
+    "ground_floor": {
+      "use": "Mg (Shop)",
+      "code": "Mg."
+    },
+    "storeys": {
+      "raw": "1–2",
+      "count": 1,
+      "has_mezzanine": false,
+      "is_basement_level": false
+    },
+    "basement": "None",
+    "condition": "—",
+    "change_v2": "Easternmost south parcel visible; partial data",
+    "bim_notes": "Obtain continuation sheet for full data",
+    "roof": {
+      "shape": "Pitched (est.)",
+      "material_code": "—",
+      "material_decoded": "Unspecified",
+      "slope_direction": "Toward street (S)",
+      "structure": "Masonry",
+      "special_features": "—",
+      "has_chimney": false,
+      "has_skylight": false,
+      "bim_family": "Unknown BIM",
+      "notes": "Partial data"
+    },
+    "openings": {
+      "primary_door_face": "South (A…D Sok.)",
+      "primary_door_type": "Street door",
+      "secondary_door_face": "—",
+      "secondary_door_type": "—",
+      "shared_entrance_with": "—",
+      "arrow_type": "Arrow ↓ South",
+      "x_mark_observed": false,
+      "x_mark_interpretation": "—",
+      "line_type_gf": "Solid",
+      "wall_opening_type": "Street door",
+      "bim_notes": "Easternmost south unit visible"
+    },
+    "walls_analysis": {}
+  },
+  {
+    "parcel_id": "W-32",
+    "parcel_number": "(32)",
+    "sub": "—",
+    "zone": "West",
+    "street_facing": "Sögütlü Çeşme Cad.",
+    "material": {
+      "class": "A",
+      "decoded": "Masonry",
+      "map_colour": "PINK → MASONRY (DARK)",
+      "raw_material_label": "Massive Stone (Class A)"
+    },
+    "wall": {
+      "code": "M.+▽2",
+      "decoded": "Massive stone construction; 2 storeys (▽2 = storey marker)",
+      "thickness_raw": "—",
+      "thickness_m": null
+    },
+    "vault": {
+      "code": "—",
+      "decoded": "Not marked"
+    },
+    "ground_floor": {
+      "use": "Residential (Massive)",
+      "code": "—"
+    },
+    "storeys": {
+      "raw": "2",
+      "count": 2,
+      "has_mezzanine": false,
+      "is_basement_level": false
+    },
+    "basement": "None",
+    "condition": "—",
+    "change_v2": "CORRECTED: (24),(26),(28),(30) are OUTSIDE block 147 across Sögütlü Çeşme; (32) confirmed INSIDE block 147",
+    "bim_notes": "Inside block 147; massive stone; arrow → W toward Sögütlü Çeşme confirmed; Class A load-bearing",
+    "roof": {
+      "shape": "Pitched (est.)",
+      "material_code": "—",
+      "material_decoded": "Unspecified",
+      "slope_direction": "Toward street (W)",
+      "structure": "Massive stone",
+      "special_features": "—",
+      "has_chimney": false,
+      "has_skylight": false,
+      "bim_family": "Unknown BIM",
+      "notes": "Massive stone; roof type not readable"
+    },
+    "openings": {
+      "primary_door_face": "West (Sögütlü Çeşme Cad.)",
+      "primary_door_type": "Street door",
+      "secondary_door_face": "—",
+      "secondary_door_type": "—",
+      "shared_entrance_with": "—",
+      "arrow_type": "Arrow → West confirmed (user file)",
+      "x_mark_observed": false,
+      "x_mark_interpretation": "—",
+      "line_type_gf": "Solid (massive stone)",
+      "wall_opening_type": "Street door — massive stone",
+      "bim_notes": "Entrance faces WEST onto Sögütlü Çeşme; massive stone; no window data readable"
+    },
+    "walls_analysis": {
+      "gf_line_type": "Solid thick",
+      "upper_line_type": "—",
+      "special_feature": "—",
+      "feature_meaning": "Massive stone = thicker solid lines",
+      "hatch_pattern": "—",
+      "hatch_meaning": "—",
+      "opening_gaps": "—",
+      "opening_location": "—",
+      "bim_notes": "Massive stone = load-bearing solid wall throughout"
+    }
+  },
+  {
+    "parcel_id": "W-34",
+    "parcel_number": "(34)",
+    "sub": "Firin W-face",
+    "zone": "West (Firin complex W frontage)",
+    "street_facing": "Sögütlü Çeşme Cad.",
+    "material": {
+      "class": "B",
+      "decoded": "Masonry",
+      "map_colour": "PINK → MASONRY",
+      "raw_material_label": "Masonry — Firin sub-unit (Class B)"
+    },
+    "wall": {
+      "code": "TR.4+3+",
+      "decoded": "Turkish tile zone 4; 3+ storey levels; west-facing Firin sub-unit",
+      "thickness_raw": "—",
+      "thickness_m": null
+    },
+    "vault": {
+      "code": "VT",
+      "decoded": "Turkish vault (inferred from Firin complex)"
+    },
+    "ground_floor": {
+      "use": "Bakery ancillary",
+      "code": "Fırın"
+    },
+    "storeys": {
+      "raw": "3+",
+      "count": 3,
+      "has_mezzanine": false,
+      "is_basement_level": false
+    },
+    "basement": "None",
+    "condition": "—",
+    "change_v2": "Confirmed as Firin complex west-facing sub-unit; arrow → W toward street",
+    "bim_notes": "West frontage of Firin (98) complex; TR.4 tiles; BIM connect to (40)/(98) body",
+    "roof": {
+      "shape": "Pitched — Turkish tiles",
+      "material_code": "TR.4",
+      "material_decoded": "Turkish Clay Tiles — zone 4",
+      "slope_direction": "Multi (corner complex)",
+      "structure": "Masonry+TR.4",
+      "special_features": "TR.4 = specific tile zone",
+      "has_chimney": false,
+      "has_skylight": false,
+      "bim_family": "Pitched TR BIM",
+      "notes": "TR.4 = Turkish tile zone 4; part of Firin complex"
+    },
+    "openings": {
+      "primary_door_face": "West (Sögütlü Çeşme Cad.)",
+      "primary_door_type": "Street door",
+      "secondary_door_face": "East (internal)",
+      "secondary_door_type": "Internal connection to Firin",
+      "shared_entrance_with": "(36)/(98)",
+      "arrow_type": "Arrow → West",
+      "x_mark_observed": false,
+      "x_mark_interpretation": "—",
+      "line_type_gf": "Solid",
+      "wall_opening_type": "Street door + internal passage",
+      "bim_notes": "West door onto Sögütlü Çeşme + internal connection to Firin complex"
+    },
+    "walls_analysis": {}
+  },
+  {
+    "parcel_id": "W-36",
+    "parcel_number": "(36)",
+    "sub": "Firin W-face",
+    "zone": "West (Firin complex W frontage)",
+    "street_facing": "Sögütlü Çeşme Cad.",
+    "material": {
+      "class": "B",
+      "decoded": "Masonry",
+      "map_colour": "PINK → MASONRY",
+      "raw_material_label": "Masonry — Firin sub-unit (Class B)"
+    },
+    "wall": {
+      "code": "MB+VF+2½",
+      "decoded": "Massive brick; French vault; 2½ storeys; Firin sub-unit",
+      "thickness_raw": "—",
+      "thickness_m": null
+    },
+    "vault": {
+      "code": "VF",
+      "decoded": "Voûte Française"
+    },
+    "ground_floor": {
+      "use": "Bakery ancillary",
+      "code": "Fırın"
+    },
+    "storeys": {
+      "raw": "2½",
+      "count": 2,
+      "has_mezzanine": true,
+      "is_basement_level": false
+    },
+    "basement": "None",
+    "condition": "—",
+    "change_v2": "No direct street access (internal only); no arrow visible on map",
+    "bim_notes": "No street arrow = internal access only; BIM connect to Firin complex",
+    "roof": {
+      "shape": "Flat/terrace est.",
+      "material_code": "VF",
+      "material_decoded": "French vault below → flat/terrace above",
+      "slope_direction": "Flat",
+      "structure": "Masonry+VF",
+      "special_features": "—",
+      "has_chimney": false,
+      "has_skylight": false,
+      "bim_family": "Terrace/flat BIM",
+      "notes": "VF vault → likely flat terrace above"
+    },
+    "openings": {
+      "primary_door_face": "Internal only",
+      "primary_door_type": "Internal passage",
+      "secondary_door_face": "—",
+      "secondary_door_type": "—",
+      "shared_entrance_with": "(34)/(98)/(40)",
+      "arrow_type": "No arrow on map",
+      "x_mark_observed": false,
+      "x_mark_interpretation": "—",
+      "line_type_gf": "Solid",
+      "wall_opening_type": "No street door — internal only",
+      "bim_notes": "4-storey; no direct street access; internal Firin complex access only"
+    },
+    "walls_analysis": {}
+  },
+  {
+    "parcel_id": "W-39",
+    "parcel_number": "(39)",
+    "sub": "—",
+    "zone": "SW Corner",
+    "street_facing": "Sögütlü Çeşme Cad. + A…D Sok.",
+    "material": {
+      "class": "C",
+      "decoded": "Wooden",
+      "map_colour": "YELLOW → WOODEN",
+      "raw_material_label": "Wooden — basement (Class C)"
+    },
+    "wall": {
+      "code": "T.+1 bs.+Δ",
+      "decoded": "Sheet metal roof; 1 basement confirmed; Δ storey markers; Rak.5.60 datum",
+      "thickness_raw": "—",
+      "thickness_m": null
+    },
+    "vault": {
+      "code": "—",
+      "decoded": "Not marked"
+    },
+    "ground_floor": {
+      "use": "Commercial/Residential",
+      "code": "—"
+    },
+    "storeys": {
+      "raw": "1 above grade",
+      "count": 1,
+      "has_mezzanine": false,
+      "is_basement_level": false
+    },
+    "basement": "1 basement (bs confirmed)",
+    "condition": "—",
+    "change_v2": "CORRECTED: YELLOW on map = WOODEN (not masonry as in v2); basement confirmed",
+    "bim_notes": "SW corner; WOODEN + basement; BIM -1 level; Rak.5.60 = elevation datum here; dual-street access",
+    "roof": {
+      "shape": "Flat/sheet metal",
+      "material_code": "T",
+      "material_decoded": "Sheet Metal (Tôle)",
+      "slope_direction": "Flat",
+      "structure": "Wooden+T",
+      "special_features": "—",
+      "has_chimney": false,
+      "has_skylight": false,
+      "bim_family": "Sheet metal BIM",
+      "notes": "T confirmed; wooden construction"
+    },
+    "openings": {
+      "primary_door_face": "West (Sögütlü Çeşme Cad.) + South (A…D)",
+      "primary_door_type": "Corner dual door",
+      "secondary_door_face": "South (A…D)",
+      "secondary_door_type": "Secondary corner door",
+      "shared_entrance_with": "(39/1) glazed porch",
+      "arrow_type": "Arrow → West + ↓ South (SW corner arrows)",
+      "x_mark_observed": false,
+      "x_mark_interpretation": "—",
+      "line_type_gf": "Solid (wooden)",
+      "wall_opening_type": "Dual corner doors — wooden building",
+      "bim_notes": "SW corner; 2 entrance directions; leads to (39/1) glazed porch"
+    },
+    "walls_analysis": {}
+  },
+  {
+    "parcel_id": "W-39/1",
+    "parcel_number": "(39)",
+    "sub": "1",
+    "zone": "SW Corner — church W annex",
+    "street_facing": "Sögütlü Çeşme Cad.",
+    "material": {
+      "class": "C+glass",
+      "decoded": "Wooden",
+      "map_colour": "YELLOW+BLUE HATCH → GLAZED",
+      "raw_material_label": "Glazed/Glass structure (Class C + glazing)"
+    },
+    "wall": {
+      "code": "Camlı (Vitre)",
+      "decoded": "Glazed construction: masonry frame + glass panels; blue hatching on map",
+      "thickness_raw": "—",
+      "thickness_m": null
+    },
+    "vault": {
+      "code": "Glass",
+      "decoded": "Glass ceiling/skylights"
+    },
+    "ground_floor": {
+      "use": "Church narthex/glazed porch",
+      "code": "—"
+    },
+    "storeys": {
+      "raw": "1",
+      "count": 1,
+      "has_mezzanine": false,
+      "is_basement_level": false
+    },
+    "basement": "None",
+    "condition": "—",
+    "change_v2": "No change; blue hatching = Pervititch glazed construction symbol; confirmed",
+    "bim_notes": "Glazed narthex; BIM curtain wall family; blue hatch on map = glazed construction confirmed",
+    "roof": {
+      "shape": "Glazed — flat/pitch",
+      "material_code": "Glass",
+      "material_decoded": "Glass panels / transparent roof",
+      "slope_direction": "Flat or slight pitch",
+      "structure": "Glass+masonry frame",
+      "special_features": "Blue hatch on map = glazed",
+      "has_chimney": false,
+      "has_skylight": true,
+      "bim_family": "Glazed BIM family",
+      "notes": "Camlı/Vitre = glazed throughout; curtain wall BIM family"
+    },
+    "openings": {
+      "primary_door_face": "West (Sögütlü Çeşme Cad.)",
+      "primary_door_type": "Glazed porch entrance",
+      "secondary_door_face": "East (church courtyard)",
+      "secondary_door_type": "Courtyard gate",
+      "shared_entrance_with": "Church precinct + (39)",
+      "arrow_type": "No arrow (glazed porch = passage)",
+      "x_mark_observed": true,
+      "x_mark_interpretation": "ALL SURFACES GLAZED",
+      "line_type_gf": "Blue-hatch diagonal = glazed construction",
+      "wall_opening_type": "Glass wall = transparent entrance",
+      "bim_notes": "Glazed narthex; all facades glass; BIM curtain wall; leads to church courtyard"
+    },
+    "walls_analysis": {
+      "gf_line_type": "Blue diagonal hatch",
+      "upper_line_type": "Blue diagonal hatch",
+      "special_feature": "BLUE DIAGONAL HATCHING throughout",
+      "feature_meaning": "Pervititch glazed construction symbol (Vitré/Camlı)",
+      "hatch_pattern": "Blue diagonal hatch",
+      "hatch_meaning": "GLAZED = glass panels throughout",
+      "opening_gaps": "All facades = glazed",
+      "opening_location": "All walls glazed",
+      "bim_notes": "BIM: curtain wall family; no solid walls"
+    }
+  },
+  {
+    "parcel_id": "W-39/2",
+    "parcel_number": "(39)",
+    "sub": "2",
+    "zone": "SW Corner — street furniture",
+    "street_facing": "Sögütlü Çeşme Cad. + A…D Sok. junction",
+    "material": {
+      "class": "Infrastructure",
+      "decoded": "Masonry",
+      "map_colour": "STONE",
+      "raw_material_label": "Ottoman public fountain (masonry)"
+    },
+    "wall": {
+      "code": "Çeşme",
+      "decoded": "Masonry fountain; open structure; street-level",
+      "thickness_raw": "—",
+      "thickness_m": null
+    },
+    "vault": {
+      "code": "N/A",
+      "decoded": "Open"
+    },
+    "ground_floor": {
+      "use": "Çeşme (Public Fountain)",
+      "code": "Çeşme"
+    },
+    "storeys": {
+      "raw": "1 (low monumental)",
+      "count": 1,
+      "has_mezzanine": false,
+      "is_basement_level": false
+    },
+    "basement": "None",
+    "condition": "—",
+    "change_v2": "No change; confirmed ON street, not a building",
+    "bim_notes": "Street furniture BIM family; heritage asset; NOT a building volume",
+    "roof": {},
+    "openings": {
+      "primary_door_face": "All directions (public fountain)",
+      "primary_door_type": "Public access",
+      "secondary_door_face": "—",
+      "secondary_door_type": "—",
+      "shared_entrance_with": "—",
+      "arrow_type": "No arrow (public)",
+      "x_mark_observed": false,
+      "x_mark_interpretation": "—",
+      "line_type_gf": "Open structure",
+      "wall_opening_type": "Open public access",
+      "bim_notes": "Çeşme = open fountain; no door; accessible from all sides"
+    },
+    "walls_analysis": {}
+  },
+  {
+    "parcel_id": "INT-N1",
+    "parcel_number": "—",
+    "sub": "—",
+    "zone": "Interior N — between N frontage + church",
+    "street_facing": "Internal passage",
+    "material": {
+      "class": "B",
+      "decoded": "Masonry",
+      "map_colour": "PINK → MASONRY",
+      "raw_material_label": "Masonry (Class B)"
+    },
+    "wall": {
+      "code": "2.T.+MO.",
+      "decoded": "2 floors; sheet metal roof; ordinary masonry",
+      "thickness_raw": "—",
+      "thickness_m": null
+    },
+    "vault": {
+      "code": "—",
+      "decoded": "Not marked"
+    },
+    "ground_floor": {
+      "use": "Unknown (passage/store)",
+      "code": "—"
+    },
+    "storeys": {
+      "raw": "2",
+      "count": 2,
+      "has_mezzanine": false,
+      "is_basement_level": false
+    },
+    "basement": "None",
+    "condition": "—",
+    "change_v2": "NEW (not in v2): visible on map between (46)-(50) strip and church; '2.T.MO.' annotation",
+    "bim_notes": "Interior building; no street access; reached via passage from north or church courtyard",
+    "roof": {
+      "shape": "Sheet metal flat",
+      "material_code": "T",
+      "material_decoded": "Sheet Metal (Tôle)",
+      "slope_direction": "Flat",
+      "structure": "Masonry+T",
+      "special_features": "—",
+      "has_chimney": false,
+      "has_skylight": false,
+      "bim_family": "Sheet metal flat BIM",
+      "notes": "'2.T.MO.' confirmed T sheet metal"
+    },
+    "openings": {
+      "primary_door_face": "Internal passage",
+      "primary_door_type": "Passage from N frontage",
+      "secondary_door_face": "—",
+      "secondary_door_type": "—",
+      "shared_entrance_with": "North frontage buildings",
+      "arrow_type": "No arrow",
+      "x_mark_observed": false,
+      "x_mark_interpretation": "—",
+      "line_type_gf": "Solid",
+      "wall_opening_type": "Internal passage door",
+      "bim_notes": "No street access; passage between north frontage and church"
+    },
+    "walls_analysis": {}
+  },
+  {
+    "parcel_id": "INT-N2",
+    "parcel_number": "—",
+    "sub": "—",
+    "zone": "Interior N — between N frontage + church",
+    "street_facing": "Internal",
+    "material": {
+      "class": "B",
+      "decoded": "Masonry",
+      "map_colour": "PINK → MASONRY",
+      "raw_material_label": "Masonry (Class B)"
+    },
+    "wall": {
+      "code": "A2+1MO.",
+      "decoded": "Annexe 2; 1-storey ordinary masonry",
+      "thickness_raw": "—",
+      "thickness_m": null
+    },
+    "vault": {
+      "code": "—",
+      "decoded": "Not marked"
+    },
+    "ground_floor": {
+      "use": "Annexe (unknown)",
+      "code": "A2"
+    },
+    "storeys": {
+      "raw": "1",
+      "count": 1,
+      "has_mezzanine": false,
+      "is_basement_level": false
+    },
+    "basement": "None",
+    "condition": "—",
+    "change_v2": "NEW (not in v2): 'A2 1 MO.' visible on map — Annexe 2, 1 storey",
+    "bim_notes": "Annexe building; 'A2' = Annexe 2 designation; 1 storey; internal access only",
+    "roof": {},
+    "openings": {},
+    "walls_analysis": {}
+  },
+  {
+    "parcel_id": "INT-N3",
+    "parcel_number": "—",
+    "sub": "—",
+    "zone": "Interior NE — between N/E frontage + church",
+    "street_facing": "Internal",
+    "material": {
+      "class": "B",
+      "decoded": "Masonry",
+      "map_colour": "PINK → MASONRY",
+      "raw_material_label": "Masonry (Class B)"
+    },
+    "wall": {
+      "code": "TF+Mg.",
+      "decoded": "French tiles; shop; internal",
+      "thickness_raw": "—",
+      "thickness_m": null
+    },
+    "vault": {
+      "code": "—",
+      "decoded": "Not marked"
+    },
+    "ground_floor": {
+      "use": "Mg (Small shop — internal)",
+      "code": "Mg."
+    },
+    "storeys": {
+      "raw": "1–2",
+      "count": 1,
+      "has_mezzanine": false,
+      "is_basement_level": false
+    },
+    "basement": "None",
+    "condition": "—",
+    "change_v2": "NEW (not in v2): 'TF.Mg.' cluster visible between church and NE perimeter buildings",
+    "bim_notes": "Interior shop cluster; French tile roof; accessed from courtyard",
+    "roof": {},
+    "openings": {},
+    "walls_analysis": {}
+  },
+  {
+    "parcel_id": "INT-E2",
+    "parcel_number": "—",
+    "sub": "—",
+    "zone": "Interior E — NE of church",
+    "street_facing": "Internal (church courtyard edge)",
+    "material": {
+      "class": "C",
+      "decoded": "Wooden",
+      "map_colour": "YELLOW → WOODEN",
+      "raw_material_label": "Wooden — OLD with basement (Class C)"
+    },
+    "wall": {
+      "code": "T.+bs.+Vx.+MG.",
+      "decoded": "Sheet metal; basement; OLD; shop — all confirmed",
+      "thickness_raw": "—",
+      "thickness_m": null
+    },
+    "vault": {
+      "code": "—",
+      "decoded": "Not marked"
+    },
+    "ground_floor": {
+      "use": "MG (Old shop)",
+      "code": "MG."
+    },
+    "storeys": {
+      "raw": "1",
+      "count": 1,
+      "has_mezzanine": false,
+      "is_basement_level": false
+    },
+    "basement": "1 basement (bs)",
+    "condition": "Vx (Old)",
+    "change_v2": "NEW — user's file confirms this as separate from street-facing (4); interior location confirmed",
+    "bim_notes": "OLD wooden interior shop; basement; Vx flag; assess condition before BIM modelling",
+    "roof": {},
+    "openings": {},
+    "walls_analysis": {
+      "gf_line_type": "Solid (wooden)",
+      "upper_line_type": "—",
+      "special_feature": "—",
+      "feature_meaning": "Yellow wooden = lighter line",
+      "hatch_pattern": "—",
+      "hatch_meaning": "—",
+      "opening_gaps": "—",
+      "opening_location": "—",
+      "bim_notes": "OLD wooden; Vx flag = degraded; careful modelling"
+    }
+  },
+  {
+    "parcel_id": "INT-S1",
+    "parcel_number": "—",
+    "sub": "—",
+    "zone": "Interior S — immediately S of Clocher",
+    "street_facing": "Internal (church courtyard)",
+    "material": {
+      "class": "B",
+      "decoded": "Masonry",
+      "map_colour": "PINK → MASONRY",
+      "raw_material_label": "Masonry (Class B)"
+    },
+    "wall": {
+      "code": "1p.Mg.+3MO.+T.",
+      "decoded": "1 petit magasin (small shop); 3-storey ordinary masonry; sheet metal roof",
+      "thickness_raw": "—",
+      "thickness_m": null
+    },
+    "vault": {
+      "code": "—",
+      "decoded": "Not marked"
+    },
+    "ground_floor": {
+      "use": "P.Mg (Small shop)",
+      "code": "P.Mg."
+    },
+    "storeys": {
+      "raw": "3",
+      "count": 3,
+      "has_mezzanine": false,
+      "is_basement_level": false
+    },
+    "basement": "None",
+    "condition": "—",
+    "change_v2": "NEW: '1P.Mg. 3MO.' visible on map south of Clocher; T.= sheet metal roof",
+    "bim_notes": "3-storey masonry interior building; small shop at GF; adjacent to bell tower; T sheet metal",
+    "roof": {
+      "shape": "Sheet metal",
+      "material_code": "T",
+      "material_decoded": "Sheet Metal (Tôle)",
+      "slope_direction": "—",
+      "structure": "Masonry+T",
+      "special_features": "—",
+      "has_chimney": false,
+      "has_skylight": false,
+      "bim_family": "Sheet metal BIM",
+      "notes": "'3MO.T.' confirmed T sheet metal"
+    },
+    "openings": {
+      "primary_door_face": "Internal (courtyard S of Clocher)",
+      "primary_door_type": "Courtyard access",
+      "secondary_door_face": "—",
+      "secondary_door_type": "—",
+      "shared_entrance_with": "Church courtyard",
+      "arrow_type": "No arrow",
+      "x_mark_observed": false,
+      "x_mark_interpretation": "—",
+      "line_type_gf": "Solid",
+      "wall_opening_type": "Courtyard door",
+      "bim_notes": "3-storey; accessed from south courtyard zone"
+    },
+    "walls_analysis": {}
+  },
+  {
+    "parcel_id": "INT-S2",
+    "parcel_number": "—",
+    "sub": "—",
+    "zone": "Interior SE — SE of Clocher",
+    "street_facing": "Internal",
+    "material": {
+      "class": "B",
+      "decoded": "Masonry",
+      "map_colour": "PINK → MASONRY",
+      "raw_material_label": "Masonry (Class B)"
+    },
+    "wall": {
+      "code": "3p.MO.+VF.",
+      "decoded": "3 storey ordinary masonry; French vault",
+      "thickness_raw": "—",
+      "thickness_m": null
+    },
+    "vault": {
+      "code": "VF",
+      "decoded": "Voûte Française"
+    },
+    "ground_floor": {
+      "use": "Mg (Shop)",
+      "code": "Mg."
+    },
+    "storeys": {
+      "raw": "3p",
+      "count": 3,
+      "has_mezzanine": false,
+      "is_basement_level": false
+    },
+    "basement": "None",
+    "condition": "—",
+    "change_v2": "NEW: '3p.MO.VF.' visible on map SE of Clocher",
+    "bim_notes": "3-storey masonry; VF vault; interior south zone",
+    "roof": {
+      "shape": "Pitched",
+      "material_code": "VF",
+      "material_decoded": "French vault → terrace/pitched above",
+      "slope_direction": "—",
+      "structure": "Masonry+VF",
+      "special_features": "—",
+      "has_chimney": false,
+      "has_skylight": false,
+      "bim_family": "VF pitched BIM",
+      "notes": "'3p.MO.VF.'"
+    },
+    "openings": {},
+    "walls_analysis": {}
+  }
+]

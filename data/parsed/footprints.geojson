@@ -1,0 +1,1132 @@
+{
+  "type": "FeatureCollection",
+  "crs": {
+    "type": "name",
+    "properties": {
+      "name": "EPSG:32635"
+    }
+  },
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              670352.102872937,
+              4539711.677075181
+            ],
+            [
+              670361.4626497686,
+              4539706.698347021
+            ],
+            [
+              670359.59417603,
+              4539703.576487173
+            ],
+            [
+              670351.0351736579,
+              4539708.021365694
+            ],
+            [
+              670352.102872937,
+              4539711.677075181
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "source_file": "at-the-green-area-wooden-at-147-block-near-the-church-middle-of-the-block.shp",
+        "source_format": "shp",
+        "area_m2": 37.279,
+        "perimeter_m": 27.693,
+        "centroid_utm": [
+          670356.04,
+          4539707.53
+        ],
+        "kind": "parcel",
+        "parcel_numbers": null,
+        "parcel_ids_override": [
+          "E-4a"
+        ],
+        "match_confidence": "override",
+        "parcel_ids_matched": [
+          "E-4a"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              670362.3726966222,
+              4539708.100002706
+            ],
+            [
+              670368.7644164187,
+              4539704.936101405
+            ],
+            [
+              670367.0066934747,
+              4539701.644365711
+            ],
+            [
+              670360.487139282,
+              4539704.9680600045
+            ],
+            [
+              670362.3726966222,
+              4539708.100002706
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "source_file": "building-entrence-04.shp",
+        "source_format": "shp",
+        "area_m2": 26.644,
+        "perimeter_m": 21.837,
+        "centroid_utm": [
+          670364.666,
+          4539704.899
+        ],
+        "kind": "parcel",
+        "parcel_numbers": [
+          "4"
+        ],
+        "match_confidence": "high",
+        "parcel_ids_matched": [
+          "E-4"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              670360.9984768659,
+              4539703.945384838
+            ],
+            [
+              670366.8149418812,
+              4539701.196945324
+            ],
+            [
+              670364.9933017388,
+              4539697.617582238
+            ],
+            [
+              670359.2407539218,
+              4539700.621690543
+            ],
+            [
+              670360.9984768659,
+              4539703.945384838
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "source_file": "building-entrence-06.shp",
+        "source_format": "shp",
+        "area_m2": 25.113,
+        "perimeter_m": 20.699,
+        "centroid_utm": [
+          670363.042,
+          4539700.827
+        ],
+        "kind": "parcel",
+        "parcel_numbers": [
+          "6"
+        ],
+        "match_confidence": "high",
+        "parcel_ids_matched": [
+          "E-6"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              670359.124334295,
+              4539700.59786747
+            ],
+            [
+              670364.7936035695,
+              4539697.571054214
+            ],
+            [
+              670363.1120406494,
+              4539694.4961963035
+            ],
+            [
+              670357.5869053396,
+              4539697.3788755955
+            ],
+            [
+              670359.124334295,
+              4539700.59786747
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "source_file": "building-entrence-08.shp",
+        "source_format": "shp",
+        "area_m2": 22.37,
+        "perimeter_m": 19.731,
+        "centroid_utm": [
+          670361.15,
+          4539697.523
+        ],
+        "kind": "parcel",
+        "parcel_numbers": [
+          "8"
+        ],
+        "match_confidence": "high",
+        "parcel_ids_matched": [
+          "E-8"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              670357.514838357,
+              4539697.162674648
+            ],
+            [
+              670363.0639959945,
+              4539694.400106992
+            ],
+            [
+              670361.1902544544,
+              4539690.652623913
+            ],
+            [
+              670355.5450075075,
+              4539693.6073701875
+            ],
+            [
+              670357.514838357,
+              4539697.162674648
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "source_file": "building-entrence-10.shp",
+        "source_format": "shp",
+        "area_m2": 25.931,
+        "perimeter_m": 20.825,
+        "centroid_utm": [
+          670359.338,
+          4539693.94
+        ],
+        "kind": "parcel",
+        "parcel_numbers": [
+          "10"
+        ],
+        "match_confidence": "high",
+        "parcel_ids_matched": [
+          "E-10"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              670355.4959823438,
+              4539693.5694977455
+            ],
+            [
+              670361.1102243181,
+              4539690.628704331
+            ],
+            [
+              670360.2279862934,
+              4539688.810759311
+            ],
+            [
+              670354.5335408621,
+              4539691.644614784
+            ],
+            [
+              670355.4959823438,
+              4539693.5694977455
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "source_file": "building-entrence-12.shp",
+        "source_format": "shp",
+        "area_m2": 13.245,
+        "perimeter_m": 16.871,
+        "centroid_utm": [
+          670357.812,
+          4539691.178
+        ],
+        "kind": "parcel",
+        "parcel_numbers": [
+          "12"
+        ],
+        "match_confidence": "high",
+        "parcel_ids_matched": [
+          "E-12"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              670351.7970598635,
+              4539693.161800414
+            ],
+            [
+              670360.2097920837,
+              4539688.796519932
+            ],
+            [
+              670358.3287648332,
+              4539685.280944864
+            ],
+            [
+              670350.0262997278,
+              4539689.574876037
+            ],
+            [
+              670350.0587312321,
+              4539689.659197949
+            ],
+            [
+              670351.7970598635,
+              4539693.161800414
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "source_file": "building-entrence-14.shp",
+        "source_format": "shp",
+        "area_m2": 37.602,
+        "perimeter_m": 26.813,
+        "centroid_utm": [
+          670355.088,
+          4539689.209
+        ],
+        "kind": "parcel",
+        "parcel_numbers": [
+          "14"
+        ],
+        "match_confidence": "high",
+        "parcel_ids_matched": [
+          "E-14"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              670347.657258454,
+              4539727.0190570485
+            ],
+            [
+              670341.7260230521,
+              4539715.328506112
+            ],
+            [
+              670335.221721428,
+              4539717.563464378
+            ],
+            [
+              670340.4079707403,
+              4539727.592123271
+            ],
+            [
+              670339.4337581623,
+              4539727.993269625
+            ],
+            [
+              670340.5512372964,
+              4539729.741121605
+            ],
+            [
+              670341.8406362968,
+              4539730.1136146495
+            ],
+            [
+              670343.0440753638,
+              4539730.314187828
+            ],
+            [
+              670346.0813263425,
+              4539728.680949094
+            ],
+            [
+              670345.5369134307,
+              4539728.107882872
+            ],
+            [
+              670347.657258454,
+              4539727.0190570485
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "source_file": "building-entrence-34-36-38.shp",
+        "source_format": "shp",
+        "area_m2": 97.246,
+        "perimeter_m": 43.59,
+        "centroid_utm": [
+          670341.586,
+          4539722.862
+        ],
+        "kind": "parcel",
+        "parcel_numbers": null,
+        "parcel_ids_override": [
+          "W-34",
+          "W-36"
+        ],
+        "match_confidence": "override",
+        "parcel_ids_matched": [
+          "W-34",
+          "W-36"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              670351.3086284765,
+              4539724.871591119
+            ],
+            [
+              670345.8727004898,
+              4539714.439636835
+            ],
+            [
+              670342.196379251,
+              4539716.167822033
+            ],
+            [
+              670347.695150335,
+              4539726.882570261
+            ],
+            [
+              670348.9205907485,
+              4539726.22271773
+            ],
+            [
+              670349.4233355334,
+              4539727.039678006
+            ],
+            [
+              670350.8373052408,
+              4539726.191296182
+            ],
+            [
+              670350.4602466519,
+              4539725.405757457
+            ],
+            [
+              670351.3086284765,
+              4539724.871591119
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "source_file": "building-entrence-40-42.shp",
+        "source_format": "shp",
+        "area_m2": 50.415,
+        "perimeter_m": 33.743,
+        "centroid_utm": [
+          670346.872,
+          4539720.793
+        ],
+        "kind": "parcel",
+        "parcel_numbers": [
+          "40",
+          "42"
+        ],
+        "match_confidence": "shared-footprint",
+        "parcel_ids_matched": [
+          "N-40",
+          "N-42"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              670358.4909223546,
+              4539685.170677752
+            ],
+            [
+              670355.6888403818,
+              4539679.6962398235
+            ],
+            [
+              670355.2996623302,
+              4539679.177335753
+            ],
+            [
+              670354.4434706157,
+              4539679.073554941
+            ],
+            [
+              670344.013498828,
+              4539684.755554495
+            ],
+            [
+              670347.3085396665,
+              4539690.9564581225
+            ],
+            [
+              670358.4909223546,
+              4539685.170677752
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "source_file": "building-entrence-41-43-45-16.shp",
+        "source_format": "shp",
+        "area_m2": 90.236,
+        "perimeter_m": 39.151,
+        "centroid_utm": [
+          670351.267,
+          4539684.885
+        ],
+        "kind": "parcel",
+        "parcel_numbers": [
+          "41",
+          "43",
+          "45",
+          "16"
+        ],
+        "match_confidence": "shared-footprint",
+        "parcel_ids_matched": [
+          "E-16",
+          "S-41",
+          "S-43",
+          "S-45"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              670351.3335285719,
+              4539724.814676617
+            ],
+            [
+              670355.5398661292,
+              4539722.564775132
+            ],
+            [
+              670350.4531323392,
+              4539712.684772964
+            ],
+            [
+              670345.7250784956,
+              4539714.054278216
+            ],
+            [
+              670351.3335285719,
+              4539724.814676617
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "source_file": "building-entrence-44.shp",
+        "source_format": "shp",
+        "area_m2": 55.78,
+        "perimeter_m": 32.94,
+        "centroid_utm": [
+          670350.725,
+          4539718.532
+        ],
+        "kind": "parcel",
+        "parcel_numbers": [
+          "44"
+        ],
+        "match_confidence": "high",
+        "parcel_ids_matched": [
+          "N-44"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              670355.7355097366,
+              4539722.434346062
+            ],
+            [
+              670359.126665597,
+              4539720.640946325
+            ],
+            [
+              670359.126665597,
+              4539720.640946325
+            ],
+            [
+              670354.9855425751,
+              4539712.521736623
+            ],
+            [
+              670351.4639576437,
+              4539714.412958161
+            ],
+            [
+              670355.7355097366,
+              4539722.434346062
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "source_file": "building-entrence-46.shp",
+        "source_format": "shp",
+        "area_m2": 35.643,
+        "perimeter_m": 26.036,
+        "centroid_utm": [
+          670355.314,
+          4539717.474
+        ],
+        "kind": "parcel",
+        "parcel_numbers": [
+          "46"
+        ],
+        "match_confidence": "high",
+        "parcel_ids_matched": [
+          "N-46"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              670359.2244874,
+              4539720.510517257
+            ],
+            [
+              670363.3330031543,
+              4539718.29322304
+            ],
+            [
+              670358.0180184887,
+              4539708.739293549
+            ],
+            [
+              670354.0399318064,
+              4539710.891373229
+            ],
+            [
+              670359.2244874,
+              4539720.510517257
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "source_file": "building-entrence-48.shp",
+        "source_format": "shp",
+        "area_m2": 50.23,
+        "perimeter_m": 31.052,
+        "centroid_utm": [
+          670358.668,
+          4539714.634
+        ],
+        "kind": "parcel",
+        "parcel_numbers": [
+          "48"
+        ],
+        "match_confidence": "high",
+        "parcel_ids_matched": [
+          "N-48"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              670363.5286467617,
+              4539718.195401236
+            ],
+            [
+              670366.5530558282,
+              4539716.603905195
+            ],
+            [
+              670362.8095157327,
+              4539709.265574942
+            ],
+            [
+              670361.5203496069,
+              4539706.885575942
+            ],
+            [
+              670360.4961708481,
+              4539707.435002834
+            ],
+            [
+              670358.1810548279,
+              4539708.674079013
+            ],
+            [
+              670363.5286467617,
+              4539718.195401236
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "source_file": "building-entrence-50.shp",
+        "source_format": "shp",
+        "area_m2": 39.654,
+        "perimeter_m": 29.071,
+        "centroid_utm": [
+          670362.411,
+          4539712.496
+        ],
+        "kind": "parcel",
+        "parcel_numbers": [
+          "50"
+        ],
+        "match_confidence": "high",
+        "parcel_ids_matched": [
+          "N-50"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              670366.6871074848,
+              4539716.4411970405
+            ],
+            [
+              670372.4396553021,
+              4539713.277295742
+            ],
+            [
+              670372.7272826929,
+              4539713.117502746
+            ],
+            [
+              670372.9190342869,
+              4539712.638123761
+            ],
+            [
+              670372.7911998908,
+              4539712.126786178
+            ],
+            [
+              670369.05204381,
+              4539705.095894401
+            ],
+            [
+              670362.5005310182,
+              4539708.355671498
+            ],
+            [
+              670366.6871074848,
+              4539716.4411970405
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "source_file": "building-entrence-52-54-02.shp",
+        "source_format": "shp",
+        "area_m2": 65.805,
+        "perimeter_m": 32.324,
+        "centroid_utm": [
+          670367.832,
+          4539710.704
+        ],
+        "kind": "parcel",
+        "parcel_numbers": [
+          "52",
+          "54",
+          "2"
+        ],
+        "match_confidence": "shared-footprint",
+        "parcel_ids_matched": [
+          "E-2",
+          "N-52",
+          "N-54"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              670341.3272949756,
+              4539688.040459182
+            ],
+            [
+              670340.7634167669,
+              4539686.387270819
+            ],
+            [
+              670341.5195261738,
+              4539686.054070059
+            ],
+            [
+              670342.0065118948,
+              4539685.4645610275
+            ],
+            [
+              670342.4422359616,
+              4539685.259514408
+            ],
+            [
+              670342.9932987532,
+              4539685.195437342
+            ],
+            [
+              670343.2111607841,
+              4539685.297960652
+            ],
+            [
+              670343.4930998879,
+              4539685.47737644
+            ],
+            [
+              670344.2876555339,
+              4539685.29796065
+            ],
+            [
+              670345.1206574237,
+              4539686.88707195
+            ],
+            [
+              670341.3272949756,
+              4539688.040459182
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "source_file": "cesme-fountain.kml",
+        "source_format": "kml",
+        "area_m2": 7.637,
+        "perimeter_m": 11.523,
+        "centroid_utm": [
+          670342.833,
+          4539686.537
+        ],
+        "kind": "parcel",
+        "parcel_numbers": null,
+        "parcel_ids_override": [
+          "W-39/2"
+        ],
+        "match_confidence": "override",
+        "parcel_ids_matched": [
+          "W-39/2"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              670327.9571267262,
+              4539700.058718907
+            ],
+            [
+              670330.6873547084,
+              4539700.841944764
+            ],
+            [
+              670341.851641905,
+              4539697.793116432
+            ],
+            [
+              670340.9843409575,
+              4539693.792912064
+            ],
+            [
+              670342.471142582,
+              4539693.403511641
+            ],
+            [
+              670343.2499434329,
+              4539696.518715042
+            ],
+            [
+              670347.0731476096,
+              4539695.244313651
+            ],
+            [
+              670345.9403463722,
+              4539691.527309589
+            ],
+            [
+              670347.143947687,
+              4539690.890108891
+            ],
+            [
+              670345.1261454823,
+              4539686.996104637
+            ],
+            [
+              670341.3029413058,
+              4539688.128905876
+            ],
+            [
+              670340.7719407259,
+              4539686.42970402
+            ],
+            [
+              670330.0457290077,
+              4539691.916710015
+            ],
+            [
+              670327.9571267262,
+              4539700.058718907
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "source_file": "churche-entrence-camli-area-(39-1,-39-2)-clocher.shp",
+        "source_format": "shp",
+        "area_m2": 166.109,
+        "perimeter_m": 63.14,
+        "centroid_utm": [
+          670337.5,
+          4539693.771
+        ],
+        "kind": "parcel",
+        "parcel_numbers": null,
+        "parcel_ids_override": [
+          "W-39/1"
+        ],
+        "match_confidence": "override",
+        "parcel_ids_matched": [
+          "W-39/1"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              670328.2558145513,
+              4539704.198310927
+            ],
+            [
+              670328.3177646194,
+              4539704.295661035
+            ],
+            [
+              670330.0833415478,
+              4539703.729260415
+            ],
+            [
+              670330.7028422249,
+              4539700.848582267
+            ],
+            [
+              670327.8841141453,
+              4539700.003406343
+            ],
+            [
+              670327.1407133335,
+              4539702.269008818
+            ],
+            [
+              670328.2558145513,
+              4539704.198310927
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "source_file": "near-39-open-32-magazine.shp",
+        "source_format": "shp",
+        "area_m2": 10.326,
+        "perimeter_m": 12.472,
+        "centroid_utm": [
+          670328.896,
+          4539702.097
+        ],
+        "kind": "parcel",
+        "parcel_numbers": null,
+        "parcel_ids_override": [
+          "W-32"
+        ],
+        "match_confidence": "override",
+        "parcel_ids_matched": [
+          "W-32"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              670331.6188182252,
+              4539710.813693152
+            ],
+            [
+              670330.609917123,
+              4539705.98158787
+            ],
+            [
+              670329.2824156729,
+              4539706.300188222
+            ],
+            [
+              670331.6188182252,
+              4539710.813693152
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "source_file": "near-39-open-32-the last-corner-triangular-magazine.shp",
+        "source_format": "shp",
+        "area_m2": 3.368,
+        "perimeter_m": 11.384,
+        "centroid_utm": [
+          670330.504,
+          4539707.698
+        ],
+        "kind": "parcel",
+        "parcel_numbers": null,
+        "parcel_ids_override": [
+          "W-32"
+        ],
+        "match_confidence": "override",
+        "parcel_ids_matched": [
+          "W-32"
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              670329.2293156163,
+              4539706.247088165
+            ],
+            [
+              670328.2735145695,
+              4539704.300086035
+            ],
+            [
+              670330.0789165458,
+              4539703.751385434
+            ],
+            [
+              670330.5922171051,
+              4539705.990437878
+            ],
+            [
+              670329.2293156163,
+              4539706.247088165
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "source_file": "near-39-open-32-the middle-magazine.kml",
+        "source_format": "kml",
+        "area_m2": 3.611,
+        "perimeter_m": 7.74,
+        "centroid_utm": [
+          670329.535,
+          4539705.015
+        ],
+        "kind": "parcel",
+        "parcel_numbers": null,
+        "parcel_ids_override": [
+          "W-32"
+        ],
+        "match_confidence": "override",
+        "parcel_ids_matched": [
+          "W-32"
+        ]
+      }
+    }
+  ]
+}
