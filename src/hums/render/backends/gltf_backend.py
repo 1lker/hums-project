@@ -298,6 +298,8 @@ def _color_for(palette, material_key: str) -> tuple[int, int, int]:
         "plinth_stone": (160, 148, 130),
         "lightwell_paving": (205, 195, 174),
         "lightwell_curb": (86, 78, 66),
+        "lightwell_wall": (154, 143, 124),
+        "lightwell_shadow": (54, 50, 44),
         "cornice_paint": (236, 225, 205),
         "fountain_shadow": (62, 54, 45),
         "fountain_plaque_green": (42, 86, 66),

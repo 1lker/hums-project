@@ -343,7 +343,7 @@ def _special_asset_rows(report_tables: dict[str, dict[str, dict[str, str]]]) -> 
         if pid == "CHURCH":
             material_interpretation = "Church/special landscape asset"
         elif pid == "COURTYARD-147-N50-LIGHTWELL":
-            material_interpretation = "Small paved rear lightwell behind parcel 50"
+            material_interpretation = "Visible rectangular open lightwell shaft at parcel 50"
         else:
             material_interpretation = "Courtyard garden / vegetation"
         rows.append({

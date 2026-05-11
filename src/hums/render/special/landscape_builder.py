@@ -24,17 +24,18 @@ COURTYARD_147_TREE_SOURCE = (
 )
 
 N50_REAR_LIGHTWELL_UTM = (
+    (670361.54, 4539706.88),
     (670358.18, 4539708.67),
-    (670360.50, 4539707.44),
-    (670361.52, 4539706.89),
-    (670362.50, 4539708.36),
+    (670359.46, 4539711.06),
     (670362.81, 4539709.27),
-    (670358.02, 4539708.74),
 )
+N50_LIGHTWELL_RIM_Z = 10.34
+N50_LIGHTWELL_RIM_WIDTH = 0.26
 N50_REAR_LIGHTWELL_SOURCE = (
-    "Georeferenced negative space behind parcel 50, bounded by the N-48, "
+    "Georeferenced rectangular negative space at parcel 50, bounded by the "
     "N-50 and N-52/54 traced KML/SHP footprints and confirmed in the "
-    "building-entrence-50 Pervititch crop."
+    "building-entrence-50 Pervititch crop. The traced N-50 footprint overlaps "
+    "this map void, so the viewer renders a visible open shaft/rim."
 )
 
 GARDEN_PALETTE = FacadePalette(
@@ -119,9 +120,10 @@ class CourtyardGardenBuilder:
                 "source_footprint_file": "N-50 / N-52-54 georeferenced KML negative space",
                 "notes": {
                     "map_reading": (
-                        "Small rectangular open rear area behind parcel 50. It is "
-                        "modeled as a paved lightwell, not as an extra building; "
-                        "windows on adjacent faces may look into this void."
+                        "Small rectangular open rear area at parcel 50. The "
+                        "KML/SHP footprint overlaps this map void, so it is "
+                        "modeled as a visible open lightwell shaft/rim rather "
+                        "than a hidden paving patch or an extra building."
                     ),
                     "ring_utm": N50_REAR_LIGHTWELL_UTM,
                     "source": N50_REAR_LIGHTWELL_SOURCE,
@@ -130,15 +132,17 @@ class CourtyardGardenBuilder:
         )
 
         local_ring = [(x - c.x, y - c.y) for x, y in list(patch.exterior.coords)[:-1]]
-        ground = [mesh.add_vertex(x, y, 0.18) for x, y in reversed(local_ring)]
+        ground = [mesh.add_vertex(x, y, 0.12) for x, y in reversed(local_ring)]
         mesh.add_face(
             ground,
             role="LandscapeSurface",
             surface_id="COURTYARD-147-N50-LIGHTWELL.paving",
-            material_key="lightwell_paving",
+            material_key="lightwell_shadow",
         )
+        _emit_lightwell_shaft(mesh, c, patch)
         _emit_lightwell_curb(mesh, c, patch)
         _emit_lightwell_paving_joints(mesh, c, patch)
+        _emit_lightwell_roof_opening(mesh, c, patch)
         return mesh
 
 
@@ -214,6 +218,48 @@ def _emit_lightwell_curb(mesh: BuildingMesh, origin, patch: Polygon) -> None:
             z1=0.28,
             material_key="lightwell_curb",
             surface_id=f"COURTYARD-147-N50-LIGHTWELL.curb.face.{idx}",
+        )
+
+
+def _emit_lightwell_shaft(mesh: BuildingMesh, origin, patch: Polygon) -> None:
+    coords = list(patch.exterior.coords)
+    for idx, (a, b) in enumerate(zip(coords, coords[1:])):
+        ax, ay = a[0] - origin.x, a[1] - origin.y
+        bx, by = b[0] - origin.x, b[1] - origin.y
+        mesh.add_quad(
+            p0=(ax, ay, 0.12),
+            p1=(bx, by, 0.12),
+            p2=(bx, by, N50_LIGHTWELL_RIM_Z),
+            p3=(ax, ay, N50_LIGHTWELL_RIM_Z),
+            role="WallSurface",
+            surface_id=f"COURTYARD-147-N50-LIGHTWELL.shaft.wall.{idx}",
+            material_key="lightwell_wall",
+        )
+
+
+def _emit_lightwell_roof_opening(mesh: BuildingMesh, origin, patch: Polygon) -> None:
+    coords = list(patch.exterior.coords)[:-1]
+    local_ring = [(x - origin.x, y - origin.y) for x, y in coords]
+    shadow = [
+        mesh.add_vertex(x, y, N50_LIGHTWELL_RIM_Z + 0.018)
+        for x, y in reversed(local_ring)
+    ]
+    mesh.add_face(
+        shadow,
+        role="LandscapeSurface",
+        surface_id="COURTYARD-147-N50-LIGHTWELL.open_void_shadow",
+        material_key="lightwell_shadow",
+    )
+    for idx, (a, b) in enumerate(zip(list(patch.exterior.coords), list(patch.exterior.coords)[1:])):
+        _emit_ground_strip(
+            mesh,
+            origin,
+            a,
+            b,
+            width=N50_LIGHTWELL_RIM_WIDTH,
+            z=N50_LIGHTWELL_RIM_Z + 0.055,
+            material_key="lightwell_curb",
+            surface_id=f"COURTYARD-147-N50-LIGHTWELL.roof_rim.{idx}",
         )
 
 
