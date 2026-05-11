@@ -1,0 +1,59 @@
+{
+  "parcel_ids": ["W-34", "W-36", "W-38"],
+  "label": "W-34-36-FIRIN",
+  "verified": false,
+
+  "map_notes": "`building-entrence-34-36-38` traces the Firin block on the north-west corner. The map shows the bakery as one connected masonry mass; the west-edge parcel numbers/entry marks (34/36/38) are frontage divisions, not a separate grey roof block inside the bakery. The previous east-west split created a cut-off roof patch beside the wooden building. Render this as one continuous bakery mass with one coherent TR/tile roof, while keeping multiple conservative west-side entrances for the numbered frontage.",
+
+  "footprint_ref": "building-entrence-34-36-38.shp",
+  "footprint_mode": "traced",
+
+  "structure_type": "building",
+  "primary_zone_axis": "long_axis_north_to_south",
+
+  "zones": [
+    {
+      "id": "bakery_mass",
+      "description": "Single connected Firin masonry mass. Internal number lines are frontage/entry divisions; no separate cut roof is generated.",
+      "material_class": "B",
+      "map_colour": "pink",
+      "storeys_above_grade": 3,
+      "has_mezzanine": false,
+      "has_basement": false,
+      "storey_heights_m": [3.8, 3.2, 3.2],
+      "ground_floor_use": "bakery",
+      "roof": {
+        "shape": "gable",
+        "material": "tile_TR",
+        "pitch_deg": 22.0,
+        "has_chimney": false,
+        "has_skylight": false
+      },
+      "footprint_fraction": [0.0, 1.0],
+      "map_labels": ["Firin", "VF", "MB", "2 1/2", "TR.4", "3+", "34", "36", "38"]
+    }
+  ],
+
+  "facades": {
+    "street_facing_faces": ["W"],
+    "primary_door": null,
+    "secondary_door": null,
+    "entrance_hints": [
+      {
+        "face": "W",
+        "zone": "bakery_mass",
+        "count": 3,
+        "description": "West-side numbered frontage entrances for 34/36/38, read from the vertical parcel/entry marks on Sögütlü Çeşme."
+      }
+    ],
+    "shop_windows": false,
+    "balconies": [],
+    "shutters_on_upper": false
+  },
+
+  "palette_override": null,
+
+  "open_questions": [
+    "Firin height/roof notes combine 2 1/2, 3+, VF/MB and TR.4. Current visual priority is a coherent, non-cut single bakery roof; a finer stepped roof can be added only where the map division lines clearly require it without creating fake separate masses."
+  ]
+}

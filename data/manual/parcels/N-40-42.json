@@ -3,98 +3,58 @@
   "label": "N-40-42",
   "verified": false,
 
-  "map_notes": "Long thin wooden building on the NW side of block 147, fronting T…L Sokak at its north/street end and extending south into the block toward the church courtyard. Registered cadastrally under two parcel numbers (40) and (42) but architecturally it is ONE single mass — the map labels `(40)(42)` together above the footprint. Yellow tint throughout = wooden frame (class C). Interior labels, stacked north→south along the building's length, describe a sectional composition: street-end magasin, Turkish-vault middle zone with 4 basement bays, an 'old' (V.x.) vault zone, a 3-storey section, and a shop window (Vitrine) at the far south end. NOTE: the FIRIN bakery label on the wider Pervititch screenshot belongs to a DIFFERENT yellow strip, not this building — confirmed by user. No oven chimney on this one.",
+  "map_notes": "Yellow wooden strip immediately east of the Firin. The black division lines inside the yellow footprint are actual building-zone lines and should be read as three rectangular height zones, not as many tiny roof fragments. The map shows the 40/42 frontage at the north street edge, with the 42 entrance belonging to this wooden building. Model as one rectangular wooden building with three stepped zones: 2-storey north frontage, 4-storey middle bay, and 3-storey south/courtyard bay with the Vitr. mark.",
 
   "footprint_ref": "building-entrence-40-42.shp",
+  "footprint_mode": "minimum_rotated_rectangle",
 
   "structure_type": "building",
-
-  "primary_zone_axis": "north_to_south",
+  "primary_zone_axis": "long_axis_north_to_south",
 
   "zones": [
     {
-      "id": "street_magasin",
-      "description": "Street-end magasin at the T…L Sokak frontage. Map labels: Y (yellow) + 1.M (1-storey magasin).",
+      "id": "north_two_storey",
+      "description": "North street frontage for labels 40/42. Wooden, rectangular, 2 storeys.",
       "material_class": "C",
       "map_colour": "yellow",
-      "storeys_above_grade": 1,
+      "storeys_above_grade": 2,
       "has_mezzanine": false,
       "has_basement": false,
-      "storey_heights_m": [3.8],
+      "storey_heights_m": [3.8, 3.2],
       "ground_floor_use": "shop",
       "roof": {
-        "shape": "flat",
+        "shape": "gable",
         "material": "sheet_metal_T",
-        "pitch_deg": 2.0,
+        "pitch_deg": 16.0,
         "has_chimney": false,
         "has_skylight": false
       },
-      "footprint_fraction": [0.0, 0.18],
-      "map_labels": ["Y", "1.M"]
+      "footprint_fraction": [0.0, 0.34],
+      "map_labels": ["40", "42", "M", "2 b"]
     },
     {
-      "id": "middle_vault",
-      "description": "2-bay Turkish vault zone with Turkish brick arch ceiling.",
+      "id": "middle_four_storey",
+      "description": "Middle yellow bay between the vertical division lines. Wooden, rectangular, 4 storeys.",
       "material_class": "C",
       "map_colour": "yellow",
-      "storeys_above_grade": 2,
-      "has_mezzanine": false,
-      "has_basement": true,
-      "storey_heights_m": [3.8, 3.2],
-      "ground_floor_use": "shop",
-      "roof": {
-        "shape": "vault_flat",
-        "material": "vault_VT",
-        "pitch_deg": 2.86,
-        "has_chimney": false,
-        "has_skylight": false
-      },
-      "footprint_fraction": [0.18, 0.42],
-      "map_labels": ["2.b", "V.T."]
-    },
-    {
-      "id": "basement_bays",
-      "description": "4 basement bays (sub-grade) under this section. Rendered as an additional basement storey on the zone above; does not add an above-grade mass.",
-      "material_class": "C",
-      "map_colour": "yellow",
-      "storeys_above_grade": 2,
-      "has_mezzanine": false,
-      "has_basement": true,
-      "storey_heights_m": [3.8, 3.2],
-      "ground_floor_use": "shop",
-      "roof": {
-        "shape": "vault_flat",
-        "material": "vault_VT",
-        "pitch_deg": 2.86,
-        "has_chimney": false,
-        "has_skylight": false
-      },
-      "footprint_fraction": [0.42, 0.58],
-      "map_labels": ["4 b"]
-    },
-    {
-      "id": "old_vault_zone",
-      "description": "'V.x.' zone — probably an older (vieux) vault section, possibly in poorer condition on the map.",
-      "material_class": "C",
-      "map_colour": "yellow",
-      "storeys_above_grade": 2,
+      "storeys_above_grade": 4,
       "has_mezzanine": false,
       "has_basement": false,
-      "storey_heights_m": [3.8, 3.2],
+      "storey_heights_m": [3.8, 3.1, 3.1, 3.0],
       "ground_floor_use": "shop",
       "roof": {
-        "shape": "vault_flat",
-        "material": "vault_VT",
-        "pitch_deg": 2.86,
+        "shape": "gable",
+        "material": "sheet_metal_T",
+        "pitch_deg": 16.0,
         "has_chimney": false,
         "has_skylight": false
       },
-      "footprint_fraction": [0.58, 0.72],
-      "map_labels": ["V.x."]
+      "footprint_fraction": [0.34, 0.66],
+      "map_labels": ["V.T.", "4 b"]
     },
     {
-      "id": "rear_three_storey",
-      "description": "Tallest section at the rear (south end) — 3 storeys with sheet metal T roof.",
+      "id": "south_three_storey_vitrine",
+      "description": "South/courtyard end of the wooden strip. Wooden, rectangular, 3 storeys, with the mapped Vitrine on the courtyard-facing end.",
       "material_class": "C",
       "map_colour": "yellow",
       "storeys_above_grade": 3,
@@ -103,41 +63,33 @@
       "storey_heights_m": [3.8, 3.2, 3.2],
       "ground_floor_use": "shop",
       "roof": {
-        "shape": "hip",
+        "shape": "gable",
         "material": "sheet_metal_T",
-        "pitch_deg": 20,
+        "pitch_deg": 16.0,
         "has_chimney": false,
         "has_skylight": false
       },
-      "footprint_fraction": [0.72, 0.92],
-      "map_labels": ["3.T."]
-    },
-    {
-      "id": "vitrine",
-      "description": "Shop window (Vitrine) at the far south end facing the church courtyard. Low 1-storey glazed annex.",
-      "material_class": "C",
-      "map_colour": "yellow",
-      "storeys_above_grade": 1,
-      "has_mezzanine": false,
-      "has_basement": false,
-      "storey_heights_m": [3.0],
-      "ground_floor_use": "shop",
-      "roof": {
-        "shape": "flat",
-        "material": "sheet_metal_T",
-        "pitch_deg": 2.0,
-        "has_chimney": false,
-        "has_skylight": false
-      },
-      "footprint_fraction": [0.92, 1.0],
-      "map_labels": ["Vitr."]
+      "footprint_fraction": [0.66, 1.0],
+      "map_labels": ["Vx.", "3.T.", "Vitr."]
     }
   ],
 
   "facades": {
     "street_facing_faces": ["N"],
-    "primary_door": {"face": "N", "zone": "street_magasin", "description": "Shop entrance onto T…L Sokak"},
-    "secondary_door": {"face": "S", "zone": "vitrine", "description": "Vitrine/service entrance onto church courtyard"},
+    "primary_door": null,
+    "secondary_door": {
+      "face": "S",
+      "zone": "south_three_storey_vitrine",
+      "description": "Courtyard-side service/vitrine door at the south end."
+    },
+    "entrance_hints": [
+      {
+        "face": "N",
+        "zone": "north_two_storey",
+        "count": 2,
+        "description": "North street entrances for the 40 and 42 frontage labels; 42 is on this wooden building."
+      }
+    ],
     "shop_windows": false,
     "balconies": [],
     "shutters_on_upper": true
@@ -146,12 +98,12 @@
   "palette_override": null,
 
   "open_questions": [
-    "Which adjacent yellow strip IS the actual FIRIN? Need to identify the correct parcel and add chimney + bakery use to that one, not this."
+    "Exact storey abbreviations are map-read from the crop as 2 / 4 / 3 zones. The important geometry correction is the vertical-line division into three rectangular wooden height zones and the north 42 entrance."
   ],
 
   "resolved_assumptions": {
-    "is_firin": "User confirmed THIS IS NOT the FIRIN. Chimney removed, ground floor use demoted from bakery to shop on middle_vault.",
-    "zone_axis": "N→S confirmed. street_magasin is at T…L Sokak (north), rear_three_storey + vitrine extend south into the block toward the church courtyard.",
-    "vitrine_at_courtyard_end": "Confirmed — Vitrine is the far-south glazed end, not street."
+    "division_lines": "User clarified that the vertical black lines are the building area boundaries. The model now uses only three main rectangular height zones.",
+    "entry_42": "42 is treated as a north street entrance of the wooden N-40-42 building, not as an unrelated or interior-only label.",
+    "is_firin": "This yellow wooden strip is beside the Firin, not the Firin itself."
   }
 }
