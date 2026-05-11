@@ -347,6 +347,52 @@ class PeriodDetail:
                     )
 
 
+def _magasin_frontage_bays(seg: WallSegment, length: float) -> list[tuple[float, float, str]]:
+    doors = [
+        op for op in seg.openings
+        if op.kind == "door" and op.storey_level == 0
+    ]
+    if not doors:
+        return [(0.08, length - 0.08, "segment")]
+
+    margin = 0.08
+    bays: list[tuple[float, float, str]] = []
+    for idx, op in enumerate(sorted(doors, key=lambda item: item.position_along_wall_m)):
+        door_w = max(0.45, op.width_m)
+        center = op.position_along_wall_m + door_w / 2.0
+        side_allowance = min(0.36, max(0.20, door_w * 0.22, length * 0.045))
+        bay_w = max(door_w + side_allowance * 2.0, min(1.70, length * 0.54))
+        bay_w = min(length - margin * 2.0, bay_w)
+        u0 = max(margin, center - bay_w / 2.0)
+        u1 = min(length - margin, center + bay_w / 2.0)
+        if u1 - u0 < bay_w:
+            if u0 <= margin:
+                u1 = min(length - margin, u0 + bay_w)
+            elif u1 >= length - margin:
+                u0 = max(margin, u1 - bay_w)
+        if u1 - u0 >= door_w + 0.16:
+            bays.append((u0, u1, f"door{idx}"))
+
+    if len(bays) <= 1:
+        return bays or [(0.08, length - 0.08, "segment")]
+
+    adjusted: list[tuple[float, float, str]] = []
+    for bay in bays:
+        if not adjusted:
+            adjusted.append(bay)
+            continue
+        prev_u0, prev_u1, prev_name = adjusted[-1]
+        u0, u1, name = bay
+        if u0 < prev_u1 + 0.08:
+            split = (prev_u1 + u0) / 2.0
+            prev_u1 = max(prev_u0 + 0.55, split - 0.04)
+            u0 = min(u1 - 0.55, split + 0.04)
+            adjusted[-1] = (prev_u0, prev_u1, prev_name)
+        if u1 - u0 >= 0.55:
+            adjusted.append((u0, u1, name))
+    return adjusted
+
+
 def _emit_firin_door(
     mesh: BuildingMesh,
     pid: str,

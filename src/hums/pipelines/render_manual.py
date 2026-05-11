@@ -710,7 +710,7 @@ class ManualRenderer:
     def _place_n50_lower_lightwell_window(self, label: ManualLabel, zone: Zone,
                                           segments: list[WallSegment], tracker,
                                           zone_pid: str) -> None:
-        if label.label != "N-50" or zone.id != "south_two_storey_lightwell_wing":
+        if label.label != "N-50" or zone.id != "south_rear_three_storey_roofed":
             return
         candidates = [
             s for s in segments
@@ -720,7 +720,7 @@ class ManualRenderer:
         if not candidates:
             return
         seg = max(candidates, key=lambda s: s.length_m)
-        source = "map:georeference:n50-lower-wing-lightwell-window"
+        source = "map:georeference:n50-rear-roofed-wing-lightwell-window"
         if any(op.kind == "window" and op.color_source == source for op in seg.openings):
             return
         width = min(0.82, max(0.54, seg.length_m - 0.44))
@@ -739,9 +739,9 @@ class ManualRenderer:
         ))
         tracker.record(
             zone_pid,
-            "wall[lightwell].lower_wing_window",
+            "wall[lightwell].rear_roofed_wing_window",
             "map+georeference:building-entrence-50",
-            "single narrow upper window facing the N-50 rear rectangular lightwell",
+            "single narrow upper window facing the N-50 rear rectangular lightwell on the roofed rear wing",
         )
 
     def _profile(self, label: ManualLabel, meshes) -> str:

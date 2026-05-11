@@ -3,7 +3,7 @@
   "label": "N-50",
   "verified": false,
 
-  "map_notes": "Parcel 50 is not a single flat 3-storey block. The Pervititch crop shows a small rectangular right/rear open void and a height/roof change: the north street mass reads as the taller 3-storey part, while the south/rear part reads lower, about 2 storeys. Model it as one L-plan building group with two touching volumes and different roofs, not as a separate grey box.",
+  "map_notes": "Parcel 50 is not a single flat 3-storey block. The Pervititch crop shows a small rectangular right/rear open void and a height/roof change. The front/north street piece reads as the lower 2-unit flat-roofed part, while the rear/dashed map area reads as the taller 3-unit roofed part. Model it as one L-plan building group with two touching volumes and different roofs, not as a separate grey box.",
 
   "footprint_ref": "building-entrence-50.shp",
   "footprint_mode": "n50_lightwell_cut",
@@ -13,35 +13,15 @@
 
   "zones": [
     {
-      "id": "north_three_storey_mass",
-      "description": "Taller north/front masonry mass for the numbered 50 entrance.",
-      "material_class": "B",
-      "map_colour": "pink",
-      "storeys_above_grade": 3,
-      "has_mezzanine": false,
-      "has_basement": false,
-      "storey_heights_m": [3.8, 3.2, 3.2],
-      "ground_floor_use": "shop",
-      "roof": {
-        "shape": "gable",
-        "material": "unknown",
-        "pitch_deg": 24.0,
-        "has_chimney": false,
-        "has_skylight": false
-      },
-      "footprint_fraction": [0.0, 0.66],
-      "map_labels": ["50", "3?", "front/taller mass"]
-    },
-    {
-      "id": "south_two_storey_lightwell_wing",
-      "description": "Lower south/rear wing wrapping the rectangular open lightwell.",
+      "id": "north_front_two_storey_flat",
+      "description": "Lower north/front masonry mass for the numbered 50 entrance; front reads flatter on the map.",
       "material_class": "B",
       "map_colour": "pink",
       "storeys_above_grade": 2,
       "has_mezzanine": false,
       "has_basement": false,
       "storey_heights_m": [3.8, 3.2],
-      "ground_floor_use": "residential",
+      "ground_floor_use": "shop",
       "roof": {
         "shape": "flat",
         "material": "unknown",
@@ -49,8 +29,28 @@
         "has_chimney": false,
         "has_skylight": false
       },
+      "footprint_fraction": [0.0, 0.66],
+      "map_labels": ["50", "2?", "front/lower flat mass"]
+    },
+    {
+      "id": "south_rear_three_storey_roofed",
+      "description": "Taller south/rear wing wrapping the rectangular open lightwell; dashed rear map area reads as the roofed 3-unit part.",
+      "material_class": "B",
+      "map_colour": "pink",
+      "storeys_above_grade": 3,
+      "has_mezzanine": false,
+      "has_basement": false,
+      "storey_heights_m": [3.8, 3.2, 3.2],
+      "ground_floor_use": "residential",
+      "roof": {
+        "shape": "gable",
+        "material": "unknown",
+        "pitch_deg": 24.0,
+        "has_chimney": false,
+        "has_skylight": false
+      },
       "footprint_fraction": [0.66, 1.0],
-      "map_labels": ["rear lower mass", "2?"]
+      "map_labels": ["rear dashed roofed mass", "3?"]
     }
   ],
 
@@ -58,7 +58,7 @@
     "street_facing_faces": ["N"],
     "primary_door": {
       "face": "N",
-      "zone": "north_three_storey_mass",
+      "zone": "north_front_two_storey_flat",
       "description": "North street entrance for number 50."
     },
     "secondary_door": null,
@@ -71,12 +71,12 @@
   "palette_override": null,
 
   "open_questions": [
-    "The exact handwritten height abbreviation on N-50 remains soft in the raster, but the visible map geometry supports a clear lower rear piece and a separate taller front piece."
+    "The exact handwritten height abbreviation on N-50 remains soft in the raster, but the latest map reread/user correction sets the front/north part as 2-unit flat and the rear/dashed part as 3-unit roofed."
   ],
 
   "resolved_assumptions": {
     "l_plan": "The right/rear rectangular lightwell is cut from the N-50 mass, so the visible footprint reads as an L plan.",
-    "height_step": "User/map reread takes priority over the old single 3-storey interpretation: model the rear wing as lower than the north/front mass.",
+    "height_step": "User/map reread takes priority over the old single 3-storey interpretation: model the front/north piece as lower and flatter, and the rear/dashed wing as the taller roofed part.",
     "not_extra_building": "The lightwell is open space, not a detached grey building."
   }
 }
