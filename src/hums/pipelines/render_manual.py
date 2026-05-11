@@ -715,7 +715,6 @@ class ManualRenderer:
         candidates = [
             s for s in segments
             if not s.is_party_wall
-            and s.hatch_pattern != "_street"
             and 1.05 <= s.length_m <= 1.85
         ]
         if not candidates:
