@@ -335,11 +335,17 @@ def _row_from_manual_zone(
 
 def _special_asset_rows(report_tables: dict[str, dict[str, dict[str, str]]]) -> list[dict[str, Any]]:
     rows: list[dict[str, Any]] = []
-    for pid in ("CHURCH", "COURTYARD-147-GARDEN"):
+    for pid in ("CHURCH", "COURTYARD-147-GARDEN", "COURTYARD-147-N50-LIGHTWELL"):
         geom = report_tables["geometry"].get(pid, {})
         roof = report_tables["roofs"].get(pid, {})
         if not geom and not roof:
             continue
+        if pid == "CHURCH":
+            material_interpretation = "Church/special landscape asset"
+        elif pid == "COURTYARD-147-N50-LIGHTWELL":
+            material_interpretation = "Small paved rear lightwell behind parcel 50"
+        else:
+            material_interpretation = "Courtyard garden / vegetation"
         rows.append({
             "model_id": pid,
             "source_parcels": pid,
@@ -347,7 +353,7 @@ def _special_asset_rows(report_tables: dict[str, dict[str, dict[str, str]]]) -> 
             "source_type": "special asset",
             "manual_override": "Yes",
             "material_class": "",
-            "material_interpretation": "Church/special landscape asset" if pid == "CHURCH" else "Courtyard garden / vegetation",
+            "material_interpretation": material_interpretation,
             "wall_code": "",
             "wall_decoded": "",
             "vault_code": "",
