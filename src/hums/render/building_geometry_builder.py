@@ -49,6 +49,8 @@ class BuildingGeometryBuilder:
                 "roof_shape": building.roof.shape if building.roof else None,
                 "roof_material": building.roof.material if building.roof else None,
                 "roof_pitch_deg": building.roof.pitch_deg if building.roof else None,
+                "roof_slope_direction": building.roof.slope_direction if building.roof else None,
+                "roof_ridge_axis_hint": building.roof.ridge_axis_hint if building.roof else None,
                 "source_footprint_file": building.provenance.footprint_source_file,
             },
         )

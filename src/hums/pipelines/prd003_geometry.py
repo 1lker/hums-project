@@ -46,6 +46,7 @@ class Prd003Pipeline:
         for b in buildings:
             if b.parcel_id in replaced_parcels:
                 continue
+            _apply_map_review_overrides(b)
             m = geom_builder.build(b)
             if m:
                 meshes.append(m)
@@ -79,8 +80,8 @@ class Prd003Pipeline:
 
         write_reports(scene, REPORT_DIR)
 
-        return {
-            "buildings_input": len(buildings),
+    return {
+        "buildings_input": len(buildings),
             "meshes_generated": len(meshes),
             "faces_total": sum(len(m.faces) for m in meshes),
             "roles": scene.face_count_by_role(),
@@ -89,7 +90,52 @@ class Prd003Pipeline:
                 "ifc_scene": str((IFC_DIR / "block147.ifc").relative_to(PROJECT_ROOT)),
                 "reports": str(REPORT_DIR.relative_to(PROJECT_ROOT)),
             },
-        }
+    }
+
+
+def _apply_map_review_overrides(building: Building) -> None:
+    """Corrections from direct Pervititch-map rereads that supersede Excel text.
+
+    Keep these narrow: they are only for parcels where the enlarged map crop
+    contradicts the parsed register enough to affect visible massing.
+    """
+    if building.parcel_id == "E-12":
+        building.notes["map_review_2026_05_11"] = (
+            "Raw map reads closer to 1p.Mg/VF with a barrel/vault roof mark; "
+            "do not model the old parsed 2p as a full second storey."
+        )
+        # The previous 2p parse generated upper windows. The map reread treats
+        # this as a one-storey shop, so keep only ground-level/door openings.
+        building.storeys = [
+            s for s in building.storeys
+            if s.is_basement or s.level == 0
+        ]
+        for seg in building.wall_segments:
+            seg.openings = [
+                op for op in seg.openings
+                if op.kind == "door" or op.storey_level == 0
+            ]
+        if building.roof:
+            building.roof.shape = "vault_flat"
+            building.roof.material = "tile_TF"
+            building.roof.pitch_deg = 12.0
+            building.roof.slope_direction = (
+                "Barrel/vault roof from map VF mark; tile material retained from TF note"
+            )
+
+    elif building.parcel_id == "E-10":
+        building.notes["map_review_2026_05_11"] = (
+            "Map has an additional direction marker near the 10 entrance. "
+            "Keep as one-storey VF/TF shop but preserve the direction note for roof review."
+        )
+        if building.roof:
+            building.roof.slope_direction = "Map direction marker near 10 entrance; not a height split"
+
+    elif building.parcel_id == "E-14":
+        building.notes["map_review_2026_05_11"] = (
+            "Checked for a possible two-height split. Crop shows roof/hatch marks "
+            "and the entrance arrow, but no confirmed internal height boundary."
+        )
 
 
 def _block_centroid() -> tuple[float, float]:
