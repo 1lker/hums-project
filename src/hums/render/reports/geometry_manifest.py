@@ -245,12 +245,12 @@ def _write_roof_visual_audit(scene: SceneGraph, path: Path) -> None:
             dome_src = mesh.metadata.get("dome_center_source")
             dome_center = mesh.metadata.get("dome_center_utm")
             if clocher_top and clocher_src:
-                note = f"special church roof: low tile body, high drum/kubbe"
+                note = f"special church roof: low tile body, shallow low kubbe with 3 glazed marks"
                 if dome_src and dome_center:
                     note += f"; kubbe centered at {dome_center} from {dome_src}"
                 note += f"; clocher {clocher_top} m from {clocher_src}"
             else:
-                note = "special church roof: low tile body, high drum/kubbe, clocher"
+                note = "special church roof: low tile body, shallow low kubbe, clocher"
         direction = mesh.metadata.get("roof_slope_direction")
         if direction and mesh.parcel_id in {"E-10", "E-12", "E-14"}:
             note = f"{note}; {direction}" if note else str(direction)

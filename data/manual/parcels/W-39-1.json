@@ -2,7 +2,7 @@
   "label": "W-39-1",
   "parcel_ids": ["W-39/1"],
   "verified": false,
-  "map_notes": "The W-39/1 church-edge footprint must not be rendered as one all-glass block. The Pervititch crop shows Camli/Vitre only on the lower hatched passage; the user-supplied front photo confirms this is the Ayia Efimia church entrance: normal plastered low narthex walls, white double door, a glazed/iron arched fanlight above the door, and glass only at the top/roof zone. The adjacent yellow/wooden church-edge area labelled T. 1 bs. is not glass; it is a wooden one-storey-plus-basement annex with sheet-metal T roof. The east/right area near the Clocher square remains an opaque side/narthex mass.",
+  "map_notes": "The W-39/1 church-edge footprint must not be rendered as one all-glass block. The Pervititch crop shows Camli/Vitre only on the lower hatched passage; the user-supplied front photo confirms this is the Ayia Efimia church entrance: normal plastered low narthex walls, white double door, a glazed/iron arched fanlight above the door, and glass only at the top/roof zone. The Camli/Vitre roof/entry zone stops at the earlier vertical map break; the masonry/brick-narthex zone starts there so the glass-top area does not overlap brick/concrete massing. The adjacent yellow/wooden church-edge area labelled T. 1 bs. is not glass; it is a wooden one-storey-plus-basement annex with sheet-metal T roof. The church body face looking toward this wooden annex is interpreted as an internal/service side; those openings are interior doors, not exterior glass windows. The east/right area near the Clocher square remains an opaque side/narthex mass.",
   "footprint_ref": "churche-entrence-camli-area-(39-1,-39-2)-clocher.shp",
   "structure_type": "building",
   "primary_zone_axis": "west_to_east",
@@ -26,7 +26,7 @@
       },
       "footprint_fraction": [0.0, 0.68],
       "clip_ranges": [
-        {"axis": "west_to_east", "fraction": [0.0, 0.68]},
+        {"axis": "west_to_east", "fraction": [0.0, 0.65]},
         {"axis": "south_to_north", "fraction": [0.0, 0.52]}
       ],
       "map_labels": ["Camli", "Vitre", "church entrance", "arched glazed fanlight"]
@@ -50,7 +50,7 @@
       },
       "footprint_fraction": [0.0, 0.68],
       "clip_ranges": [
-        {"axis": "west_to_east", "fraction": [0.0, 0.68]},
+        {"axis": "west_to_east", "fraction": [0.0, 0.65]},
         {"axis": "north_to_south", "fraction": [0.0, 0.48]}
       ],
       "map_labels": ["T.", "1 bs.", "wooden/yellow", "church edge"]
@@ -74,7 +74,7 @@
       },
       "footprint_fraction": [0.68, 1.0],
       "clip_ranges": [
-        {"axis": "west_to_east", "fraction": [0.68, 1.0]}
+        {"axis": "west_to_east", "fraction": [0.65, 1.0]}
       ],
       "map_labels": ["side mass", "2p", "Clocher edge", "T"]
     }

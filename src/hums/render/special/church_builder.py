@@ -4,8 +4,8 @@ Orthodox cruciform basilica model:
 
   1. Nave body — extruded footprint with a *low* (near-flat) hip roof so the
      central dome reads as the dominant mass.
-  2. Drum — a tall cylinder sitting on the centre of the body.
-  3. Kubbe — UV hemisphere above the drum + a tiny lantern on top.
+  2. Low kubbe curb — a shallow drum/collar sitting on the roof.
+  3. Kubbe — low lead/zinc cap with three small glazed marks from the map.
   4. Plinth band — stone skirting around the body base.
   5. Clocher — tall bell tower on the map-marked lower-right church corner.
 """
@@ -29,12 +29,13 @@ BODY_WINDOW_RECT_H = 2.15
 BODY_WINDOW_W = 1.15
 BODY_WINDOW_ARCH_RISE = 0.58
 BODY_WINDOW_ARCH_SEGMENTS = 8
-DRUM_BASE_Z = BODY_HEIGHT + 0.4
-DRUM_HEIGHT = 4.2
-DRUM_RADIUS = 4.0
-DOME_RADIUS = 4.2
+DRUM_BASE_Z = BODY_HEIGHT + 0.28
+DRUM_HEIGHT = 0.68
+DRUM_RADIUS = 3.55
+DOME_RADIUS = 3.65
+DOME_RISE = 1.08
 DOME_SEGMENTS = 36            # bumped for a smoother silhouette
-DOME_RINGS = 16
+DOME_RINGS = 10
 LANTERN_HEIGHT = 2.2
 LANTERN_RADIUS = 0.75
 LANTERN_SEGMENTS = 8
@@ -87,6 +88,10 @@ class ChurchBuilder:
                     round(dome_center_utm[0] - c.x, 3),
                     round(dome_center_utm[1] - c.y, 3),
                 ),
+                "dome_form": (
+                    "low shallow kubbe cap with three small glazed openings; "
+                    "map reread does not support a high raised drum/lantern"
+                ),
             },
         )
 
@@ -96,7 +101,6 @@ class ChurchBuilder:
         self._emit_low_tile_roof(mesh, ring_local, dome_center_local)
         self._emit_drum(mesh, dome_center_local)
         self._emit_kubbe(mesh, dome_center_local)
-        self._emit_lantern(mesh, dome_center_local)
         self._emit_clocher_from_w39_1(mesh, c.x, c.y)
         return mesh
 
@@ -140,8 +144,9 @@ class ChurchBuilder:
 
         The Pervititch footprint does not enumerate individual panes, but the
         church body is not a blank masonry block. We keep this conservative:
-        only long exterior runs receive narrow arched church windows, including
-        the west run behind the three W-32 magazines.
+        only long exterior runs receive narrow arched church windows. The
+        lower-left run touching the W-39/1 wooden church-edge annex is an
+        internal/service side and is rendered as interior doors instead.
         """
         pid = mesh.parcel_id
         if len(ring) < 3:
@@ -161,25 +166,121 @@ class ChurchBuilder:
             if length < 6.0:
                 continue
 
-            count = max(1, min(3, int(length // 5.5)))
             ux = dx / length
             uy = dy / length
             mx = (a[0] + b[0]) / 2
             my = (a[1] + b[1]) / 2
+            count = _church_body_opening_count(idx, mid=(mx, my), length=length)
             nx, ny = -uy, ux
             if (mx - cx) * nx + (my - cy) * ny < 0:
                 nx, ny = -nx, -ny
 
+            wood_annex_side = _is_wooden_annex_side(mid=(mx, my), length=length)
             for win_idx in range(count):
                 center_u = length * (win_idx + 1) / (count + 1)
                 u0 = max(0.35, center_u - BODY_WINDOW_W / 2)
                 u1 = min(length - 0.35, center_u + BODY_WINDOW_W / 2)
                 if u1 - u0 < BODY_WINDOW_W * 0.65:
                     continue
+                if wood_annex_side:
+                    self._emit_internal_annex_door(
+                        mesh, pid, idx, win_idx, a, ux, uy, nx, ny, u0, u1
+                    )
+                    continue
                 self._emit_arched_body_window(
                     mesh, pid, idx, win_idx, a, ux, uy, nx, ny, u0, u1, z0, spring_z, trim_w
                 )
-        mesh.metadata["church_body_windows"] = "arched windows on long exposed nave faces"
+        mesh.metadata["church_body_windows"] = (
+            "arched windows on exposed nave faces; left church side corrected "
+            "to 2 far-left street panes + 3 panes above W-32 mini magazines; "
+            "W-39/1 wooden-annex side uses interior/service doors instead of "
+            "glass windows"
+        )
+
+    def _emit_internal_annex_door(
+        self,
+        mesh: BuildingMesh,
+        pid: str,
+        seg_idx: int,
+        door_idx: int,
+        start: tuple[float, float],
+        ux: float,
+        uy: float,
+        nx: float,
+        ny: float,
+        u0: float,
+        u1: float,
+    ) -> None:
+        z0 = PLINTH_HEIGHT + 0.10
+        z1 = 2.58
+        trim_w = 0.12
+
+        def p(u: float, z: float, out: float = 0.058) -> tuple[float, float, float]:
+            return (
+                start[0] + ux * u + nx * out,
+                start[1] + uy * u + ny * out,
+                z,
+            )
+
+        sid = f"{pid}.internal_annex_door.{seg_idx}.{door_idx}"
+        mesh.add_quad(
+            p0=p(u0, z0),
+            p1=p(u0, z1),
+            p2=p(u1, z1),
+            p3=p(u1, z0),
+            role="Door",
+            surface_id=f"{sid}.panel",
+            material_key="church_panel_shadow",
+        )
+        mesh.add_quad(
+            p0=p(u0 + 0.04, z0 + 0.10, 0.065),
+            p1=p(u0 + 0.04, z1 - 0.14, 0.065),
+            p2=p(u0 + 0.09, z1 - 0.14, 0.065),
+            p3=p(u0 + 0.09, z0 + 0.10, 0.065),
+            role="Mullion",
+            surface_id=f"{sid}.left_raised_panel",
+            material_key="church_stone_shadow",
+        )
+        mesh.add_quad(
+            p0=p(u1 - 0.09, z0 + 0.10, 0.065),
+            p1=p(u1 - 0.09, z1 - 0.14, 0.065),
+            p2=p(u1 - 0.04, z1 - 0.14, 0.065),
+            p3=p(u1 - 0.04, z0 + 0.10, 0.065),
+            role="Mullion",
+            surface_id=f"{sid}.right_raised_panel",
+            material_key="church_stone_shadow",
+        )
+        mesh.add_quad(
+            p0=p((u0 + u1) / 2 - 0.018, z0 + 0.10, 0.068),
+            p1=p((u0 + u1) / 2 - 0.018, z1 - 0.10, 0.068),
+            p2=p((u0 + u1) / 2 + 0.018, z1 - 0.10, 0.068),
+            p3=p((u0 + u1) / 2 + 0.018, z0 + 0.10, 0.068),
+            role="Mullion",
+            surface_id=f"{sid}.center_seam",
+            material_key="church_stone_shadow",
+        )
+        for side, a0, a1 in (
+            ("L", u0 - trim_w, u0),
+            ("R", u1, u1 + trim_w),
+        ):
+            mesh.add_quad(
+                p0=p(a0, z0 - 0.02, 0.075),
+                p1=p(a0, z1 + 0.05, 0.075),
+                p2=p(a1, z1 + 0.05, 0.075),
+                p3=p(a1, z0 - 0.02, 0.075),
+                role="JambSurface",
+                surface_id=f"{sid}.jamb.{side}",
+                material_key="church_stone_light",
+            )
+        mesh.add_quad(
+            p0=p(u0 - trim_w, z1, 0.075),
+            p1=p(u0 - trim_w, z1 + 0.16, 0.075),
+            p2=p(u1 + trim_w, z1 + 0.16, 0.075),
+            p3=p(u1 + trim_w, z1, 0.075),
+            role="HeaderSurface",
+            surface_id=f"{sid}.lintel",
+            material_key="church_stone_light",
+        )
 
     def _emit_arched_body_window(
         self,
@@ -303,7 +404,7 @@ class ChurchBuilder:
                           surface_id=f"{pid}.roof.tile.{i}",
                           material_key="tile_terracotta")
 
-        # Lead/zinc flashing collar where the roof meets the high drum.
+        # Lead/zinc flashing collar where the low kubbe curb meets the roof.
         outer: list[int] = []
         inner: list[int] = []
         collar_outer_r = DRUM_RADIUS * 1.08
@@ -345,15 +446,15 @@ class ChurchBuilder:
                 surface_id=f"{pid}.drum.{k}",
                 material_key="wall_main",
             )
-        # Narrow arched-window band — flat inset strips on alternating segments.
-        band_h = 1.6
-        band_bot = DRUM_BASE_Z + (DRUM_HEIGHT - band_h) / 2
-        band_top = band_bot + band_h
-        for k in range(0, DOME_SEGMENTS, 2):
-            kp = (k + 1) % DOME_SEGMENTS
-            ang0 = 2 * math.pi * k / DOME_SEGMENTS
-            ang1 = 2 * math.pi * kp / DOME_SEGMENTS
-            rr = DRUM_RADIUS - 0.1
+        # Map reread: only three small glazed marks around the low kubbe,
+        # not a full elevated clerestory band.
+        band_bot = DRUM_BASE_Z + 0.14
+        band_top = min(top_z - 0.08, band_bot + 0.36)
+        for win_idx, center_deg in enumerate((18.0, 138.0, 258.0)):
+            span_deg = 18.0
+            ang0 = math.radians(center_deg - span_deg / 2.0)
+            ang1 = math.radians(center_deg + span_deg / 2.0)
+            rr = DRUM_RADIUS - 0.06
             x0, y0 = cx + rr * math.cos(ang0), cy + rr * math.sin(ang0)
             x1, y1 = cx + rr * math.cos(ang1), cy + rr * math.sin(ang1)
             mesh.add_quad(
@@ -362,7 +463,7 @@ class ChurchBuilder:
                 p2=(x1, y1, band_top),
                 p3=(x1, y1, band_bot),
                 role="Window",
-                surface_id=f"{pid}.drum.window.{k}",
+                surface_id=f"{pid}.kubbe.low_glazed_mark.{win_idx}",
                 material_key="window_glass",
             )
 
@@ -383,7 +484,7 @@ class ChurchBuilder:
         for r_idx in range(1, DOME_RINGS + 1):
             phi = (math.pi / 2) * (r_idx / DOME_RINGS)
             rr = DOME_RADIUS * math.cos(phi)
-            z = base_z + DOME_RADIUS * math.sin(phi)
+            z = base_z + DOME_RISE * math.sin(phi)
             curr: list[int] = []
             for k in range(DOME_SEGMENTS):
                 ang = 2 * math.pi * k / DOME_SEGMENTS
@@ -659,6 +760,38 @@ def _load_w39_1_polygon() -> Polygon | None:
         if "W-39/1" in (f["properties"].get("parcel_ids_matched") or []):
             return shape(f["geometry"])
     return None
+
+
+def _is_wooden_annex_side(mid: tuple[float, float], length: float) -> bool:
+    # The church ring is local to the church centroid. The W-39/1 wooden annex
+    # touches the lower-left church edge; the map/photo correction says this
+    # side has internal/service doors, not exterior stained-glass windows.
+    return length > 8.0 and mid[0] < 1.5 and mid[1] < -4.5
+
+
+def _church_body_opening_count(
+    seg_idx: int,
+    *,
+    mid: tuple[float, float],
+    length: float,
+) -> int:
+    """Return map-corrected church body opening count for each exterior run."""
+    # The left/west church side has two short exposed runs on the Pervititch map:
+    # one flat street-facing edge with two panes, and one edge directly above
+    # the three W-32 mini-magazines with three panes.
+    if seg_idx == 0 or _is_w32_shop_overlook_side(mid, length):
+        return 3
+    if seg_idx == 1 or _is_far_left_flat_street_side(mid, length):
+        return 2
+    return max(1, min(3, int(length // 5.5)))
+
+
+def _is_w32_shop_overlook_side(mid: tuple[float, float], length: float) -> bool:
+    return 6.0 <= length <= 8.5 and mid[0] < -8.0 and -1.0 <= mid[1] <= 2.5
+
+
+def _is_far_left_flat_street_side(mid: tuple[float, float], length: float) -> bool:
+    return 6.0 <= length <= 8.5 and mid[0] < -6.0 and mid[1] > 6.0
 
 
 def _vp(mesh: BuildingMesh, idx: int) -> tuple[float, float, float]:
