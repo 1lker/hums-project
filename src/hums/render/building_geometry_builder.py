@@ -485,82 +485,153 @@ def _emit_camli_church_entrance(mesh: BuildingMesh, building: Building) -> None:
         half = min(0.62, max(0.40, length * 0.25))
         u0, u1 = mid - half, mid + half
     z0 = 0.05
-    door_top = min(2.35, max(2.05, op.height_m))
+    door_top = min(2.46, max(2.12, op.height_m))
     leaf_mid = (u0 + u1) / 2.0
+
+    # Arched glazed fanlight over the door: this is the front evidence for "camli".
+    fan_u0 = max(0.08, u0 - 0.28)
+    fan_u1 = min(length - 0.08, u1 + 0.28)
+    fan_bottom = door_top + 0.02
+    spring = fan_bottom + 0.45
+    arch_rise = min(0.68, max(0.42, (fan_u1 - fan_u0) * 0.34))
+    portal_u0 = max(0.04, fan_u0 - 0.13)
+    portal_u1 = min(length - 0.04, fan_u1 + 0.13)
+    portal_top = spring + arch_rise + 0.22
+
+    # Warm ochre/stone portal. The photo shows opaque plaster walls with a
+    # dressed yellow surround, not a glass shopfront.
+    _wall_quad(mesh, pid, p, portal_u0, 0.0, portal_u1, door_top + 0.20,
+               "JambSurface", "church_stone_light", f"camli_entry.portal.back.{seg_idx}", out=0.064)
+    _wall_quad(mesh, pid, p, portal_u0, 0.0, portal_u0 + 0.10, portal_top - 0.10,
+               "JambSurface", "church_stone_shadow", f"camli_entry.portal.outer_left_shadow.{seg_idx}", out=0.083)
+    _wall_quad(mesh, pid, p, portal_u1 - 0.10, 0.0, portal_u1, portal_top - 0.10,
+               "JambSurface", "church_stone_shadow", f"camli_entry.portal.outer_right_shadow.{seg_idx}", out=0.083)
+    _wall_quad(mesh, pid, p, portal_u0 + 0.08, 0.0, u0 - 0.04, door_top + 0.16,
+               "JambSurface", "church_trim_ochre", f"camli_entry.portal.left_pilaster.{seg_idx}", out=0.092)
+    _wall_quad(mesh, pid, p, u1 + 0.04, 0.0, portal_u1 - 0.08, door_top + 0.16,
+               "JambSurface", "church_trim_ochre", f"camli_entry.portal.right_pilaster.{seg_idx}", out=0.092)
+    _wall_quad(mesh, pid, p, portal_u0 + 0.12, 0.0, portal_u1 - 0.12, 0.16,
+               "SillSurface", "church_stone_shadow", f"camli_entry.threshold.shadow.{seg_idx}", out=0.12)
+    _wall_quad(mesh, pid, p, u0 - 0.10, 0.02, u1 + 0.10, 0.22,
+               "SillSurface", "plinth_stone", f"camli_entry.threshold.marble.{seg_idx}", out=0.145)
+    _wall_line(mesh, pid, p, u0 - 0.08, 0.24, u1 + 0.08, 0.24,
+               0.035, "church_stone_shadow", f"camli_entry.threshold.front_line.{seg_idx}", out=0.155)
 
     # Cover the generic dark door with the photographed white double-leaf church door.
     for name, a, b in (("left_leaf", u0, leaf_mid), ("right_leaf", leaf_mid, u1)):
         _wall_quad(mesh, pid, p, a, z0, b, door_top, "Door",
-                   "church_door_white", f"camli_entry.door.{seg_idx}.{door_idx}.{name}", out=0.075)
+                   "church_door_white", f"camli_entry.door.{seg_idx}.{door_idx}.{name}", out=0.115)
     _wall_line(mesh, pid, p, leaf_mid, z0 + 0.08, leaf_mid, door_top - 0.08,
-               0.035, "church_iron_dark", f"camli_entry.door.{seg_idx}.{door_idx}.center_gap", out=0.095)
+               0.045, "church_iron_dark", f"camli_entry.door.{seg_idx}.{door_idx}.center_gap", out=0.145)
 
-    # Simple raised panels on the white leaves.
+    # One dark reveal reads like the partly open black entry visible in the reference photo.
+    reveal_u0 = min(u1 - 0.16, leaf_mid + 0.10)
+    reveal_u1 = min(u1 - 0.05, reveal_u0 + 0.30)
+    if reveal_u1 > reveal_u0:
+        _wall_quad(mesh, pid, p, reveal_u0, z0 + 0.14, reveal_u1, door_top - 0.12,
+                   "Door", "church_iron_dark", f"camli_entry.door.open_shadow.{seg_idx}", out=0.155)
+
+    # Raised moulded panels on the white leaves.
     panel_margin = 0.10
     for leaf_name, a, b in (("left", u0, leaf_mid), ("right", leaf_mid, u1)):
         inner_a = a + panel_margin
         inner_b = b - panel_margin
         if inner_b <= inner_a:
             continue
-        for n, (pa, pb) in enumerate(((0.35, 0.95), (1.15, 1.75))):
+        for n, (pa, pb) in enumerate(((0.34, 0.88), (1.04, 1.56), (1.72, 2.16))):
+            if pb > door_top - 0.10:
+                continue
             _wall_quad(mesh, pid, p, inner_a, pa, inner_b, pb, "Door",
-                       "trim", f"camli_entry.door.{leaf_name}.panel.{n}", out=0.088)
+                       "church_panel_shadow", f"camli_entry.door.{leaf_name}.panel.{n}", out=0.150)
             _wall_quad(mesh, pid, p, inner_a + 0.035, pa + 0.035,
                        inner_b - 0.035, pb - 0.035, "Door",
-                       "church_door_white", f"camli_entry.door.{leaf_name}.panel_inner.{n}", out=0.094)
+                       "church_door_white", f"camli_entry.door.{leaf_name}.panel_inner.{n}", out=0.158)
+        _wall_line(mesh, pid, p, inner_a, z0 + 0.08, inner_a, door_top - 0.12,
+                   0.022, "church_panel_shadow", f"camli_entry.door.{leaf_name}.left_stile.{seg_idx}", out=0.162)
+        _wall_line(mesh, pid, p, inner_b, z0 + 0.08, inner_b, door_top - 0.12,
+                   0.022, "church_panel_shadow", f"camli_entry.door.{leaf_name}.right_stile.{seg_idx}", out=0.162)
 
     # Ochre trim/jambs matching the photographed entrance surround.
-    trim_w = 0.11
+    trim_w = 0.14
     _wall_quad(mesh, pid, p, u0 - trim_w, z0, u0, door_top + 0.08, "JambSurface",
-               "church_trim_ochre", f"camli_entry.trim.left.{seg_idx}", out=0.09)
+               "church_trim_ochre", f"camli_entry.trim.left.{seg_idx}", out=0.170)
     _wall_quad(mesh, pid, p, u1, z0, u1 + trim_w, door_top + 0.08, "JambSurface",
-               "church_trim_ochre", f"camli_entry.trim.right.{seg_idx}", out=0.09)
+               "church_trim_ochre", f"camli_entry.trim.right.{seg_idx}", out=0.170)
     _wall_quad(mesh, pid, p, u0 - trim_w, door_top - 0.05, u1 + trim_w, door_top + 0.10,
-               "HeaderSurface", "church_trim_ochre", f"camli_entry.trim.lintel.{seg_idx}", out=0.09)
+               "HeaderSurface", "church_trim_ochre", f"camli_entry.trim.lintel.{seg_idx}", out=0.170)
+    for knob_u in (leaf_mid - 0.10, leaf_mid + 0.10):
+        _wall_disk(mesh, pid, p, knob_u, 1.05, 0.045, "church_lamp_gold",
+                   f"camli_entry.door.knob.{seg_idx}.{knob_u:.2f}", out=0.178, segments=12, role="Door")
 
-    # Arched glazed fanlight over the door: this is the front evidence for "camli".
-    fan_u0 = max(0.08, u0 - 0.24)
-    fan_u1 = min(length - 0.08, u1 + 0.24)
-    fan_bottom = door_top + 0.02
-    spring = fan_bottom + 0.42
-    arch_rise = min(0.58, max(0.34, (fan_u1 - fan_u0) * 0.32))
     arc = []
-    steps = 12
+    steps = 18
     for i in range(steps + 1):
         t = i / steps
         u = fan_u0 + (fan_u1 - fan_u0) * t
         z = spring + arch_rise * math.sin(math.pi * t)
         arc.append((u, z))
+    outer_arc = []
+    for i in range(steps + 1):
+        t = i / steps
+        u = portal_u0 + (portal_u1 - portal_u0) * t
+        z = spring + 0.04 + (arch_rise + 0.22) * math.sin(math.pi * t)
+        outer_arc.append((u, z))
+    _wall_poly(
+        mesh, pid, p,
+        [(portal_u0, door_top + 0.03), (portal_u0, spring + 0.04),
+         *outer_arc[1:-1], (portal_u1, spring + 0.04), (portal_u1, door_top + 0.03)],
+        "HeaderSurface", "church_stone_light",
+        f"camli_entry.portal.arch_back.{seg_idx}", out=0.110,
+    )
     fan_points = [(fan_u0, fan_bottom), (fan_u0, spring), *arc[1:-1], (fan_u1, spring), (fan_u1, fan_bottom)]
-    _wall_poly(mesh, pid, p, fan_points, "Window", "window_glass",
-               f"camli_entry.fanlight.glass.{seg_idx}.{door_idx}", out=0.082)
+    _wall_poly(mesh, pid, p, fan_points, "Window", "church_glass_blue",
+               f"camli_entry.fanlight.glass.{seg_idx}.{door_idx}", out=0.185)
     _wall_line(mesh, pid, p, fan_u0, fan_bottom, fan_u1, fan_bottom, 0.045,
-               "church_iron_dark", f"camli_entry.fanlight.base_bar.{seg_idx}", out=0.105)
+               "church_iron_dark", f"camli_entry.fanlight.base_bar.{seg_idx}", out=0.205)
     for i, ((a_u, a_z), (b_u, b_z)) in enumerate(zip(arc, arc[1:])):
-        _wall_line(mesh, pid, p, a_u, a_z, b_u, b_z, 0.045,
-                   "church_trim_ochre", f"camli_entry.fanlight.arch_trim.{seg_idx}.{i}", out=0.106)
+        _wall_line(mesh, pid, p, a_u, a_z, b_u, b_z, 0.060,
+                   "church_trim_ochre", f"camli_entry.fanlight.arch_trim.{seg_idx}.{i}", out=0.212)
 
     center_u = (fan_u0 + fan_u1) / 2.0
     center_z = fan_bottom + 0.08
-    for n, t in enumerate((0.18, 0.34, 0.50, 0.66, 0.82)):
+    for n, t in enumerate((0.12, 0.26, 0.38, 0.50, 0.62, 0.74, 0.88)):
         u = fan_u0 + (fan_u1 - fan_u0) * t
         z = spring + arch_rise * math.sin(math.pi * t)
-        _wall_line(mesh, pid, p, center_u, center_z, u, z, 0.030,
-                   "church_iron_dark", f"camli_entry.fanlight.radial_iron.{seg_idx}.{n}", out=0.112)
+        _wall_line(mesh, pid, p, center_u, center_z, u, z, 0.026,
+                   "church_iron_dark", f"camli_entry.fanlight.radial_iron.{seg_idx}.{n}", out=0.222)
     _wall_line(mesh, pid, p, center_u, fan_bottom + 0.10, center_u, spring + arch_rise * 0.82,
-               0.036, "church_iron_dark", f"camli_entry.fanlight.center_iron.{seg_idx}", out=0.116)
+               0.036, "church_iron_dark", f"camli_entry.fanlight.center_iron.{seg_idx}", out=0.224)
     _wall_line(mesh, pid, p, center_u - 0.17, spring + 0.10, center_u + 0.17, spring + 0.10,
-               0.035, "church_iron_dark", f"camli_entry.fanlight.crossbar.{seg_idx}", out=0.116)
+               0.035, "church_iron_dark", f"camli_entry.fanlight.crossbar.{seg_idx}", out=0.224)
+    for n, t in enumerate((0.32, 0.68)):
+        u = fan_u0 + (fan_u1 - fan_u0) * t
+        _wall_line(mesh, pid, p, u, fan_bottom + 0.06, u, spring + 0.18,
+                   0.022, "church_iron_dark", f"camli_entry.fanlight.vertical_grille.{seg_idx}.{n}", out=0.226)
+    for n, offset in enumerate((-0.34, -0.17, 0.17, 0.34)):
+        _wall_line(mesh, pid, p, center_u + offset * 0.55, fan_bottom + 0.28,
+                   center_u + offset, fan_bottom + 0.45, 0.024, "church_iron_dark",
+                   f"camli_entry.fanlight.scroll.{seg_idx}.{n}", out=0.228)
 
     # Small lamp/cross cue above the arch, kept shallow so it reads as facade detail.
     lamp_u = center_u
     lamp_z = spring + arch_rise + 0.18
+    _wall_disk(mesh, pid, p, lamp_u, lamp_z - 0.10, 0.075, "church_lamp_gold",
+               f"camli_entry.lamp.glow.{seg_idx}", out=0.214, segments=16, role="Mullion")
     _wall_line(mesh, pid, p, lamp_u, lamp_z - 0.16, lamp_u, lamp_z + 0.16,
-               0.035, "church_iron_dark", f"camli_entry.cross.vertical.{seg_idx}", out=0.105)
+               0.035, "church_iron_dark", f"camli_entry.cross.vertical.{seg_idx}", out=0.230)
     _wall_line(mesh, pid, p, lamp_u - 0.12, lamp_z + 0.03, lamp_u + 0.12, lamp_z + 0.03,
-               0.035, "church_iron_dark", f"camli_entry.cross.horizontal.{seg_idx}", out=0.105)
+               0.035, "church_iron_dark", f"camli_entry.cross.horizontal.{seg_idx}", out=0.230)
+    for side, plaque_center in (("left", portal_u0 - 0.26), ("right", portal_u1 + 0.26)):
+        if 0.26 <= plaque_center <= length - 0.26:
+            _wall_quad(mesh, pid, p, plaque_center - 0.20, 1.62, plaque_center + 0.20, 1.84,
+                       "WallSurface", "church_plaque_blue", f"camli_entry.side_plaque.{side}.{seg_idx}", out=0.120)
+            _wall_line(mesh, pid, p, plaque_center - 0.14, 1.74, plaque_center + 0.14, 1.74,
+                       0.020, "church_lamp_gold", f"camli_entry.side_plaque.line1.{side}.{seg_idx}", out=0.136)
+            _wall_line(mesh, pid, p, plaque_center - 0.10, 1.68, plaque_center + 0.10, 1.68,
+                       0.018, "church_lamp_gold", f"camli_entry.side_plaque.line2.{side}.{seg_idx}", out=0.136)
     mesh.metadata["photo_guided_camli_entry"] = (
-        "User photo: normal plaster walls; glass at top/roof and arched fanlight over white church door"
+        "User photo: church entrance with opaque plaster walls, white double door, "
+        "ochre stone portal, arched glass/iron fanlight, plaques, lamp, and threshold"
     )
 
 
@@ -603,6 +674,30 @@ def _wall_poly(
     if len(points) < 3:
         return
     verts = [mesh.add_vertex(*p(u, z, out)) for u, z in points]
+    mesh.add_face(verts, role=role, surface_id=f"{pid}.{name}", material_key=material_key)
+
+
+def _wall_disk(
+    mesh: BuildingMesh,
+    pid: str,
+    p,
+    center_u: float,
+    center_z: float,
+    radius: float,
+    material_key: str,
+    name: str,
+    out: float,
+    segments: int = 16,
+    role: str = "Mullion",
+) -> None:
+    if radius <= 0 or segments < 6:
+        return
+    verts = []
+    for i in range(segments):
+        ang = 2 * math.pi * i / segments
+        u = center_u + math.cos(ang) * radius
+        z = center_z + math.sin(ang) * radius
+        verts.append(mesh.add_vertex(*p(u, z, out)))
     mesh.add_face(verts, role=role, surface_id=f"{pid}.{name}", material_key=material_key)
 
 

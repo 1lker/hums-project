@@ -510,10 +510,10 @@ class ManualRenderer:
         for op in seg.openings:
             if op.kind != "door":
                 continue
-            width = min(1.45, max(0.95, seg.length_m - 0.55))
+            width = min(1.72, max(1.12, seg.length_m - 0.42))
             op.position_along_wall_m = round(max(0.18, (seg.length_m - width) / 2.0), 3)
             op.width_m = round(width, 3)
-            op.height_m = 2.32
+            op.height_m = 2.38
             op.style = "arched"
             op.frame_profile = "moulded"
             op.color_source = "map+photo:ayia-efimia-camli-entrance-white-double-door"

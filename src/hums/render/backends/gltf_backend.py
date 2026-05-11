@@ -207,13 +207,15 @@ def _material_for(root: gl.GLTF2, palette, material_key: str, meta: dict) -> int
     alpha = 0.75 if meta.get("footprint_source") == "stub" else 1.0
     if material_key == "window_glass":
         alpha = min(alpha, 0.45)
+    elif material_key == "church_glass_blue":
+        alpha = min(alpha, 0.52)
     cache_key = f"{material_key}|{meta.get('footprint_source')}|{rgb}|{alpha}"
     if cache_key in root._material_cache:  # type: ignore[attr-defined]
         return root._material_cache[cache_key]  # type: ignore[attr-defined]
 
     metallic = 0.0
     roughness = 0.85
-    if material_key == "window_glass":
+    if material_key in {"window_glass", "church_glass_blue"}:
         roughness = 0.25
     elif material_key in {"sheet_metal_grey", "dome_lead"}:
         metallic = 0.18
@@ -225,6 +227,9 @@ def _material_for(root: gl.GLTF2, palette, material_key: str, meta: dict) -> int
     elif material_key == "fountain_water":
         alpha = 0.58
         roughness = 0.18
+    elif material_key == "church_lamp_gold":
+        metallic = 0.12
+        roughness = 0.34
 
     mat = gl.Material(
         name=material_key,
@@ -318,6 +323,12 @@ def _color_for(palette, material_key: str) -> tuple[int, int, int]:
         "church_door_white": (228, 224, 214),
         "church_trim_ochre": (188, 153, 70),
         "church_iron_dark": (26, 26, 24),
+        "church_stone_light": (216, 196, 155),
+        "church_stone_shadow": (126, 105, 74),
+        "church_panel_shadow": (164, 157, 146),
+        "church_glass_blue": (154, 183, 186),
+        "church_plaque_blue": (63, 109, 137),
+        "church_lamp_gold": (202, 154, 62),
     }
     v = mapping.get(material_key, fallback)
     return (int(v[0]), int(v[1]), int(v[2]))
