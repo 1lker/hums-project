@@ -17,7 +17,7 @@ Doors, shopfronts, and vitrines are restricted to map/manual evidence. Upper-flo
 | W-32#1 | A | near-39-open-32-magazine.shp | 2 | 1 | 0 | 0 | map:pervititch:magasin-entry: 1<br>Inside block 147; massive stone; arrow → W toward Sögütlü Çeşme confirmed; Class A load-bearing |
 | W-32#2 | A | near-39-open-32-the last-corner-triangular-magazine.shp | 1 | 1 | 0 | 0 | map:pervititch:magasin-entry: 1<br>Inside block 147; massive stone; arrow → W toward Sögütlü Çeşme confirmed; Class A load-bearing |
 | W-32#3 | A | near-39-open-32-the middle-magazine.kml | 2 | 1 | 0 | 0 | map:pervititch:magasin-entry: 1<br>Inside block 147; massive stone; arrow → W toward Sögütlü Çeşme confirmed; Class A load-bearing |
-| W-39/2 | Infrastructure | cesme-fountain.kml | 6 | 1 | 0 | 0 | map+photo:cesme-left-side-adjacent-door: 1 |
+| W-39/2 | Infrastructure | cesme-fountain.kml | 6 | 1 | 0 | 0 | map:pervititch:39-2-entrance-mounted-to-wall: 1 |
 | N-40-42.north_two_storey | C | building-entrence-40-42.shp | manual | 2 | 0 | 2 | manual map-zoned replacement for N-40, N-42 |
 | N-40-42.middle_four_storey | C | building-entrence-40-42.shp | manual | 0 | 0 | 3 | manual map-zoned replacement for N-40, N-42 |
 | N-40-42.south_three_storey_vitrine | C | building-entrence-40-42.shp | manual | 1 | 1 | 2 | manual map-zoned replacement for N-40, N-42 |
