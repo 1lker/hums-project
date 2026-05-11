@@ -128,7 +128,7 @@ class ManualRenderer:
             mesh.metadata["source_footprint_file"] = label.footprint_ref
             mesh.metadata["manual_label"] = label.label
             mesh.metadata["manual_zone"] = z.id
-            mesh.metadata["opening_counts"] = _mesh_opening_counts(mesh)
+            mesh.metadata["opening_counts"] = self._opening_counts(building)
             meshes.append(mesh)
 
         return label, meshes, block_centroid
@@ -805,21 +805,6 @@ def _zone_wants_vitrine(zone: Zone) -> bool:
     return "vitr" in text or "cam" in text or "glaz" in text
 
 
-def _mesh_opening_counts(mesh) -> dict[str, int]:
-    counts = {"door": 0, "shop_window": 0, "window": 0}
-    role_map = {
-        "Door": "door",
-        "Window": "window",
-    }
-    for face in mesh.faces:
-        key = role_map.get(face.semantic_role)
-        if key:
-            counts[key] += 1
-        elif "shop_window" in face.surface_id:
-            counts["shop_window"] += 1
-    return counts
-
-
 def _remove_n50_cut_wall_faces(label: ManualLabel, source_footprint: Polygon, building: Building, mesh) -> None:
     if label.label != "N-50" or building.local_frame is None:
         return
@@ -838,6 +823,7 @@ def _remove_n50_cut_wall_faces(label: ManualLabel, source_footprint: Polygon, bu
         near_source = buf.intersection(source_edge.buffer(0.05)).area
         if near_void > 0.035 and near_void > near_source + 0.01:
             prefixes.append(f"{building.parcel_id}.wall.{seg.face}.{idx}.")
+            seg.openings = []
 
     if not prefixes:
         return
