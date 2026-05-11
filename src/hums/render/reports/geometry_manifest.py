@@ -213,6 +213,9 @@ def _write_roof_visual_audit(scene: SceneGraph, path: Path) -> None:
                 note += f"; clocher {clocher_top} m from {clocher_src}"
             else:
                 note = "special church roof: low tile body, high drum/kubbe, clocher"
+        direction = mesh.metadata.get("roof_slope_direction")
+        if direction and mesh.parcel_id in {"E-10", "E-12", "E-14"}:
+            note = f"{note}; {direction}" if note else str(direction)
         lines.append(
             "| {pid} | {shape} | {material} | {pitch} | {keys} | {note} |".format(
                 pid=mesh.parcel_id,
