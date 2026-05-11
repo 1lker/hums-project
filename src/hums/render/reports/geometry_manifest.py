@@ -97,6 +97,7 @@ def _write_opening_audit(scene: SceneGraph, path: Path) -> None:
         return
 
     buildings = json.loads(buildings_path.read_text())
+    visible_meshes = {mesh.parcel_id: mesh for mesh in scene.buildings}
     replaced_parcels = {
         parcel_id
         for mesh in scene.buildings
@@ -113,20 +114,26 @@ def _write_opening_audit(scene: SceneGraph, path: Path) -> None:
             continue
         if b.get("footprint_source") in {"missing", "absorbed"}:
             continue
+        mesh = visible_meshes.get(b.get("parcel_id"))
         segments = b.get("wall_segments") or []
         counts = {"door": 0, "shop_window": 0, "window": 0}
         source_counts: dict[str, int] = {}
-        for seg in segments:
-            for op in seg.get("openings") or []:
-                kind = op.get("kind")
-                if kind in counts:
-                    counts[kind] += 1
-                src = op.get("color_source") or "unknown"
-                source_counts[src] = source_counts.get(src, 0) + 1
+        if mesh and mesh.metadata.get("opening_counts"):
+            counts.update(mesh.metadata.get("opening_counts") or {})
+            source_counts.update(mesh.metadata.get("opening_source_counts") or {})
+        else:
+            for seg in segments:
+                for op in seg.get("openings") or []:
+                    kind = op.get("kind")
+                    if kind in counts:
+                        counts[kind] += 1
+                    src = op.get("color_source") or "unknown"
+                    source_counts[src] = source_counts.get(src, 0) + 1
 
         notes = []
         bim_notes = (b.get("excel_snapshot") or {}).get("bim_notes")
-        source_text = " ".join(str(v) for v in (bim_notes, b.get("notes") or {}) if v).lower()
+        visible_notes = (mesh.metadata.get("notes") if mesh else None) or b.get("notes") or {}
+        source_text = " ".join(str(v) for v in (bim_notes, visible_notes) if v).lower()
         if counts["door"] == 0 and counts["shop_window"] == 0 and counts["window"] == 0:
             if b.get("structure_type") != "building":
                 notes.append("non-building asset")
@@ -137,6 +144,8 @@ def _write_opening_audit(scene: SceneGraph, path: Path) -> None:
         notes.extend(f"{src}: {n}" for src, n in sorted(source_counts.items()))
         if bim_notes and any(token in str(bim_notes).lower() for token in ("no street", "internal", "glazed", "dual", "arrow")):
             notes.append(str(bim_notes).replace("|", "/"))
+        if isinstance(visible_notes, dict) and visible_notes.get("map_review_2026_05_11"):
+            notes.append(str(visible_notes["map_review_2026_05_11"]).replace("|", "/"))
 
         lines.append(
             "| {pid} | {mat} | {footprint} | {streets} | {doors} | {shops} | {windows} | {notes} |".format(

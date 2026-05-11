@@ -52,6 +52,8 @@ class BuildingGeometryBuilder:
                 "roof_slope_direction": building.roof.slope_direction if building.roof else None,
                 "roof_ridge_axis_hint": building.roof.ridge_axis_hint if building.roof else None,
                 "source_footprint_file": building.provenance.footprint_source_file,
+                "opening_counts": _opening_counts(building),
+                "opening_source_counts": _opening_source_counts(building),
             },
         )
 
@@ -256,3 +258,21 @@ def _skylight_top_z(building: Building, eaves_z: float, roof_span_m: float) -> f
     if shape in {"gable", "hip", "complex_pitched", "mansard"}:
         return eaves_z + max(0.35, min((roof_span_m / 2.0) * math.tan(pitch_rad), 3.0)) + 0.06
     return eaves_z + 0.35
+
+
+def _opening_counts(building: Building) -> dict[str, int]:
+    counts = {"door": 0, "shop_window": 0, "window": 0}
+    for seg in building.wall_segments:
+        for op in seg.openings:
+            if op.kind in counts:
+                counts[op.kind] += 1
+    return counts
+
+
+def _opening_source_counts(building: Building) -> dict[str, int]:
+    counts: dict[str, int] = {}
+    for seg in building.wall_segments:
+        for op in seg.openings:
+            source = op.color_source or "unknown"
+            counts[source] = counts.get(source, 0) + 1
+    return counts
