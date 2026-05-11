@@ -381,6 +381,238 @@ def _longest_edge_axis(ring: list[tuple[float, float]]) -> tuple[float, float]:
     return axis
 
 
+def _fountain_front_frame(
+    ring: list[tuple[float, float]],
+) -> tuple[float, float, float, float, float, float, float] | None:
+    if len(ring) < 2:
+        return None
+    cx_poly = sum(x for x, _ in ring) / len(ring)
+    cy_poly = sum(y for _, y in ring) / len(ring)
+    best = None
+    best_len = 0.0
+    for i, (ax, ay) in enumerate(ring):
+        bx, by = ring[(i + 1) % len(ring)]
+        dx = bx - ax
+        dy = by - ay
+        length = math.hypot(dx, dy)
+        if length <= best_len:
+            continue
+        ux = dx / length
+        uy = dy / length
+        nx = -uy
+        ny = ux
+        mx = (ax + bx) / 2.0
+        my = (ay + by) / 2.0
+        # Choose the normal pointing away from the polygon centroid.
+        if ((mx + nx) - cx_poly) ** 2 + ((my + ny) - cy_poly) ** 2 < ((mx - nx) - cx_poly) ** 2 + ((my - ny) - cy_poly) ** 2:
+            nx = -nx
+            ny = -ny
+        best = (mx, my, ux, uy, nx, ny, length)
+        best_len = length
+    return best
+
+
+def _facade_quad(
+    mesh: BuildingMesh,
+    pid: str,
+    p,
+    u0: float,
+    z0: float,
+    u1: float,
+    z1: float,
+    material_key: str,
+    name: str,
+    out: float = 0.08,
+) -> None:
+    if u1 <= u0 or z1 <= z0:
+        return
+    mesh.add_quad(
+        p0=p(u0, z0, out),
+        p1=p(u0, z1, out),
+        p2=p(u1, z1, out),
+        p3=p(u1, z0, out),
+        role="MonumentBody",
+        surface_id=f"{pid}.{name}",
+        material_key=material_key,
+    )
+
+
+def _facade_poly(
+    mesh: BuildingMesh,
+    pid: str,
+    p,
+    points: list[tuple[float, float]],
+    material_key: str,
+    name: str,
+    out: float = 0.08,
+) -> None:
+    if len(points) < 3:
+        return
+    idx = [mesh.add_vertex(*p(u, z, out)) for u, z in points]
+    mesh.add_face(
+        idx,
+        role="MonumentBody",
+        surface_id=f"{pid}.{name}",
+        material_key=material_key,
+    )
+
+
+def _facade_profile_strip(
+    mesh: BuildingMesh,
+    pid: str,
+    p,
+    points: list[tuple[float, float]],
+    thickness: float,
+    material_key: str,
+    name: str,
+    center: tuple[float, float],
+    out: float = 0.10,
+) -> None:
+    if len(points) < 2:
+        return
+    cu, cz = center
+    half = thickness / 2.0
+    for i, ((u0, z0), (u1, z1)) in enumerate(zip(points, points[1:])):
+        du = u1 - u0
+        dz = z1 - z0
+        length = math.hypot(du, dz)
+        if length <= 0.01:
+            continue
+        pu = -dz / length
+        pz = du / length
+        mu = (u0 + u1) / 2.0
+        mz = (z0 + z1) / 2.0
+        if (pu * (mu - cu) + pz * (mz - cz)) < 0:
+            pu = -pu
+            pz = -pz
+        mesh.add_quad(
+            p0=p(u0 - pu * half, z0 - pz * half, out),
+            p1=p(u0 + pu * half, z0 + pz * half, out),
+            p2=p(u1 + pu * half, z1 + pz * half, out),
+            p3=p(u1 - pu * half, z1 - pz * half, out),
+            role="MonumentBody",
+            surface_id=f"{pid}.{name}.{i}",
+            material_key=material_key,
+        )
+
+
+def _facade_line(
+    mesh: BuildingMesh,
+    pid: str,
+    p,
+    u0: float,
+    z0: float,
+    u1: float,
+    z1: float,
+    width: float,
+    material_key: str,
+    name: str,
+    out: float = 0.12,
+) -> None:
+    du = u1 - u0
+    dz = z1 - z0
+    length = math.hypot(du, dz)
+    if length <= 0.01:
+        return
+    pu = -dz / length * width / 2.0
+    pz = du / length * width / 2.0
+    mesh.add_quad(
+        p0=p(u0 - pu, z0 - pz, out),
+        p1=p(u0 + pu, z0 + pz, out),
+        p2=p(u1 + pu, z1 + pz, out),
+        p3=p(u1 - pu, z1 - pz, out),
+        role="MonumentBody",
+        surface_id=f"{pid}.{name}",
+        material_key=material_key,
+    )
+
+
+def _facade_disk(
+    mesh: BuildingMesh,
+    pid: str,
+    p,
+    u: float,
+    z: float,
+    radius: float,
+    material_key: str,
+    name: str,
+    out: float = 0.12,
+    segments: int = 20,
+) -> None:
+    points = [
+        (u + math.cos(math.tau * i / segments) * radius,
+         z + math.sin(math.tau * i / segments) * radius)
+        for i in range(segments)
+    ]
+    _facade_poly(mesh, pid, p, points, material_key, name, out=out)
+
+
+def _facade_box(
+    mesh: BuildingMesh,
+    pid: str,
+    p,
+    u0: float,
+    u1: float,
+    out0: float,
+    out1: float,
+    z0: float,
+    z1: float,
+    material_key: str,
+    name: str,
+) -> None:
+    if u1 <= u0 or out1 <= out0 or z1 <= z0:
+        return
+    corners = {
+        "000": p(u0, z0, out0), "100": p(u1, z0, out0),
+        "110": p(u1, z1, out0), "010": p(u0, z1, out0),
+        "001": p(u0, z0, out1), "101": p(u1, z0, out1),
+        "111": p(u1, z1, out1), "011": p(u0, z1, out1),
+    }
+    quads = [
+        ("back", "000", "010", "110", "100"),
+        ("front", "001", "101", "111", "011"),
+        ("left", "000", "001", "011", "010"),
+        ("right", "100", "110", "111", "101"),
+        ("bottom", "000", "100", "101", "001"),
+        ("top", "010", "011", "111", "110"),
+    ]
+    for suffix, a, b, c, d in quads:
+        mesh.add_quad(
+            p0=corners[a],
+            p1=corners[b],
+            p2=corners[c],
+            p3=corners[d],
+            role="MonumentBody",
+            surface_id=f"{pid}.{name}.{suffix}",
+            material_key=material_key,
+        )
+
+
+def _facade_quad_horizontal(
+    mesh: BuildingMesh,
+    pid: str,
+    p,
+    u0: float,
+    u1: float,
+    out0: float,
+    out1: float,
+    z: float,
+    material_key: str,
+    name: str,
+) -> None:
+    if u1 <= u0 or out1 <= out0:
+        return
+    mesh.add_quad(
+        p0=p(u0, z, out0),
+        p1=p(u1, z, out0),
+        p2=p(u1, z, out1),
+        p3=p(u0, z, out1),
+        role="MonumentBody",
+        surface_id=f"{pid}.{name}",
+        material_key=material_key,
+    )
+
+
 def _skylight_top_z(building: Building, eaves_z: float, roof_span_m: float) -> float:
     if not building.roof:
         return eaves_z + 0.35
