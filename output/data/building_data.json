@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-05-12 02:31",
+  "generated_at": "2026-05-12 02:46",
   "model_units": [
     {
       "model_id": "CHURCH",
@@ -983,7 +983,7 @@
       "roof_material": "glass_roof",
       "roof_pitch_deg": "12.0",
       "rendered_roof_materials": "window_glass",
-      "doors": 1,
+      "doors": 2,
       "shopfronts": 0,
       "upper_windows": 0,
       "strict_street_edges": "manual",
@@ -1073,13 +1073,13 @@
       "roof_material": "unknown",
       "roof_pitch_deg": "0.0",
       "rendered_roof_materials": "fountain_basin_stone",
-      "doors": 1,
+      "doors": 0,
       "shopfronts": 0,
       "upper_windows": 0,
       "strict_street_edges": "6",
       "palette_source": "period_default",
-      "roles": "Door, GroundSurface, MonumentBody, RoofSurface",
-      "source_notes": "map:pervititch:39-2-entrance-mounted-to-wall: 1"
+      "roles": "GroundSurface, MonumentBody, RoofSurface",
+      "source_notes": "non-building asset"
     }
   ],
   "source_parcels": [
@@ -2260,7 +2260,7 @@
     {
       "model_id": "W-39/2",
       "flags": "Roof material unreadable/unknown",
-      "notes": "map:pervititch:39-2-entrance-mounted-to-wall: 1"
+      "notes": "non-building asset"
     }
   ],
   "code_legend": [

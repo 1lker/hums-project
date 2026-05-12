@@ -17,7 +17,7 @@ Doors, shopfronts, and vitrines are restricted to map/manual evidence. Upper-flo
 | W-32#1 | A | near-39-open-32-magazine.shp | 2 | 1 | 0 | 0 | map:pervititch:magasin-entry: 1<br>Inside block 147; massive stone; arrow → W toward Sögütlü Çeşme confirmed; Class A load-bearing |
 | W-32#2 | A | near-39-open-32-the last-corner-triangular-magazine.shp | 1 | 1 | 0 | 0 | map:pervititch:magasin-entry: 1<br>Inside block 147; massive stone; arrow → W toward Sögütlü Çeşme confirmed; Class A load-bearing |
 | W-32#3 | A | near-39-open-32-the middle-magazine.kml | 2 | 1 | 0 | 0 | map:pervititch:magasin-entry: 1<br>Inside block 147; massive stone; arrow → W toward Sögütlü Çeşme confirmed; Class A load-bearing |
-| W-39/2 | Infrastructure | cesme-fountain.kml | 6 | 1 | 0 | 0 | map:pervititch:39-2-entrance-mounted-to-wall: 1 |
+| W-39/2 | Infrastructure | cesme-fountain.kml | 6 | 0 | 0 | 0 | non-building asset |
 | N-40-42.north_two_storey | C | building-entrence-40-42.shp | manual | 2 | 0 | 2 | manual map-zoned replacement for N-40, N-42 |
 | N-40-42.middle_four_storey | C | building-entrence-40-42.shp | manual | 0 | 0 | 3 | manual map-zoned replacement for N-40, N-42 |
 | N-40-42.south_three_storey_vitrine | C | building-entrence-40-42.shp | manual | 1 | 1 | 2 | manual map-zoned replacement for N-40, N-42 |
@@ -26,6 +26,6 @@ Doors, shopfronts, and vitrines are restricted to map/manual evidence. Upper-flo
 | N-52-54-E2.corner_mass | B | building-entrence-52-54-02.shp | manual | 3 | 0 | 14 | manual map-zoned replacement for E-2, N-52, N-54 |
 | S-41-43-45-E16.merged_mass | B | building-entrence-41-43-45-16.shp | manual | 4 | 0 | 7 | manual map-zoned replacement for E-16, S-41, S-43, S-45 |
 | W-34-36-FIRIN.bakery_mass | B | building-entrence-34-36-38.shp | manual | 3 | 0 | 20 | manual map-zoned replacement for W-34, W-36 |
-| W-39-1.camli_vitre_passage | B | churche-entrence-camli-area-(39-1,-39-2)-clocher.shp | manual | 1 | 0 | 0 | manual map-zoned replacement for W-39/1 |
+| W-39-1.camli_vitre_passage | B | churche-entrence-camli-area-(39-1,-39-2)-clocher.shp | manual | 2 | 0 | 0 | manual map-zoned replacement for W-39/1 |
 | W-39-1.wooden_church_edge_annex | C | churche-entrence-camli-area-(39-1,-39-2)-clocher.shp | manual | 0 | 0 | 1 | manual map-zoned replacement for W-39/1 |
 | W-39-1.masonry_side_narthex | B | churche-entrence-camli-area-(39-1,-39-2)-clocher.shp | manual | 1 | 0 | 11 | manual map-zoned replacement for W-39/1 |

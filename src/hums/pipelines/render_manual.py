@@ -315,6 +315,7 @@ class ManualRenderer:
         self._place_manual_entrances(label, zone, segments, tracker, zone_pid)
         self._adjust_firin_corner_entrance(label, zone, segments, tracker, zone_pid)
         self._adjust_church_camli_entrance(label, zone, segments, tracker, zone_pid)
+        self._place_w39_2_camli_wall_entrance(label, zone, segments, tracker, zone_pid)
         self._place_church_wooden_annex_window(label, zone, segments, tracker, zone_pid)
         self._place_explicit_vitrine(label, zone, segments, tracker, zone_pid)
         UpperWindowPlacer().place(segments, storeys_proxy, ctx, zone_pid, tracker)
@@ -611,6 +612,43 @@ class ManualRenderer:
             f"wall[{seg.face}].photo_guided_church_door",
             "user-photo:Ayia Efimia entrance",
             "white double door with arched iron/glass fanlight; walls opaque, top roof glass",
+        )
+
+    def _place_w39_2_camli_wall_entrance(self, label: ManualLabel, zone: Zone,
+                                         segments: list[WallSegment], tracker,
+                                         zone_pid: str) -> None:
+        if label.label != "W-39-1" or zone.id != "camli_vitre_passage":
+            return
+        south_faces = [
+            s for s in segments
+            if not s.is_party_wall and s.face == "S" and s.length_m > 2.0
+        ]
+        if not south_faces:
+            return
+        seg = max(south_faces, key=lambda s: s.length_m)
+        seg.openings = [
+            op for op in seg.openings
+            if "39-2-camli-wall-entrance" not in (op.color_source or "")
+        ]
+        width = min(0.96, max(0.78, seg.length_m * 0.075))
+        center = seg.length_m * 0.54
+        pos = max(0.28, min(seg.length_m - width - 0.28, center - width / 2.0))
+        seg.openings.append(Opening(
+            kind="door",
+            storey_level=0,
+            position_along_wall_m=round(pos, 3),
+            width_m=round(width, 3),
+            height_m=2.05,
+            sill_m=0.0,
+            style="rectangular",
+            frame_profile="moulded",
+            color_source="map:pervititch:39-2-camli-wall-entrance",
+        ))
+        tracker.record(
+            zone_pid,
+            f"wall[{seg.face}].w39_2_wall_mounted_entrance",
+            "map+user-correction:pervititch",
+            "39/2 entrance is independent from the fountain and mounted on the Camli passage wall behind it",
         )
 
     def _place_church_wooden_annex_window(self, label: ManualLabel, zone: Zone,

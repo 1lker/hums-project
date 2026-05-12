@@ -386,41 +386,6 @@ class BuildingGeometryBuilder:
             _facade_line(mesh, pid, p, u0, z0, u1, z1, 0.035, "fountain_gold",
                          f"inscription.gold_stroke.{i}", out=0.49)
 
-        # 39/2 entrance: mount the door directly on the existing stone wall
-        # face, with only a tiny reveal so it cannot read as floating.
-        entry_u0 = -facade_w / 2 + 0.22
-        entry_u1 = min(entry_u0 + 0.62, -facade_w / 2 + 0.92)
-        entry_z0 = 0.18
-        entry_z1 = 1.86
-        wall_face_out = 0.16
-        entry_door_out = wall_face_out + 0.004
-        entry_trim_out = wall_face_out + 0.018
-        entry_detail_out = wall_face_out + 0.026
-        _facade_quad(mesh, pid, p, entry_u0 - 0.06, entry_z0 - 0.04,
-                     entry_u1 + 0.06, entry_z1 + 0.08,
-                     "fountain_stone_dark", "w39_2_entry.recess_shadow",
-                     out=wall_face_out + 0.001)
-        _facade_role_quad(mesh, pid, p, entry_u0, entry_z0, entry_u1, entry_z1,
-                          "door_panel", "w39_2_entry.door_panel",
-                          role="Door", out=entry_door_out)
-        for name, u0, u1, z0, z1 in (
-            ("left_jamb", entry_u0 - 0.055, entry_u0, entry_z0, entry_z1 + 0.06),
-            ("right_jamb", entry_u1, entry_u1 + 0.055, entry_z0, entry_z1 + 0.06),
-            ("head", entry_u0 - 0.055, entry_u1 + 0.055, entry_z1, entry_z1 + 0.085),
-            ("threshold", entry_u0 - 0.07, entry_u1 + 0.07, 0.08, entry_z0),
-        ):
-            _facade_quad(mesh, pid, p, u0, z0, u1, z1,
-                         "plinth_stone", f"w39_2_entry.{name}",
-                         out=entry_trim_out)
-        panel_mid = (entry_u0 + entry_u1) / 2.0
-        _facade_line(mesh, pid, p, panel_mid, entry_z0 + 0.10,
-                     panel_mid, entry_z1 - 0.08, 0.020,
-                     "fountain_side_door_shadow",
-                     "w39_2_entry.center_seam", out=entry_detail_out)
-        _facade_disk(mesh, pid, p, entry_u1 - 0.12, 0.92, 0.028,
-                     "fountain_metal", "w39_2_entry.knob",
-                     out=entry_detail_out + 0.020, segments=12)
-
         # Colored ceramic accents make this read as a fountain wall, not a
         # ground marker. The pattern is abstracted from Ottoman fountain tile
         # borders without copying any modern storefront detail.
@@ -471,14 +436,11 @@ class BuildingGeometryBuilder:
             _facade_quad(mesh, pid, p, u, 0.40, u + 0.025, height - 0.42,
                          "fountain_stone_dark", f"stone_joint.vertical.{i}", out=0.405)
 
-        mesh.metadata["opening_counts"] = {"door": 1, "shop_window": 0, "window": 0}
-        mesh.metadata["opening_source_counts"] = {
-            "map:pervititch:39-2-entrance-mounted-to-wall": 1,
-        }
+        mesh.metadata["opening_counts"] = {"door": 0, "shop_window": 0, "window": 0}
         mesh.metadata["photo_guided_detail"] = (
             "Ottoman fountain rebuilt as low plinth + thick carved facade: "
             "recessed pointed niche, kitabe plaque, rosettes, protruding trough; "
-            "39/2 entrance mounted flush to the existing stone wall face"
+            "39/2 entrance is modeled on the adjacent Camli passage wall, not on the fountain mesh"
         )
 
 
@@ -503,7 +465,12 @@ def _emit_camli_church_entrance(mesh: BuildingMesh, building: Building) -> None:
                 candidates.append((seg.length_m, idx, door_idx, seg, op))
     if not candidates:
         return
-    _, seg_idx, door_idx, seg, op = max(candidates, key=lambda item: item[0])
+    church_door_candidates = [
+        item for item in candidates
+        if "ayia-efimia-camli-entrance" in ((item[4].color_source or "").lower())
+        or (item[4].style == "arched" and item[4].frame_profile == "moulded")
+    ]
+    _, seg_idx, door_idx, seg, op = max(church_door_candidates or candidates, key=lambda item: item[0])
     length = seg.length_m
     if length <= 0.8:
         return
